@@ -1,0 +1,8 @@
+(ns canvas.app
+  (:require [canvas.sup :as sup]))
+
+(defn start [type args]
+  (sup/start-link))
+
+(defn stop [state]
+  state)

@@ -1,0 +1,13 @@
+{ application, 'canvas'
+, [ {vsn, git}
+  , {description, ""}
+  , {modules, []}
+  , { applications
+    , [ stdlib
+      , kernel
+      , clojerl
+      ]
+    }
+  , {mod, {'canvas.app', []}}
+  ]
+}.
