@@ -1,0 +1,35 @@
+(ns canvas.core)
+
+(def ^:dynamic *canvas* nil)
+
+(defn stroke
+  ([gray]
+   (stroke gray 255))
+  ([gray alpha]
+   (stroke gray gray gray alpha))
+  ([r g b]
+   (stroke r g b 255))
+  ([r g b alpha]
+   (let [pen (wxPen/new #erl[r g b alpha])]
+     (wxDC/setPen *canvas* pen))))
+
+(defn fill
+  ([gray]
+   (stroke gray 255))
+  ([gray alpha]
+   (stroke gray gray gray alpha))
+  ([r g b]
+   (stroke r g b 255))
+  ([r g b alpha]
+   (let [brush (wxBrush/new #erl[r g b alpha])]
+     (wxDC/setBrush *canvas* brush))))
+
+(defn fill-rect
+  [x y w h]
+  (wxDC/drawRectangle *canvas* #erl[x y] #erl[w h]))
+
+(defmacro defsketch
+  [name & opts]
+  (let [opts (apply hash-map opts)]
+    `(defn ~name []
+       (wx_object/start_link :canvas.sketch ~opts #erl()))))

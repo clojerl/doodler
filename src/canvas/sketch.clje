@@ -1,0 +1,72 @@
+(ns canvas.sketch
+  (:require [canvas.core :as core]))
+
+(def frame-rate 100)
+
+(def interval (int (/ 1000 frame-rate)))
+
+(defn make-frame
+  [title [x y] [w h]]
+  (let [pos #erl[:pos #erl[x y]]
+        size #erl[:size #erl[w h]]
+        opts #erl(pos size)
+        frame (wxFrame/new (wx/new) -1 title opts)]
+    frame))
+
+(defn make-panel
+  [frame]
+  (wxPanel/new frame))
+
+(defn listen
+  ([component event-type]
+   (wxEvtHandler/connect component :paint #erl(:callback)))
+  ([component event-type callback]
+   (wxEvtHandler/connect component :paint #erl(#erl[:callback callback]))))
+
+(defn refresh [frame]
+  (wxWindow/refresh frame))
+
+(defn handle_sync_event
+  [wx obj state]
+  (let [{canvas :canvas
+         frame :frame
+         opts :opts} state
+        draw (:draw opts)
+        dc (wxClientDC/new canvas)]
+    (try
+      (binding [core/*canvas* dc]
+        (when draw (draw)))
+      (finally
+        (wxClientDC/destroy dc)))
+    :ok))
+
+(defn* handle_info
+  ([:draw state]
+   (refresh (:canvas state))
+   #erl[:noreply state])
+
+  ([wx state]
+   (prn wx)
+   #erl[:noreply state]))
+
+(defn make-sketch
+  [opts]
+  (let [frame (make-frame (or (:title opts) "Sketch")
+                          (or (:pos opts) [50 50])
+                          (or (:size opts) [500 300]))
+        canvas (make-panel frame)]
+    (listen canvas :paint)
+    {:frame frame
+     :canvas canvas
+     :opts opts}))
+
+(defn render
+  [draw]
+  (when draw (draw)))
+
+(defn init [opts]
+  (prn opts)
+  (let [{frame :frame :as state} (make-sketch opts)]
+    (wxFrame/show frame)
+    (timer/send_interval interval :draw)
+    #erl[frame state]))

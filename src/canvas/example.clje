@@ -1,0 +1,29 @@
+(ns canvas.example
+  (:require [canvas.core :as core]))
+
+(defn setup
+  []
+  nil)
+
+(defn draw []
+  (core/stroke 100 0 0)
+  (core/fill 0 100 0)
+  (core/fill-rect (+ 80 (rand-int 40))
+                  (+ 80 (rand-int 40))
+                  300
+                  300))
+
+(core/defsketch joni
+  :title "Canvas Examples"
+  :size [500 500]
+  :setup setup
+  :draw draw
+  :bgcolor [255])
+
+(comment
+  (let [frame (wxFrame/new (wx/new) -1 "Hello")]
+    (wxFrame/show frame)
+    (let [canvas (wxGraphicsContext/create frame)
+          pen (wxGraphicsContext/setPen canvas (wxPen/new #erl[100 0 0 255]))]
+      (wxGraphicsContext/drawRectangle canvas 50 50 50 50)
+      (wxGraphicsContext/destroy canvas))))
