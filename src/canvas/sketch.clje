@@ -1,7 +1,7 @@
 (ns canvas.sketch
   (:require [canvas.core :as core]))
 
-(def frame-rate 100)
+(def frame-rate 24)
 
 (def interval (int (/ 1000 frame-rate)))
 
@@ -44,7 +44,6 @@
   ([:draw state]
    (refresh (:canvas state))
    #erl[:noreply state])
-
   ([wx state]
    (prn wx)
    #erl[:noreply state]))
@@ -54,7 +53,9 @@
   (let [frame (make-frame (or (:title opts) "Sketch")
                           (or (:pos opts) [50 50])
                           (or (:size opts) [500 300]))
-        canvas (make-panel frame)]
+        canvas (make-panel frame)
+        bgcolor (apply core/color (:bgcolor opts))]
+    (wxWindow/setBackgroundColour canvas bgcolor)
     (listen canvas :paint)
     {:frame frame
      :canvas canvas

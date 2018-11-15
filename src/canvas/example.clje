@@ -7,11 +7,14 @@
 
 (defn draw []
   (core/stroke 100 0 0)
-  (core/fill 0 100 0)
+  (core/fill 100 0 0 100)
   (core/fill-rect (+ 80 (rand-int 40))
                   (+ 80 (rand-int 40))
                   300
-                  300))
+                  300)
+  (core/circle (+ 80 (rand-int 40))
+               (+ 80 (rand-int 40))
+               (+ 10 (rand-int 40))))
 
 (core/defsketch joni
   :title "Canvas Examples"

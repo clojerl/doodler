@@ -2,31 +2,33 @@
 
 (def ^:dynamic *canvas* nil)
 
-(defn stroke
+(defn color
   ([gray]
-   (stroke gray 255))
+   (color gray 255))
   ([gray alpha]
-   (stroke gray gray gray alpha))
+   (color gray gray gray alpha))
   ([r g b]
-   (stroke r g b 255))
+   (color r g b 255))
   ([r g b alpha]
-   (let [pen (wxPen/new #erl[r g b alpha])]
-     (wxDC/setPen *canvas* pen))))
+   #erl[r g b alpha]))
+
+(defn stroke
+  [& args]
+  (let [pen (wxPen/new (apply color args))]
+    (wxDC/setPen *canvas* pen)))
 
 (defn fill
-  ([gray]
-   (stroke gray 255))
-  ([gray alpha]
-   (stroke gray gray gray alpha))
-  ([r g b]
-   (stroke r g b 255))
-  ([r g b alpha]
-   (let [brush (wxBrush/new #erl[r g b alpha])]
-     (wxDC/setBrush *canvas* brush))))
+  [& args]
+  (let [brush (wxBrush/new (apply color args))]
+    (wxDC/setBrush *canvas* brush)))
 
 (defn fill-rect
   [x y w h]
   (wxDC/drawRectangle *canvas* #erl[x y] #erl[w h]))
+
+(defn circle
+  [x y r]
+  (wxDC/drawCircle *canvas* #erl[x y] r))
 
 (defmacro defsketch
   [name & opts]
