@@ -45,7 +45,6 @@
    (refresh (:canvas state))
    #erl[:noreply state])
   ([wx state]
-   (prn wx)
    #erl[:noreply state]))
 
 (defn make-sketch
@@ -66,7 +65,6 @@
   (when draw (draw)))
 
 (defn init [opts]
-  (prn opts)
   (let [{frame :frame :as state} (make-sketch opts)]
     (wxFrame/show frame)
     (timer/send_interval interval :draw)

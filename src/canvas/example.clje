@@ -1,32 +1,23 @@
 (ns canvas.example
-  (:require [canvas.core :as core]))
+  (:require [canvas.core :as c]))
 
 (defn setup
   []
   nil)
 
 (defn draw []
-  (core/stroke 100 0 0)
-  (core/fill 100 0 0 100)
-  (core/fill-rect (+ 80 (rand-int 40))
-                  (+ 80 (rand-int 40))
-                  300
-                  300)
-  (core/circle (+ 80 (rand-int 40))
-               (+ 80 (rand-int 40))
-               (+ 10 (rand-int 40))))
+  (c/stroke (rand-int 255))
+  (c/stroke-weight (rand-int 10))
+  (c/fill (rand-int 10255))
 
-(core/defsketch joni
-  :title "Canvas Examples"
+  (let [radius (rand-int 100)
+        x      (rand-int 500)
+        y      (rand-int 500)]
+    (c/circle x y radius)))
+
+(c/defsketch example
+  :title "Oh so many circles"
   :size [500 500]
   :setup setup
   :draw draw
-  :bgcolor [255])
-
-(comment
-  (let [frame (wxFrame/new (wx/new) -1 "Hello")]
-    (wxFrame/show frame)
-    (let [canvas (wxGraphicsContext/create frame)
-          pen (wxGraphicsContext/setPen canvas (wxPen/new #erl[100 0 0 255]))]
-      (wxGraphicsContext/drawRectangle canvas 50 50 50 50)
-      (wxGraphicsContext/destroy canvas))))
+  :bgcolor [200])

@@ -17,6 +17,12 @@
   (let [pen (wxPen/new (apply color args))]
     (wxDC/setPen *canvas* pen)))
 
+(defn stroke-weight
+  [weight]
+  (let [pen (wxDC/getPen *canvas*)]
+    (wxPen/setWidth pen weight)
+    (wxDC/setPen *canvas* pen)))
+
 (defn fill
   [& args]
   (let [brush (wxBrush/new (apply color args))]
