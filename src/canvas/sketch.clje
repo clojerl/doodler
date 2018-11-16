@@ -1,9 +1,11 @@
 (ns canvas.sketch
   (:require [canvas.core :as core]))
 
-(def frame-rate 24)
+(def default-frame-rate 60)
 
-(def interval (int (/ 1000 frame-rate)))
+(defn frame-interval
+  [frame-rate]
+  (int (/ 1000 frame-rate)))
 
 (defn make-frame
   [title [x y] [w h]]
@@ -32,12 +34,12 @@
          frame :frame
          opts :opts} state
         draw (:draw opts)
-        dc (wxClientDC/new canvas)]
+        dc (wxPaintDC/new canvas)]
     (try
       (binding [core/*canvas* dc]
         (when draw (draw)))
       (finally
-        (wxClientDC/destroy dc)))
+        (wxPaintDC/destroy dc)))
     :ok))
 
 (defn* handle_info
@@ -56,6 +58,8 @@
         bgcolor (apply core/color (:bgcolor opts))]
     (wxWindow/setBackgroundColour canvas bgcolor)
     (listen canvas :paint)
+    (wxWindow/show frame)
+
     {:frame frame
      :canvas canvas
      :opts opts}))
@@ -66,6 +70,5 @@
 
 (defn init [opts]
   (let [{frame :frame :as state} (make-sketch opts)]
-    (wxFrame/show frame)
-    (timer/send_interval interval :draw)
+    (timer/send_interval (frame-interval default-frame-rate) :draw)
     #erl[frame state]))
