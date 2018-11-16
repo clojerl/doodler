@@ -17,7 +17,7 @@
 
 (c/defsketch example
   :title "Oh so many circles"
-  :size [500 500]
+  :size [323 200]
   :setup setup
   :draw draw
   :bgcolor [200])

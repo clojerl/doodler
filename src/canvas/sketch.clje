@@ -1,7 +1,7 @@
 (ns canvas.sketch
   (:require [canvas.core :as core]))
 
-(def default-frame-rate 60)
+(def default-frame-rate 24)
 
 (defn frame-interval
   [frame-rate]
@@ -15,58 +15,84 @@
         frame (wxFrame/new (wx/new) -1 title opts)]
     frame))
 
-(defn make-panel
+(defn make-canvas
   [frame]
   (wxPanel/new frame))
 
+(defn make-bitmap
+  [canvas]
+  (let [[w h] (wxWindow/getSize canvas)]
+    (wxBitmap/new w h)))
+
 (defn listen
   ([component event-type]
-   (wxEvtHandler/connect component :paint #erl(:callback)))
+   (wxEvtHandler/connect component :paint))
   ([component event-type callback]
-   (wxEvtHandler/connect component :paint #erl(#erl[:callback callback]))))
+   (if (true? callback)
+     (wxEvtHandler/connect component
+                           :paint
+                           #erl(:callback))
+     (wxEvtHandler/connect component
+                           :paint
+                           #erl(#erl[:callback callback])))))
 
-(defn refresh [frame]
-  (wxWindow/refresh frame))
+(defn blit [dc memory-dc]
+  (let [size (wxDC/getSize memory-dc)
+        origin #erl[0, 0]]
+    (wxDC/blit dc origin size memory-dc origin)))
 
-(defn handle_sync_event
-  [wx obj state]
+(defn render
+  [state]
   (let [{canvas :canvas
-         frame :frame
-         opts :opts} state
-        draw (:draw opts)
-        dc (wxPaintDC/new canvas)]
+         bitmap :bitmap} state
+        dc        (wxPaintDC/new canvas)
+        memory-dc (wxMemoryDC/new bitmap)]
     (try
-      (binding [core/*canvas* dc]
-        (when draw (draw)))
+      (blit dc memory-dc)
       (finally
+        (wxMemoryDC/destroy memory-dc)
         (wxPaintDC/destroy dc)))
     :ok))
 
+(defn handle_sync_event
+  [wx obj state]
+  (render state)
+  :ok)
+
 (defn* handle_info
   ([:draw state]
-   (refresh (:canvas state))
+   (let [{canvas :canvas
+          bitmap :bitmap
+          opts   :opts} state
+         draw      (:draw opts)
+         dc        (wxClientDC/new canvas)
+         memory-dc (wxMemoryDC/new bitmap)]
+     (try
+       (binding [core/*canvas* memory-dc]
+         (when draw (draw))
+         (blit dc memory-dc))
+      (finally
+        (wxMemoryDC/destroy memory-dc)
+        (wxClientDC/destroy dc))))
    #erl[:noreply state])
   ([wx state]
    #erl[:noreply state]))
 
 (defn make-sketch
   [opts]
-  (let [frame (make-frame (or (:title opts) "Sketch")
-                          (or (:pos opts) [50 50])
-                          (or (:size opts) [500 300]))
-        canvas (make-panel frame)
+  (let [frame   (make-frame (or (:title opts) "Sketch")
+                            (or (:pos opts) [50 50])
+                            (or (:size opts) [500 300]))
+        canvas  (make-canvas frame)
         bgcolor (apply core/color (:bgcolor opts))]
+    (listen canvas :paint true)
     (wxWindow/setBackgroundColour canvas bgcolor)
-    (listen canvas :paint)
     (wxWindow/show frame)
 
     {:frame frame
      :canvas canvas
+     :bitmap (make-bitmap canvas)
      :opts opts}))
-
-(defn render
-  [draw]
-  (when draw (draw)))
 
 (defn init [opts]
   (let [{frame :frame :as state} (make-sketch opts)]
