@@ -42,39 +42,35 @@
     (wxDC/blit dc origin size memory-dc origin)))
 
 (defn render
-  [state]
+  [state f ctx]
   (let [{canvas :canvas
          bitmap :bitmap} state
-        dc        (wxPaintDC/new canvas)
+        dc        (if (= ctx :paint)
+                    (wxPaintDC/new canvas)
+                    (wxClientDC/new canvas))
         memory-dc (wxMemoryDC/new bitmap)]
     (try
-      (blit dc memory-dc)
+      (binding [core/*canvas* memory-dc]
+        (when f (f))
+        (blit dc memory-dc))
       (finally
         (wxMemoryDC/destroy memory-dc)
-        (wxPaintDC/destroy dc)))
+        (if (= ctx :paint)
+          (wxPaintDC/destroy dc)
+          (wxClientDC/destroy dc))))
     :ok))
 
 (defn handle_sync_event
   [wx obj state]
-  (render state)
+  (render state nil :paint)
   :ok)
 
 (defn* handle_info
   ([:draw state]
-   (let [{canvas :canvas
-          bitmap :bitmap
-          opts   :opts} state
-         draw      (:draw opts)
-         dc        (wxClientDC/new canvas)
-         memory-dc (wxMemoryDC/new bitmap)]
-     (try
-       (binding [core/*canvas* memory-dc]
-         (when draw (draw))
-         (blit dc memory-dc))
-      (finally
-        (wxMemoryDC/destroy memory-dc)
-        (wxClientDC/destroy dc))))
-   #erl[:noreply state])
+   (let [{opts :opts} state
+         draw (:draw opts)]
+     (render state draw :draw)
+     #erl[:noreply state]))
   ([wx state]
    #erl[:noreply state]))
 
@@ -88,13 +84,13 @@
     (listen canvas :paint true)
     (wxWindow/setBackgroundColour canvas bgcolor)
     (wxWindow/show frame)
-
-    {:frame frame
+    {:frame  frame
      :canvas canvas
      :bitmap (make-bitmap canvas)
      :opts opts}))
 
 (defn init [opts]
   (let [{frame :frame :as state} (make-sketch opts)]
-    (timer/send_interval (frame-interval default-frame-rate) :draw)
+    (when-let [setup (-> state :opts :setup)]
+      (render state setup :draw))
     #erl[frame state]))

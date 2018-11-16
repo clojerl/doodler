@@ -44,6 +44,14 @@
   []
   (second (wxDC/getSize *canvas*)))
 
+(defn- frame-interval
+  [frame-rate]
+  (int (/ 1000 frame-rate)))
+
+(defn frame-rate
+  [new-rate]
+  (timer/send_interval (frame-interval new-rate) :draw))
+
 (defmacro defsketch
   [name & opts]
   (let [opts (apply hash-map opts)]

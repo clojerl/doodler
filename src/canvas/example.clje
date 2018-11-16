@@ -3,7 +3,7 @@
 
 (defn setup
   []
-  nil)
+  (c/frame-rate 60))
 
 (defn draw []
   (c/stroke (rand-int 255))
