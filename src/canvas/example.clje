@@ -8,11 +8,11 @@
 (defn draw []
   (c/stroke (rand-int 255))
   (c/stroke-weight (rand-int 10))
-  (c/fill (rand-int 10255))
+  (c/fill (rand-int 255))
 
   (let [radius (rand-int 100)
-        x      (rand-int 500)
-        y      (rand-int 500)]
+        x      (rand-int (c/width))
+        y      (rand-int (c/height))]
     (c/circle x y radius)))
 
 (c/defsketch example

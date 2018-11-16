@@ -36,6 +36,14 @@
   [x y r]
   (wxDC/drawCircle *canvas* #erl[x y] r))
 
+(defn width
+  []
+  (first (wxDC/getSize *canvas*)))
+
+(defn height
+  []
+  (second (wxDC/getSize *canvas*)))
+
 (defmacro defsketch
   [name & opts]
   (let [opts (apply hash-map opts)]
