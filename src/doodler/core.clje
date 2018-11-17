@@ -1,5 +1,5 @@
-(ns canvas.core
-  (:require [canvas.util :as u]))
+(ns doodler.core
+  (:require [doodler.util :as u]))
 
 (def ^:dynamic *canvas* nil)
 
@@ -89,4 +89,4 @@
   [name & opts]
   (let [opts (apply hash-map opts)]
     `(defn ~name []
-       (wx_object/start_link :canvas.sketch ~opts #erl()))))
+       (wx_object/start_link :doodler.sketch ~opts #erl()))))

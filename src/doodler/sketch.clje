@@ -1,6 +1,6 @@
-(ns canvas.sketch
-  (:require [canvas.core :as core]
-            [canvas.util :as u]))
+(ns doodler.sketch
+  (:require [doodler.core :as core]
+            [doodler.util :as u]))
 
 (def default-frame-rate 60)
 

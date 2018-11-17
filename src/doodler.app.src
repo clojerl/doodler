@@ -1,4 +1,4 @@
-{ application, 'canvas'
+{ application, 'doodler'
 , [ {vsn, git}
   , {description, ""}
   , {modules, []}
@@ -8,6 +8,6 @@
       , clojerl
       ]
     }
-  , {mod, {'canvas.app', []}}
+  , {mod, {'doodler.app', []}}
   ]
 }.

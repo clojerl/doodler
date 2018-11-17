@@ -1,5 +1,5 @@
-(ns canvas.example
-  (:require [canvas.core :as c]))
+(ns doodler.example
+  (:require [doodler.core :as c]))
 
 (defn setup
   []

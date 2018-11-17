@@ -1,4 +1,4 @@
-(ns canvas.util)
+(ns doodler.util)
 
 (defn no-fn
   "Does nothing"
