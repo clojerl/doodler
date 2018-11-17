@@ -37,8 +37,8 @@
 
 (defn stroke
   [& args]
-  (let [pen (wxPen/new (apply color args))]
-    (wxDC/setPen *canvas* pen)))
+  (-> (wxDC/getPen *canvas*)
+      (wxPen/setColour (apply color args))))
 
 (defn stroke-weight
   [weight]
@@ -48,7 +48,8 @@
 
 (defn fill
   [& args]
-  (let [brush (wxBrush/new (apply color args))]
+  (let [brush (wxDC/getBrush *canvas*)]
+    (wxBrush/setColour brush (apply color args))
     (wxDC/setBrush *canvas* brush)))
 
 (defn fill-rect
