@@ -8,6 +8,23 @@
 (defn internal-state []
   (:internal-state *sketch*))
 
+(defn state-atom
+  []
+  (:state *sketch*))
+
+(defn state
+  ([] @(state-atom))
+  ([key] (get (state) key)))
+
+(defn set-state!
+  "Set sketch-specific state. May only be called once (ideally in the
+  setup fn).  Subsequent calls have no effect."
+  [& state-vals]
+  (let [state* (state-atom)]
+    (when-not @state*
+      (let [state-map (apply hash-map state-vals)]
+        (reset! state* state-map)))))
+
 (defn color
   ([gray]
    (color gray 255))
