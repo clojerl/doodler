@@ -1,0 +1,10 @@
+(ns canvas.util)
+
+(defn no-fn
+  "Does nothing"
+  [])
+
+(defn noreply
+  "No reply tuple for gen-server callbacks"
+  [state]
+  #erl[:noreply state])

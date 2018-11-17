@@ -1,7 +1,8 @@
 (ns canvas.sketch
-  (:require [canvas.core :as core]))
+  (:require [canvas.core :as core]
+            [canvas.util :as u]))
 
-(def default-frame-rate 24)
+(def default-frame-rate 60)
 
 (defn frame-interval
   [frame-rate]
@@ -51,7 +52,7 @@
         memory-dc (wxMemoryDC/new bitmap)]
     (try
       (binding [core/*canvas* memory-dc]
-        (when f (f))
+        (f)
         (blit dc memory-dc))
       (finally
         (wxMemoryDC/destroy memory-dc)
@@ -60,37 +61,60 @@
           (wxClientDC/destroy dc))))
     :ok))
 
-(defn handle_sync_event
-  [wx obj state]
-  (render state nil :paint)
-  :ok)
-
-(defn* handle_info
-  ([:draw state]
-   (let [{opts :opts} state
-         draw (:draw opts)]
-     (render state draw :draw)
-     #erl[:noreply state]))
-  ([wx state]
-   #erl[:noreply state]))
+(defn close [state]
+  (erlang/halt 0))
 
 (defn make-sketch
   [opts]
-  (let [frame   (make-frame (or (:title opts) "Sketch")
-                            (or (:pos opts) [50 50])
-                            (or (:size opts) [500 300]))
-        canvas  (make-canvas frame)
-        bgcolor (apply core/color (:bgcolor opts))]
+  (let [frame    (make-frame (or (:title opts) "Sketch")
+                             (or (:pos opts) [50 50])
+                             (or (:size opts) [500 300]))
+        canvas   (make-canvas frame)
+        bgcolor  (apply core/color (:bgcolor opts))
+        draw-fn  (or (:draw opts) u/no-fn)
+        setup-fn (or (:setup opts) u/no-fn)]
+
     (listen canvas :paint true)
     (wxWindow/setBackgroundColour canvas bgcolor)
+
+    (listen frame :close_window)
     (wxWindow/show frame)
-    {:frame  frame
-     :canvas canvas
-     :bitmap (make-bitmap canvas)
-     :opts opts}))
+
+    (merge opts
+           {:frame    frame
+            :canvas   canvas
+            :bitmap   (make-bitmap canvas)
+            :setup-fn setup-fn
+            :draw-fn  draw-fn})))
+
+;; Callbacks
+
+(defn handle_sync_event
+  [wx obj state]
+  (render state u/no-fn :paint)
+  :ok)
+
+(defn handle_event
+  [wx state]
+  (let* [#erl[:wx id obj data event] wx]
+    (case* event
+      #erl[:wxClose _]
+        (close state)
+      _
+        (u/noreply state))))
+
+(defn* handle_info
+  ([:setup state]
+   (render state (:setup-fn state) :draw)
+   (u/noreply state))
+  ([:draw state]
+   (render state (:draw-fn state) :draw)
+   (u/noreply state))
+  ([wx state]
+   (u/noreply state)))
 
 (defn init [opts]
   (let [{frame :frame :as state} (make-sketch opts)]
-    (when-let [setup (-> state :opts :setup)]
+    (when-let [setup (-> state :setup-fn)]
       (render state setup :draw))
     #erl[frame state]))
