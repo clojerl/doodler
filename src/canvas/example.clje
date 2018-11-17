@@ -6,6 +6,7 @@
   (c/frame-rate 1))
 
 (defn draw []
+  (c/background (rand-int 255))
   (c/stroke (rand-int 255))
   (c/stroke-weight (rand-int 10))
   (c/fill (rand-int 255))
