@@ -26,14 +26,14 @@
 
 (defn listen
   ([component event-type]
-   (wxEvtHandler/connect component :paint))
+   (wxEvtHandler/connect component event-type))
   ([component event-type callback]
    (if (true? callback)
      (wxEvtHandler/connect component
-                           :paint
+                           event-type
                            #erl(:callback))
      (wxEvtHandler/connect component
-                           :paint
+                           event-type
                            #erl(#erl[:callback callback])))))
 
 (defn blit [dc memory-dc]
