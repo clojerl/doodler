@@ -1,6 +1,12 @@
-(ns canvas.core)
+(ns canvas.core
+  (:require [canvas.util :as u]))
 
 (def ^:dynamic *canvas* nil)
+
+(def ^:dynamic *sketch* nil)
+
+(defn internal-state []
+  (:internal-state *sketch*))
 
 (defn color
   ([gray]
@@ -44,13 +50,15 @@
   []
   (second (wxDC/getSize *canvas*)))
 
-(defn- frame-interval
-  [frame-rate]
-  (int (/ 1000 frame-rate)))
-
 (defn frame-rate
   [new-rate]
-  (timer/send_interval (frame-interval new-rate) :draw))
+  (let [internal-state (internal-state)
+        timer-ref (:timer-ref @internal-state)]
+    (u/remove-timer timer-ref)
+    (swap! internal-state
+           assoc
+           :timer-ref
+           (u/create-timer new-rate))))
 
 (defmacro defsketch
   [name & opts]

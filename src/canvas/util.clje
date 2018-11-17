@@ -8,3 +8,19 @@
   "No reply tuple for gen-server callbacks"
   [state]
   #erl[:noreply state])
+
+(defn frame-interval
+  "Returns the interval in ms between frames for the
+   provided frame-rate."
+  [frame-rate]
+  (int (/ 1000 frame-rate)))
+
+(defn remove-timer
+  [timer-ref]
+  (timer/cancel timer-ref))
+
+(defn create-timer
+  [frame-rate]
+  (-> (frame-interval frame-rate)
+      (timer/send_interval  :draw)
+      second))

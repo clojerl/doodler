@@ -4,10 +4,6 @@
 
 (def default-frame-rate 60)
 
-(defn frame-interval
-  [frame-rate]
-  (int (/ 1000 frame-rate)))
-
 (defn make-frame
   [title [x y] [w h]]
   (let [pos #erl[:pos #erl[x y]]
@@ -43,15 +39,16 @@
     (wxDC/blit dc origin size memory-dc origin)))
 
 (defn render
-  [state f ctx]
+  [sketch f ctx]
   (let [{canvas :canvas
-         bitmap :bitmap} state
+         bitmap :bitmap} sketch
         dc        (if (= ctx :paint)
                     (wxPaintDC/new canvas)
                     (wxClientDC/new canvas))
         memory-dc (wxMemoryDC/new bitmap)]
     (try
-      (binding [core/*canvas* memory-dc]
+      (binding [core/*canvas* memory-dc
+                core/*sketch* sketch]
         (f)
         (blit dc memory-dc))
       (finally
@@ -61,60 +58,79 @@
           (wxClientDC/destroy dc))))
     :ok))
 
-(defn close [state]
+(defn close [sketch]
   (erlang/halt 0))
 
 (defn make-sketch
   [opts]
-  (let [frame    (make-frame (or (:title opts) "Sketch")
-                             (or (:pos opts) [50 50])
-                             (or (:size opts) [500 300]))
-        canvas   (make-canvas frame)
-        bgcolor  (apply core/color (:bgcolor opts))
-        draw-fn  (or (:draw opts) u/no-fn)
-        setup-fn (or (:setup opts) u/no-fn)]
+  (let [frame     (make-frame (or (:title opts) "Sketch")
+                              (or (:pos opts) [50 50])
+                              (or (:size opts) [500 300]))
+        canvas    (make-canvas frame)
+        bgcolor   (apply core/color (:bgcolor opts))
+        draw-fn   (or (:draw opts) u/no-fn)
+        setup-fn  (or (:setup opts) u/no-fn)
+        state     (atom nil)]
 
     (listen canvas :paint true)
     (wxWindow/setBackgroundColour canvas bgcolor)
 
+    ;; Handle close events
     (listen frame :close_window)
     (wxWindow/show frame)
 
+    ;; Signal to trigger the setup phase
+    (timer/send_after 0 :setup)
+
     (merge opts
-           {:frame    frame
-            :canvas   canvas
-            :bitmap   (make-bitmap canvas)
+           {:state state
+            :internal-state (atom {})
+            :frame frame
+            :canvas canvas
+            ;; Create bitmap after frame is visible to
+            ;; get the right dimensions
+            :bitmap (make-bitmap canvas)
             :setup-fn setup-fn
-            :draw-fn  draw-fn})))
+            :draw-fn draw-fn})))
+
+(defn ensure-timer!
+  "Ensure there is a timer that triggers the draw"
+  [sketch]
+  (let [internal-state (:internal-state sketch)
+        timer-ref (:timer-ref @internal-state)]
+    (when-not timer-ref
+      (swap! internal-state
+             assoc
+             :timer-ref
+             (u/create-timer default-frame-rate)))))
 
 ;; Callbacks
 
 (defn handle_sync_event
-  [wx obj state]
-  (render state u/no-fn :paint)
+  [wx obj sketch]
+  (render sketch u/no-fn :paint)
   :ok)
 
 (defn handle_event
-  [wx state]
+  [wx sketch]
   (let* [#erl[:wx id obj data event] wx]
     (case* event
       #erl[:wxClose _]
-        (close state)
+        (close sketch)
       _
-        (u/noreply state))))
+        (u/noreply sketch))))
 
 (defn* handle_info
-  ([:setup state]
-   (render state (:setup-fn state) :draw)
-   (u/noreply state))
-  ([:draw state]
-   (render state (:draw-fn state) :draw)
-   (u/noreply state))
-  ([wx state]
-   (u/noreply state)))
+  ([:setup sketch]
+   (render sketch (:setup-fn sketch) :draw)
+   (ensure-timer! sketch)
+   (u/noreply sketch))
+  ([:draw sketch]
+   (render sketch (:draw-fn sketch) :draw)
+   (u/noreply sketch))
+  ([wx sketch]
+   (u/noreply sketch)))
 
 (defn init [opts]
-  (let [{frame :frame :as state} (make-sketch opts)]
-    (when-let [setup (-> state :setup-fn)]
-      (render state setup :draw))
-    #erl[frame state]))
+  (let [{frame :frame :as sketch} (make-sketch opts)]
+    #erl[frame sketch]))
