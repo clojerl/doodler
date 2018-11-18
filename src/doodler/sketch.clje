@@ -73,33 +73,26 @@
         dc        (if (= ctx :paint)
                     (wxPaintDC/new canvas)
                     (wxClientDC/new canvas))
-        memory-dc (wxMemoryDC/new bitmap)]
+        bitmap-dc (wxMemoryDC/new bitmap)]
     (try
       (binding [core/*sketch* sketch
-                core/*canvas* memory-dc
+                core/*canvas* bitmap-dc
                 core/*state*  state]
         (f)
-        (blit dc memory-dc)
+        ;; Just drawing the bitmap seems a lot faster
+        (wxDC/drawBitmap dc bitmap #erl[0 0])
+        #_(blit dc bitmap-dc)
         (assoc sketch :state core/*state*))
       (finally
-        (wxMemoryDC/destroy memory-dc)
+        (wxMemoryDC/destroy bitmap-dc)
         (if (= ctx :paint)
           (wxPaintDC/destroy dc)
           (wxClientDC/destroy dc))))))
 
 (defn on-resize
   [sketch]
-  (let [old-bitmap (:bitmap sketch)
-        old-dc     (wxMemoryDC/new old-bitmap)
-        bitmap     (make-bitmap (:canvas sketch))
-        dc         (wxMemoryDC/new bitmap)]
-    (try
-      (blit dc old-dc)
-      (finally
-        (wxMemoryDC/destroy old-dc)
-        (wxMemoryDC/destroy dc)
-        (wxBitmap/destroy old-bitmap)))
-    (assoc sketch :bitmap bitmap)))
+  (wxBitmap/destroy (:bitmap sketch))
+  (assoc sketch :bitmap (make-bitmap (:canvas sketch))))
 
 (def ^{:private true}
   supported-features
@@ -135,7 +128,7 @@
 
         state       nil]
 
-    ;; Synchronously handle paint events
+    ;; Paint events need to be handled synchronously
     (listen canvas :paint :callback true)
     ;; When resizing the frame we should resize the bitmap
     (listen frame :size :skip true)
