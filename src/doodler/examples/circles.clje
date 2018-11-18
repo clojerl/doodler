@@ -19,4 +19,5 @@
   :size [323 200]
   :setup setup
   :draw draw
+  :features [:resizable :keep-on-top]
   :bgcolor [200])

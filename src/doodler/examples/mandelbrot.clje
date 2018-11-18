@@ -59,4 +59,5 @@
   :setup setup
   :draw draw
   :bgcolor [0]
+  :features [:keep-on-top]
   :middleware [state-mode/state-mode])

@@ -4,10 +4,21 @@
   "Does nothing"
   [])
 
+(defn no-fn-state
+  "Does nothing"
+  [_])
+
 (defn noreply
   "No reply tuple for gen-server callbacks"
   [state]
   #erl[:noreply state])
+
+(defn stop
+  "Stop tuple for gen-server callbacks"
+  ([state]
+   (stop :normal state))
+  ([reason state]
+   #erl[:stop reason state]))
 
 (defn frame-interval
   "Returns the interval in ms between frames for the

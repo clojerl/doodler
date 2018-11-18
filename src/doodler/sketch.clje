@@ -2,15 +2,43 @@
   (:require [doodler.core :as core]
             [doodler.util :as u]))
 
+(def SYSTEM_MENU 2048)
+(def RESIZE_BORDER 64)
+(def MINIMIZE_BOX 1024)
+(def MAXIMIZE_BOX 512)
+(def CAPTION 536870912)
+(def CLIP_CHILDREN 4194304)
+(def CLOSE_BOX 4096)
+(def STAY_ON_TOP, 32768)
+
+(def DEFAULT_FRAME_STYLE
+  (bit-or SYSTEM_MENU
+          MINIMIZE_BOX
+          CLOSE_BOX
+          CAPTION
+          CLIP_CHILDREN))
+
+(def feature->style {:keep-on-top [STAY_ON_TOP]
+                     :resizable   [RESIZE_BORDER MAXIMIZE_BOX]})
+
 (def default-frame-rate 60)
 
+(defn frame-style
+  [features]
+  (reduce (fn [style [name active?]]
+            (if (and active? (feature->style name))
+              (apply bit-or style (feature->style name))
+              style))
+          DEFAULT_FRAME_STYLE
+          features))
+
 (defn make-frame
-  [title [x y] [w h]]
-  (let [pos #erl[:pos #erl[x y]]
-        size #erl[:size #erl[w h]]
-        opts #erl(pos size)
-        frame (wxFrame/new (wx/new) -1 title opts)]
-    frame))
+  [title [x y] [w h] features]
+  (let [pos         #erl[:pos #erl[x y]]
+        size        #erl[:size #erl[w h]]
+        style       #erl[:style (frame-style features)]
+        frame-opts  #erl(pos size style)]
+    (wxFrame/new (wx/new) -1 title frame-opts)))
 
 (defn make-canvas
   [frame]
@@ -22,21 +50,20 @@
     (wxBitmap/new w h)))
 
 (defn listen
-  ([component event-type]
-   (wxEvtHandler/connect component event-type))
-  ([component event-type callback]
-   (if (true? callback)
-     (wxEvtHandler/connect component
-                           event-type
-                           #erl(:callback))
-     (wxEvtHandler/connect component
-                           event-type
-                           #erl(#erl[:callback callback])))))
+  ([component event-type & opts]
+   (let [opts (apply hash-map opts)
+         opts (reduce (fn [acc [k v]]
+                        (if (and (= k :callback) (true? v))
+                          (conj acc :callback)
+                          (conj acc #erl[k v])))
+                      #erl()
+                      opts)]
+     (wxEvtHandler/connect component event-type opts))))
 
-(defn blit [dc memory-dc]
-  (let [size (wxDC/getSize memory-dc)
+(defn blit [dest source]
+  (let [size (wxDC/getSize source)
         origin #erl[0, 0]]
-    (wxDC/blit dc origin size memory-dc origin)))
+    (wxDC/blit dest origin size source origin)))
 
 (defn render
   [sketch f ctx]
@@ -46,44 +73,72 @@
         dc        (if (= ctx :paint)
                     (wxPaintDC/new canvas)
                     (wxClientDC/new canvas))
-        memory-dc (wxMemoryDC/new bitmap)]
+        bitmap-dc (wxMemoryDC/new bitmap)]
     (try
       (binding [core/*sketch* sketch
-                core/*canvas* memory-dc
+                core/*canvas* bitmap-dc
                 core/*state*  state]
         (f)
-        (blit dc memory-dc)
+        ;; Just drawing the bitmap seems a lot faster
+        (wxDC/drawBitmap dc bitmap #erl[0 0])
+        #_(blit dc bitmap-dc)
         (assoc sketch :state core/*state*))
       (finally
-        (wxMemoryDC/destroy memory-dc)
+        (wxMemoryDC/destroy bitmap-dc)
         (if (= ctx :paint)
           (wxPaintDC/destroy dc)
           (wxClientDC/destroy dc))))))
 
-(defn close [sketch]
-  (erlang/halt 0))
+(defn on-resize
+  [sketch]
+  (wxBitmap/destroy (:bitmap sketch))
+  (assoc sketch :bitmap (make-bitmap (:canvas sketch))))
+
+(def ^{:private true}
+  supported-features
+  #{:resizable :exit-on-close :keep-on-top
+    :present :no-safe-fns :no-bind-output})
 
 (defn make-sketch
   [opts]
-  (let [middleware (->> (:middleware opts [identity])
-                        (apply comp))
-        opts       (middleware opts) ;; apply middleware
+  (let [middleware  (->> (:middleware opts [identity])
+                         (apply comp))
+        opts        (middleware opts) ;; apply middleware
 
-        frame      (make-frame (or (:title opts) "Sketch")
-                               (or (:pos opts) [50 50])
-                               (or (:size opts) [500 300]))
-        canvas     (make-canvas frame)
+        features    (let [user-features (set (:features opts))]
+                        (reduce #(assoc %1 %2 (contains? user-features %2)) {}
+                                supported-features))
 
-        bgcolor    (apply core/color (:bgcolor opts))
-        draw-fn    (or (:draw opts) u/no-fn)
-        setup-fn   (or (:setup opts) u/no-fn)
-        state      nil]
+        frame       (make-frame (or (:title opts) "Sketch")
+                                (or (:pos opts) [-1 -1]) ;; default position
+                                (or (:size opts) [500 300])
+                                features)
+        canvas      (make-canvas frame)
 
-    (listen canvas :paint true)
+        bgcolor     (apply core/color (:bgcolor opts))
+
+        draw-fn     (or (:draw opts) u/no-fn)
+        setup-fn    (or (:setup opts) u/no-fn)
+        on-close-fn (let [close-fn (or (:on-close opts) u/no-fn-state)]
+                      (if (:exit-on-close features)
+                        (fn [_]
+                          (close-fn sketch)
+                          (erlang/halt 0))
+                        close-fn))
+
+        state       nil]
+
+    ;; Paint events need to be handled synchronously
+    (listen canvas :paint :callback true)
+    ;; When resizing the frame we should resize the bitmap
+    (listen frame :size :skip true)
+    (listen frame :close_window)
+
+    ;; Set background color before showing the frame
     (wxWindow/setBackgroundColour canvas bgcolor)
 
-    ;; Handle close events
-    (listen frame :close_window)
+    ;; Show frame, maybe in fullscreen
+    (wxFrame/showFullScreen frame (:present features))
     (wxWindow/show frame)
 
     ;; Signal to trigger the setup phase
@@ -98,7 +153,9 @@
             ;; get the right dimensions
             :bitmap (make-bitmap canvas)
             :setup-fn setup-fn
-            :draw-fn draw-fn})))
+            :draw-fn draw-fn
+            :on-resize on-resize
+            :on-close on-close-fn})))
 
 (defn ensure-timer!
   "Ensure there is a timer that triggers the draw"
@@ -118,14 +175,23 @@
   (render sketch u/no-fn :paint)
   :ok)
 
+(def event->handler
+  {:wxClose :on-close
+   :wxSize  :on-resize})
+
 (defn handle_event
   [wx sketch]
-  (let* [#erl[:wx id obj data event] wx]
-    (case* event
-      #erl[:wxClose _]
-        (close sketch)
+  (let* [#erl[:wx id obj data event] wx
+         event-type (-> (first event)
+                        event->handler)]
+    (case* event-type
+      :on-close
+      (u/stop ((sketch :on-close) sketch))
       _
-        (u/noreply sketch))))
+      (u/noreply
+       (if-let [handler (sketch event-type)]
+         (handler sketch)
+         sketch)))))
 
 (defn* handle_info
   ([:setup sketch]
