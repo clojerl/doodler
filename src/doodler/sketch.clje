@@ -2,15 +2,43 @@
   (:require [doodler.core :as core]
             [doodler.util :as u]))
 
+(def SYSTEM_MENU 2048)
+(def RESIZE_BORDER 64)
+(def MINIMIZE_BOX 1024)
+(def MAXIMIZE_BOX 512)
+(def CAPTION 536870912)
+(def CLIP_CHILDREN 4194304)
+(def CLOSE_BOX 4096)
+(def STAY_ON_TOP, 32768)
+
+(def DEFAULT_FRAME_STYLE
+  (bit-or SYSTEM_MENU
+          MINIMIZE_BOX
+          CLOSE_BOX
+          CAPTION
+          CLIP_CHILDREN))
+
+(def feature->style {:keep-on-top [STAY_ON_TOP]
+                     :resizable   [RESIZE_BORDER MAXIMIZE_BOX]})
+
 (def default-frame-rate 60)
 
+(defn frame-style
+  [features]
+  (reduce (fn [style [name active?]]
+            (if (and active? (feature->style name))
+              (apply bit-or style (feature->style name))
+              style))
+          DEFAULT_FRAME_STYLE
+          features))
+
 (defn make-frame
-  [title [x y] [w h]]
-  (let [pos #erl[:pos #erl[x y]]
-        size #erl[:size #erl[w h]]
-        opts #erl(pos size)
-        frame (wxFrame/new (wx/new) -1 title opts)]
-    frame))
+  [title [x y] [w h] features]
+  (let [pos         #erl[:pos #erl[x y]]
+        size        #erl[:size #erl[w h]]
+        style       #erl[:style (frame-style features)]
+        frame-opts  #erl(pos size style)]
+    (wxFrame/new (wx/new) -1 title frame-opts)))
 
 (defn make-canvas
   [frame]
@@ -63,15 +91,25 @@
 (defn close [sketch]
   (erlang/halt 0))
 
+(def ^{:private true}
+  supported-features
+  #{:resizable :exit-on-close :keep-on-top
+    :present :no-safe-fns :no-bind-output})
+
 (defn make-sketch
   [opts]
   (let [middleware (->> (:middleware opts [identity])
                         (apply comp))
         opts       (middleware opts) ;; apply middleware
 
+        features   (let [user-features (set (:features opts))]
+                       (reduce #(assoc %1 %2 (contains? user-features %2)) {}
+                               supported-features))
+
         frame      (make-frame (or (:title opts) "Sketch")
-                               (or (:pos opts) [50 50])
-                               (or (:size opts) [500 300]))
+                               (or (:pos opts) [-1 -1]) ;; default position
+                               (or (:size opts) [500 300])
+                               features)
         canvas     (make-canvas frame)
 
         bgcolor    (apply core/color (:bgcolor opts))
@@ -84,6 +122,9 @@
 
     ;; Handle close events
     (listen frame :close_window)
+
+    ;; Show frame, maybe in fullscreen
+    (wxFrame/showFullScreen frame (:present features))
     (wxWindow/show frame)
 
     ;; Signal to trigger the setup phase
