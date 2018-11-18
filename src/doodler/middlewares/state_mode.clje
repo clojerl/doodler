@@ -1,0 +1,23 @@
+(ns doodler.middlewares.state-mode
+  (:require [doodler.core :as core]
+            [doodler.util :as u]))
+
+(defn no-fn-state [_])
+
+(defn- wrap-setup
+  [opts]
+  (let [setup (:setup opts u/no-fn)]
+    (assoc opts
+           :setup #(set! core/*state* (setup)))))
+
+(defn- wrap-draw
+  [opts]
+  (let [draw (:draw opts no-fn-state)]
+    (assoc opts
+           :draw #(set! core/*state* (draw core/*state*)))))
+
+(defn state-mode
+  [opts]
+  (-> opts
+      wrap-setup
+      wrap-draw))

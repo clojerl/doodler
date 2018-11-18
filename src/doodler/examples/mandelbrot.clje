@@ -1,5 +1,6 @@
 (ns doodler.examples.mandelbrot
-  (:require [doodler.core :as d]))
+  (:require [doodler.core :as d]
+            [doodler.middlewares.state-mode :as state-mode]))
 
 (defn points
   []
@@ -31,11 +32,6 @@
              (+ y (* 2.0 (* a b)))
              (inc n)))))
 
-(defn setup
-  []
-  (d/frame-rate 60)
-  (d/set-state! :points (points)))
-
 (defn mandelbrot-point [x y w h max-iters]
   (let [[i j]     (->complex x y w h)
         n         (mandelbrot i j max-iters)
@@ -43,19 +39,24 @@
     (d/stroke color)
     (d/point x y)))
 
-(defn draw
+(defn setup
   []
+  (d/frame-rate 60)
+  (points))
+
+(defn draw
+  [pts]
   (let [max-iters 100
         w         (d/width)
         h         (d/height)
-        points    (d/state :points)
-        [x y]     (first points)]
-    (d/swap-state! assoc :points (rest points))
-    (mandelbrot-point x y w h max-iters)))
+        [x y]     (first pts)]
+    (mandelbrot-point x y w h max-iters)
+    (rest pts)))
 
 (d/defsketch example
   :title "Mandelbrot"
   :size [300 300]
   :setup setup
   :draw draw
-  :bgcolor [0])
+  :bgcolor [0]
+  :middleware [state-mode/state-mode])
