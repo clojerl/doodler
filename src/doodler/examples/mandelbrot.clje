@@ -7,7 +7,6 @@
                  y (range (d/height))]
              [x y])))
 
-
 (defn ->complex
   [x y w h]
   (let [cx 0.0
@@ -35,7 +34,7 @@
 (defn setup
   []
   (d/frame-rate 60)
-  {:points (points)})
+  (d/set-state! :points (points)))
 
 (defn mandelbrot-point [x y w h max-iters]
   (let [[i j]     (->complex x y w h)
@@ -49,8 +48,9 @@
   (let [max-iters 100
         w         (d/width)
         h         (d/height)
-        [x y]     [(rand-int w)
-                   (rand-int h)]]
+        points    (d/state :points)
+        [x y]     (first points)]
+    (d/swap-state! assoc :points (rest points))
     (mandelbrot-point x y w h max-iters)))
 
 (d/defsketch example
