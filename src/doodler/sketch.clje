@@ -41,36 +41,43 @@
 (defn render
   [sketch f ctx]
   (let [{canvas :canvas
-         bitmap :bitmap} sketch
+         bitmap :bitmap
+         state  :state} sketch
         dc        (if (= ctx :paint)
                     (wxPaintDC/new canvas)
                     (wxClientDC/new canvas))
         memory-dc (wxMemoryDC/new bitmap)]
     (try
-      (binding [core/*canvas* memory-dc
-                core/*sketch* sketch]
+      (binding [core/*sketch* sketch
+                core/*canvas* memory-dc
+                core/*state*  state]
         (f)
-        (blit dc memory-dc))
+        (blit dc memory-dc)
+        (assoc sketch :state core/*state*))
       (finally
         (wxMemoryDC/destroy memory-dc)
         (if (= ctx :paint)
           (wxPaintDC/destroy dc)
-          (wxClientDC/destroy dc))))
-    :ok))
+          (wxClientDC/destroy dc))))))
 
 (defn close [sketch]
   (erlang/halt 0))
 
 (defn make-sketch
   [opts]
-  (let [frame     (make-frame (or (:title opts) "Sketch")
-                              (or (:pos opts) [50 50])
-                              (or (:size opts) [500 300]))
-        canvas    (make-canvas frame)
-        bgcolor   (apply core/color (:bgcolor opts))
-        draw-fn   (or (:draw opts) u/no-fn)
-        setup-fn  (or (:setup opts) u/no-fn)
-        state     (atom nil)]
+  (let [middleware (->> (:middleware opts [identity])
+                        (apply comp))
+        opts       (middleware opts) ;; apply middleware
+
+        frame      (make-frame (or (:title opts) "Sketch")
+                               (or (:pos opts) [50 50])
+                               (or (:size opts) [500 300]))
+        canvas     (make-canvas frame)
+
+        bgcolor    (apply core/color (:bgcolor opts))
+        draw-fn    (or (:draw opts) u/no-fn)
+        setup-fn   (or (:setup opts) u/no-fn)
+        state      nil]
 
     (listen canvas :paint true)
     (wxWindow/setBackgroundColour canvas bgcolor)
@@ -122,12 +129,12 @@
 
 (defn* handle_info
   ([:setup sketch]
-   (render sketch (:setup-fn sketch) :draw)
-   (ensure-timer! sketch)
-   (u/noreply sketch))
+   (let [sketch (render sketch (:setup-fn sketch) :draw)]
+     (ensure-timer! sketch)
+     (u/noreply sketch)))
   ([:draw sketch]
-   (render sketch (:draw-fn sketch) :draw)
-   (u/noreply sketch))
+   (let [sketch (render sketch (:draw-fn sketch) :draw)]
+     (u/noreply sketch)))
   ([wx sketch]
    (u/noreply sketch)))
 
