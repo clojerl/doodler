@@ -1,4 +1,4 @@
-(ns doodler.example
+(ns doodler.examples.circles
   (:require [doodler.core :as d]))
 
 (defn setup
@@ -15,7 +15,7 @@
         y      (rand-int (d/height))]
     (d/circle x y radius)))
 
-(d/defsketch example
+(d/defsketch circles
   :title "Oh so many circles"
   :size [323 200]
   :setup setup
