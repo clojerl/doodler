@@ -1,0 +1,61 @@
+(ns doodler.examples.mandelbrot
+  (:require [doodler.core :as d]))
+
+(defn points
+  []
+  (shuffle (for [x (range (d/width))
+                 y (range (d/height))]
+             [x y])))
+
+
+(defn ->complex
+  [x y w h]
+  (let [cx 0.0
+        cy 0.0
+        wh 4.0]
+    [(+ -2.0 (* wh (/ x w)))
+     (+ -2.0 (* wh (/ y h)))]))
+
+(defn ->color
+  [n max-iters]
+  (int (* 255 (/ n max-iters))))
+
+(defn mandelbrot [x y max-iters]
+  (loop [a 0.0
+         b 0.0
+         n 0]
+    (if (or (< max-iters n)
+            (< 2 a)
+            (< 2 b))
+      n
+      (recur (+ x (- (* a a) (* b b)))
+             (+ y (* 2.0 (* a b)))
+             (inc n)))))
+
+(defn setup
+  []
+  (d/frame-rate 60)
+  {:points (points)})
+
+(defn mandelbrot-point [x y w h max-iters]
+  (let [[i j]     (->complex x y w h)
+        n         (mandelbrot i j max-iters)
+        color     (->color n max-iters)]
+    (d/stroke color)
+    (d/point x y)))
+
+(defn draw
+  []
+  (let [max-iters 100
+        w         (d/width)
+        h         (d/height)
+        [x y]     [(rand-int w)
+                   (rand-int h)]]
+    (mandelbrot-point x y w h max-iters)))
+
+(d/defsketch example
+  :title "Mandelbrot"
+  :size [300 300]
+  :setup setup
+  :draw draw
+  :bgcolor [0])
