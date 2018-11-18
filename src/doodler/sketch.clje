@@ -50,21 +50,20 @@
     (wxBitmap/new w h)))
 
 (defn listen
-  ([component event-type]
-   (wxEvtHandler/connect component event-type))
-  ([component event-type callback]
-   (if (true? callback)
-     (wxEvtHandler/connect component
-                           event-type
-                           #erl(:callback))
-     (wxEvtHandler/connect component
-                           event-type
-                           #erl(#erl[:callback callback])))))
+  ([component event-type & opts]
+   (let [opts (apply hash-map opts)
+         opts (reduce (fn [acc [k v]]
+                        (if (and (= k :callback) (true? v))
+                          (conj acc :callback)
+                          (conj acc #erl[k v])))
+                      #erl()
+                      opts)]
+     (wxEvtHandler/connect component event-type opts))))
 
-(defn blit [dc memory-dc]
-  (let [size (wxDC/getSize memory-dc)
+(defn blit [dest source]
+  (let [size (wxDC/getSize source)
         origin #erl[0, 0]]
-    (wxDC/blit dc origin size memory-dc origin)))
+    (wxDC/blit dest origin size source origin)))
 
 (defn render
   [sketch f ctx]
@@ -88,8 +87,19 @@
           (wxPaintDC/destroy dc)
           (wxClientDC/destroy dc))))))
 
-(defn close [sketch]
-  (erlang/halt 0))
+(defn on-resize
+  [sketch]
+  (let [old-bitmap (:bitmap sketch)
+        old-dc     (wxMemoryDC/new old-bitmap)
+        bitmap     (make-bitmap (:canvas sketch))
+        dc         (wxMemoryDC/new bitmap)]
+    (try
+      (blit dc old-dc)
+      (finally
+        (wxMemoryDC/destroy old-dc)
+        (wxMemoryDC/destroy dc)
+        (wxBitmap/destroy old-bitmap)))
+    (assoc sketch :bitmap bitmap)))
 
 (def ^{:private true}
   supported-features
@@ -98,30 +108,41 @@
 
 (defn make-sketch
   [opts]
-  (let [middleware (->> (:middleware opts [identity])
-                        (apply comp))
-        opts       (middleware opts) ;; apply middleware
+  (let [middleware  (->> (:middleware opts [identity])
+                         (apply comp))
+        opts        (middleware opts) ;; apply middleware
 
-        features   (let [user-features (set (:features opts))]
-                       (reduce #(assoc %1 %2 (contains? user-features %2)) {}
-                               supported-features))
+        features    (let [user-features (set (:features opts))]
+                        (reduce #(assoc %1 %2 (contains? user-features %2)) {}
+                                supported-features))
 
-        frame      (make-frame (or (:title opts) "Sketch")
-                               (or (:pos opts) [-1 -1]) ;; default position
-                               (or (:size opts) [500 300])
-                               features)
-        canvas     (make-canvas frame)
+        frame       (make-frame (or (:title opts) "Sketch")
+                                (or (:pos opts) [-1 -1]) ;; default position
+                                (or (:size opts) [500 300])
+                                features)
+        canvas      (make-canvas frame)
 
-        bgcolor    (apply core/color (:bgcolor opts))
-        draw-fn    (or (:draw opts) u/no-fn)
-        setup-fn   (or (:setup opts) u/no-fn)
-        state      nil]
+        bgcolor     (apply core/color (:bgcolor opts))
 
-    (listen canvas :paint true)
-    (wxWindow/setBackgroundColour canvas bgcolor)
+        draw-fn     (or (:draw opts) u/no-fn)
+        setup-fn    (or (:setup opts) u/no-fn)
+        on-close-fn (let [close-fn (or (:on-close opts) u/no-fn-state)]
+                      (if (:exit-on-close features)
+                        (fn [_]
+                          (close-fn sketch)
+                          (erlang/halt 0))
+                        close-fn))
 
-    ;; Handle close events
+        state       nil]
+
+    ;; Synchronously handle paint events
+    (listen canvas :paint :callback true)
+    ;; When resizing the frame we should resize the bitmap
+    (listen frame :size :skip true)
     (listen frame :close_window)
+
+    ;; Set background color before showing the frame
+    (wxWindow/setBackgroundColour canvas bgcolor)
 
     ;; Show frame, maybe in fullscreen
     (wxFrame/showFullScreen frame (:present features))
@@ -139,7 +160,9 @@
             ;; get the right dimensions
             :bitmap (make-bitmap canvas)
             :setup-fn setup-fn
-            :draw-fn draw-fn})))
+            :draw-fn draw-fn
+            :on-resize on-resize
+            :on-close on-close-fn})))
 
 (defn ensure-timer!
   "Ensure there is a timer that triggers the draw"
@@ -159,14 +182,23 @@
   (render sketch u/no-fn :paint)
   :ok)
 
+(def event->handler
+  {:wxClose :on-close
+   :wxSize  :on-resize})
+
 (defn handle_event
   [wx sketch]
-  (let* [#erl[:wx id obj data event] wx]
-    (case* event
-      #erl[:wxClose _]
-        (close sketch)
+  (let* [#erl[:wx id obj data event] wx
+         event-type (-> (first event)
+                        event->handler)]
+    (case* event-type
+      :on-close
+      (u/stop ((sketch :on-close) sketch))
       _
-        (u/noreply sketch))))
+      (u/noreply
+       (if-let [handler (sketch event-type)]
+         (handler sketch)
+         sketch)))))
 
 (defn* handle_info
   ([:setup sketch]

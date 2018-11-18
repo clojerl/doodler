@@ -2,8 +2,6 @@
   (:require [doodler.core :as core]
             [doodler.util :as u]))
 
-(defn no-fn-state [_])
-
 (defn- wrap-setup
   [opts]
   (let [setup (:setup opts u/no-fn)]
@@ -12,7 +10,7 @@
 
 (defn- wrap-draw
   [opts]
-  (let [draw (:draw opts no-fn-state)]
+  (let [draw (:draw opts u/no-fn-state)]
     (assoc opts
            :draw #(set! core/*state* (draw core/*state*)))))
 
