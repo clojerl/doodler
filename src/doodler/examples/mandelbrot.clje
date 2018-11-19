@@ -12,9 +12,11 @@
   [x y w h]
   (let [cx 0.0
         cy 0.0
+        minx -2.5
+        miny -2.0
         wh 4.0]
-    [(+ -2.0 (* wh (/ x w)))
-     (+ -2.0 (* wh (/ y h)))]))
+    [(+ minx (* wh (/ x w)))
+     (+ miny (* wh (/ y h)))]))
 
 (defn ->color
   [n max-iters]
@@ -41,21 +43,22 @@
 
 (defn setup
   []
-  (d/frame-rate 60)
+  (d/frame-rate 20)
   (points))
 
 (defn draw
   [pts]
-  (let [max-iters 100
-        w         (d/width)
-        h         (d/height)
-        [x y]     (first pts)]
-    (mandelbrot-point x y w h max-iters)
-    (rest pts)))
+  (when pts
+    (let [max-iters 255
+          w         (d/width)
+          h         (d/height)]
+      (doseq [[x y] (take 200 pts)]
+        (mandelbrot-point x y w h max-iters))
+      (drop 200 pts))))
 
 (d/defsketch example
   :title "Mandelbrot"
-  :size [300 300]
+  :size [500 500]
   :setup setup
   :draw draw
   :bgcolor [0]
