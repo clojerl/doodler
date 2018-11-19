@@ -121,7 +121,7 @@
         setup-fn    (or (:setup opts) u/no-fn)
         on-close-fn (let [close-fn (or (:on-close opts) u/no-fn-state)]
                       (if (:exit-on-close features)
-                        (fn [_]
+                        (fn [sketch]
                           (close-fn sketch)
                           (erlang/halt 0))
                         close-fn))
