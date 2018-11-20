@@ -164,16 +164,15 @@
              {:bitmap    bitmap
               :bitmap-dc (wxMemoryDC/new bitmap)}))))
 
-(defn ensure-timer!
+(defn ensure-frame-rate
   "Ensure there is a timer that triggers the draw"
   [sketch]
-  (let [internal-state (:internal-state sketch)
-        timer-ref (:timer-ref internal-state)]
-    (when-not timer-ref
-      (update-in sketch [:internal-state]
+  (if-not (-> sketch :internal-state :frame-rate)
+    (update-in sketch [:internal-state]
                assoc
-               :timer-ref
-               (u/create-timer default-frame-rate)))))
+               :frame-rate
+               default-frame-rate)
+    sketch))
 
 ;; Callbacks
 
@@ -200,14 +199,25 @@
          (handler sketch)
          sketch)))))
 
+(defn send-tick
+  [sketch]
+  (-> sketch :internal-state :frame-rate
+      (u/frame-interval)
+      (u/send-tick))
+  sketch)
+
 (defn* handle_info
   ([:setup sketch]
-   (let [sketch (on-draw sketch (:setup-fn sketch))]
-     (ensure-timer! sketch)
-     (u/noreply sketch)))
+   (-> sketch
+       (on-draw (:setup-fn sketch))
+       ensure-frame-rate
+       send-tick
+       u/noreply))
   ([:draw sketch]
-   (let [sketch (on-draw sketch (:draw-fn sketch))]
-     (u/noreply sketch)))
+   (-> sketch
+       (on-draw (:draw-fn sketch))
+       send-tick
+       u/noreply))
   ([wx sketch]
    (u/noreply sketch)))
 

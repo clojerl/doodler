@@ -84,10 +84,8 @@
 
 (defn frame-rate
   [new-rate]
-  (let [timer-ref (:timer-ref *internal-state*)]
-    (u/remove-timer timer-ref)
-    (set! *internal-state*
-          (assoc *internal-state* :timer-ref (u/create-timer new-rate)))))
+  (set! *internal-state*
+        (assoc *internal-state* :frame-rate new-rate)))
 
 (defmacro defsketch
   [name & opts]
