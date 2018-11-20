@@ -10,7 +10,7 @@
 
 (d/defsketch sketch
   :title "Oh so many circles"
-  :size [323 200]
+  :size [200 200]
   :setup setup
   :draw draw
   :features [:resizable :keep-on-top]
