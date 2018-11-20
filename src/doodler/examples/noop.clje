@@ -1,0 +1,17 @@
+(ns doodler.examples.noop
+  "Used to measure performance"
+  (:require [doodler.core :as d]))
+
+(defn setup
+  []
+  (d/frame-rate 60))
+
+(defn draw [])
+
+(d/defsketch sketch
+  :title "Oh so many circles"
+  :size [323 200]
+  :setup setup
+  :draw draw
+  :features [:resizable :keep-on-top]
+  :bgcolor [100 0 0])
