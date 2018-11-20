@@ -37,8 +37,10 @@
   (let [pos         #erl[:pos #erl[x y]]
         size        #erl[:size #erl[w h]]
         style       #erl[:style (frame-style features)]
-        frame-opts  #erl(pos size style)]
-    (wxFrame/new (wx/new) -1 title frame-opts)))
+        frame-opts  #erl(pos size style)
+        wx          (wx/new)]
+    ;; (wx/debug :driver)
+    (wxFrame/new wx -1 title frame-opts)))
 
 (defn make-canvas
   [frame]
@@ -65,29 +67,32 @@
         origin #erl[0, 0]]
     (wxDC/blit dest origin size source origin)))
 
-(defn render
-  [sketch f ctx]
+(defn on-paint
+  [sketch]
+  (let [bitmap    (:bitmap sketch)
+        dc        (wxPaintDC/new (:canvas sketch))
+        bitmap-dc (wxMemoryDC/new bitmap)]
+    (try
+      (wxDC/drawBitmap dc bitmap #erl[0 0])
+      (finally
+        (wxMemoryDC/destroy bitmap-dc)
+        (wxPaintDC/destroy dc)))))
+
+(defn on-draw
+  [sketch f]
   (let [{canvas :canvas
          bitmap :bitmap
          state  :state} sketch
-        dc        (if (= ctx :paint)
-                    (wxPaintDC/new canvas)
-                    (wxClientDC/new canvas))
-        bitmap-dc (wxMemoryDC/new bitmap)]
+        dc (wxMemoryDC/new bitmap)]
     (try
       (binding [core/*sketch* sketch
-                core/*canvas* bitmap-dc
+                core/*canvas* dc
                 core/*state*  state]
         (f)
-        ;; Just drawing the bitmap seems a lot faster
-        (wxDC/drawBitmap dc bitmap #erl[0 0])
-        #_(blit dc bitmap-dc)
         (assoc sketch :state core/*state*))
       (finally
-        (wxMemoryDC/destroy bitmap-dc)
-        (if (= ctx :paint)
-          (wxPaintDC/destroy dc)
-          (wxClientDC/destroy dc))))))
+        (wxMemoryDC/destroy dc)
+        (wxPanel/refresh canvas)))))
 
 (defn on-resize
   [sketch]
@@ -172,7 +177,7 @@
 
 (defn handle_sync_event
   [wx obj sketch]
-  (render sketch u/no-fn :paint)
+  (on-paint sketch)
   :ok)
 
 (def event->handler
@@ -195,11 +200,11 @@
 
 (defn* handle_info
   ([:setup sketch]
-   (let [sketch (render sketch (:setup-fn sketch) :draw)]
+   (let [sketch (on-draw sketch (:setup-fn sketch))]
      (ensure-timer! sketch)
      (u/noreply sketch)))
   ([:draw sketch]
-   (let [sketch (render sketch (:draw-fn sketch) :draw)]
+   (let [sketch (on-draw sketch (:draw-fn sketch))]
      (u/noreply sketch)))
   ([wx sketch]
    (u/noreply sketch)))
