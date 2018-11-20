@@ -78,15 +78,19 @@
 
 (defn on-draw
   [sketch f]
-  (let [{canvas    :canvas
-         bitmap-dc :bitmap-dc
-         state     :state} sketch]
+  (let [{canvas         :canvas
+         bitmap-dc      :bitmap-dc
+         state          :state
+         internal-state :internal-state} sketch]
     (binding [core/*sketch* sketch
               core/*canvas* bitmap-dc
-              core/*state*  state]
+              core/*state*  state
+              core/*internal-state* internal-state]
       (f)
       (wxWindow/refresh canvas #erl(#erl[:eraseBackground false]))
-      (assoc sketch :state core/*state*))))
+      (assoc sketch
+             :state core/*state*
+             :internal-state core/*internal-state*))))
 
 (defn on-resize
   [sketch]
@@ -127,9 +131,7 @@
                         (fn [sketch]
                           (close-fn sketch)
                           (erlang/halt 0))
-                        close-fn))
-
-        state       nil]
+                        close-fn))]
 
     ;; Paint events need to be handled synchronously
     (listen canvas :paint :callback true)
@@ -148,8 +150,8 @@
     (timer/send_after 0 :setup)
 
     (merge opts
-           {:state state
-            :internal-state (atom {})
+           {:state nil
+            :internal-state {}
             :frame frame
             :canvas canvas
             :setup-fn setup-fn
@@ -166,12 +168,12 @@
   "Ensure there is a timer that triggers the draw"
   [sketch]
   (let [internal-state (:internal-state sketch)
-        timer-ref (:timer-ref @internal-state)]
+        timer-ref (:timer-ref internal-state)]
     (when-not timer-ref
-      (swap! internal-state
-             assoc
-             :timer-ref
-             (u/create-timer default-frame-rate)))))
+      (update-in sketch [:internal-state]
+               assoc
+               :timer-ref
+               (u/create-timer default-frame-rate)))))
 
 ;; Callbacks
 

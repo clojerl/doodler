@@ -7,8 +7,7 @@
 
 (def ^:dynamic *state* nil)
 
-(defn internal-state []
-  (:internal-state *sketch*))
+(def ^:dynamic *internal-state* nil)
 
 (defn state
   ([] *state*)
@@ -85,13 +84,10 @@
 
 (defn frame-rate
   [new-rate]
-  (let [internal-state (internal-state)
-        timer-ref (:timer-ref @internal-state)]
+  (let [timer-ref (:timer-ref *internal-state*)]
     (u/remove-timer timer-ref)
-    (swap! internal-state
-           assoc
-           :timer-ref
-           (u/create-timer new-rate))))
+    (set! *internal-state*
+          (assoc *internal-state* :timer-ref (u/create-timer new-rate)))))
 
 (defmacro defsketch
   [name & opts]
