@@ -48,17 +48,17 @@
 
 (defn draw
   [pts]
-  (when pts
-    (let [max-iters 255
+  (when (seq pts)
+    (let [max-iters 100
           w         (d/width)
           h         (d/height)]
       (doseq [[x y] (take 200 pts)]
         (mandelbrot-point x y w h max-iters))
       (drop 200 pts))))
 
-(d/defsketch example
+(d/defsketch sketch
   :title "Mandelbrot"
-  :size [500 500]
+  :size [300 300]
   :setup setup
   :draw draw
   :bgcolor [0]

@@ -1,0 +1,17 @@
+(ns doodler.examples.noop
+  "Used as a baseline to measure performance"
+  (:require [doodler.core :as d]))
+
+(defn setup
+  []
+  (d/frame-rate 60))
+
+(defn draw [])
+
+(d/defsketch sketch
+  :title "Just a red background"
+  :size [200 200]
+  :setup setup
+  :draw draw
+  :features [:resizable :keep-on-top]
+  :bgcolor [100 0 0])
