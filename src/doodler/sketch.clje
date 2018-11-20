@@ -140,7 +140,17 @@
                           (erlang/halt 0))
                         close-fn))
 
-        frame-period (u/frame-period default-frame-rate)]
+        frame-period (u/frame-period default-frame-rate)
+
+        priv-dir    (-> (code/priv_dir :doodler)
+                        (erlang/list_to_binary))
+        icon       #(-> priv-dir
+                        (str "/icon-" % ".ico"))
+        icon-bundle (reduce (fn [bundle size]
+                              (wxIconBundle/addIcon bundle (icon size) 3)
+                              bundle)
+                            (wxIconBundle/new)
+                            [16 32 128 256 512 1024])]
 
     ;; Paint events need to be handled synchronously
     (e/listen canvas :paint :callback true)
@@ -159,6 +169,9 @@
     ;; Show frame, maybe in fullscreen
     (wxFrame/showFullScreen frame (:present features))
     (wxWindow/show frame)
+
+    ;; Set icon
+    (wxTopLevelWindow/setIcons frame icon-bundle)
 
     ;; Signal to trigger the setup phase
     (u/send-message :setup)
