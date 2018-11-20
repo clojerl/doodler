@@ -78,24 +78,24 @@
 
 (defn on-draw
   [sketch f]
-  (let [{canvas :canvas
-         bitmap :bitmap
-         state  :state} sketch
-        dc (wxMemoryDC/new bitmap)]
-    (try
-      (binding [core/*sketch* sketch
-                core/*canvas* dc
-                core/*state*  state]
-        (f)
-        (assoc sketch :state core/*state*))
-      (finally
-        (wxMemoryDC/destroy dc)
-        (wxPanel/refresh canvas)))))
+  (let [{canvas    :canvas
+         bitmap-dc :bitmap-dc
+         state     :state} sketch]
+    (binding [core/*sketch* sketch
+              core/*canvas* bitmap-dc
+              core/*state*  state]
+      (f)
+      (wxWindow/refresh canvas #erl(#erl[:eraseBackground false]))
+      (assoc sketch :state core/*state*))))
 
 (defn on-resize
   [sketch]
+  (wxMemoryDC/destroy (:bitmap-dc sketch))
   (wxBitmap/destroy (:bitmap sketch))
-  (assoc sketch :bitmap (make-bitmap (:canvas sketch))))
+  (let [bitmap (make-bitmap (:canvas sketch))]
+    (assoc sketch
+           :bitmap bitmap
+           :bitmap-dc (wxMemoryDC/new bitmap))))
 
 (def ^{:private true}
   supported-features
@@ -152,13 +152,15 @@
             :internal-state (atom {})
             :frame frame
             :canvas canvas
-            ;; Create bitmap after frame is visible to
-            ;; get the right dimensions
-            :bitmap (make-bitmap canvas)
             :setup-fn setup-fn
             :draw-fn draw-fn
             :on-resize on-resize
-            :on-close on-close-fn})))
+            :on-close on-close-fn}
+            ;; Create bitmap after frame is visible to
+            ;; get the right dimensions
+           (let [bitmap (make-bitmap canvas)]
+             {:bitmap    bitmap
+              :bitmap-dc (wxMemoryDC/new bitmap)}))))
 
 (defn ensure-timer!
   "Ensure there is a timer that triggers the draw"
