@@ -1,5 +1,5 @@
 (ns doodler.examples.noop
-  "Used to measure performance"
+  "Used as a baseline to measure performance"
   (:require [doodler.core :as d]))
 
 (defn setup
@@ -9,7 +9,7 @@
 (defn draw [])
 
 (d/defsketch sketch
-  :title "Oh so many circles"
+  :title "Just a red background"
   :size [200 200]
   :setup setup
   :draw draw
