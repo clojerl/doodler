@@ -56,7 +56,7 @@
         (mandelbrot-point x y w h max-iters))
       (drop 200 pts))))
 
-(d/defsketch example
+(d/defsketch sketch
   :title "Mandelbrot"
   :size [500 500]
   :setup setup

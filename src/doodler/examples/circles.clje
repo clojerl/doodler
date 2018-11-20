@@ -14,7 +14,7 @@
         y      (rand-int (d/height))]
     (d/circle x y radius)))
 
-(d/defsketch circles
+(d/defsketch sketch
   :title "Oh so many circles"
   :size [323 200]
   :setup setup

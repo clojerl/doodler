@@ -64,18 +64,16 @@
 
 (defn blit [dest source]
   (let [size (wxDC/getSize source)
-        origin #erl[0, 0]]
+        origin #erl[0 0]]
     (wxDC/blit dest origin size source origin)))
 
 (defn on-paint
   [sketch]
-  (let [bitmap    (:bitmap sketch)
-        dc        (wxPaintDC/new (:canvas sketch))
-        bitmap-dc (wxMemoryDC/new bitmap)]
+  (let [bitmap (:bitmap sketch)
+        dc     (wxPaintDC/new (:canvas sketch))]
     (try
       (wxDC/drawBitmap dc bitmap #erl[0 0])
       (finally
-        (wxMemoryDC/destroy bitmap-dc)
         (wxPaintDC/destroy dc)))))
 
 (defn on-draw
