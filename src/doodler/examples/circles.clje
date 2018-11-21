@@ -9,7 +9,7 @@
   (d/stroke (rand-int 255))
   (d/stroke-weight (rand-int 10))
   (d/fill (rand-int 255))
-  (let [radius (rand-int 100)
+  (let [radius (rand-int 50)
         x      (rand-int (d/width))
         y      (rand-int (d/height))]
     (d/circle x y radius)))
