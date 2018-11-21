@@ -78,15 +78,19 @@
 
 (defn on-draw
   [sketch f]
-  (let [{canvas    :canvas
-         bitmap-dc :bitmap-dc
-         state     :state} sketch]
+  (let [{canvas         :canvas
+         bitmap-dc      :bitmap-dc
+         state          :state
+         internal-state :internal-state} sketch]
     (binding [core/*sketch* sketch
               core/*canvas* bitmap-dc
-              core/*state*  state]
+              core/*state*  state
+              core/*internal-state* internal-state]
       (f)
       (wxWindow/refresh canvas #erl(#erl[:eraseBackground false]))
-      (assoc sketch :state core/*state*))))
+      (assoc sketch
+             :state core/*state*
+             :internal-state core/*internal-state*))))
 
 (defn on-resize
   [sketch]
@@ -129,7 +133,8 @@
                           (erlang/halt 0))
                         close-fn))
 
-        state       nil]
+        internal-state {:frame-rate default-frame-rate
+                        :frame-interval (u/frame-interval default-frame-rate)}]
 
     ;; Paint events need to be handled synchronously
     (listen canvas :paint :callback true)
@@ -148,8 +153,9 @@
     (timer/send_after 0 :setup)
 
     (merge opts
-           {:state state
-            :internal-state (atom {})
+           {:state nil
+            :internal-state internal-state
+            :tick (u/tick)
             :frame frame
             :canvas canvas
             :setup-fn setup-fn
@@ -162,16 +168,15 @@
              {:bitmap    bitmap
               :bitmap-dc (wxMemoryDC/new bitmap)}))))
 
-(defn ensure-timer!
-  "Ensure there is a timer that triggers the draw"
+(defn next-tick
   [sketch]
-  (let [internal-state (:internal-state sketch)
-        timer-ref (:timer-ref @internal-state)]
-    (when-not timer-ref
-      (swap! internal-state
-             assoc
-             :timer-ref
-             (u/create-timer default-frame-rate)))))
+  (let [prev-tick (sketch :tick)
+        tick      (u/tick)
+        interval  (-> sketch :internal-state :frame-interval)
+        diff      (- tick prev-tick)]
+    ;; (prn :interval interval :diff diff)
+    (u/send-tick (max 0 (- interval diff)))
+    (assoc sketch :tick tick)))
 
 ;; Callbacks
 
@@ -200,12 +205,15 @@
 
 (defn* handle_info
   ([:setup sketch]
-   (let [sketch (on-draw sketch (:setup-fn sketch))]
-     (ensure-timer! sketch)
-     (u/noreply sketch)))
+   (-> sketch
+       (on-draw (:setup-fn sketch))
+       next-tick
+       u/noreply))
   ([:draw sketch]
-   (let [sketch (on-draw sketch (:draw-fn sketch))]
-     (u/noreply sketch)))
+   (-> sketch
+       (on-draw (:draw-fn sketch))
+       next-tick
+       u/noreply))
   ([wx sketch]
    (u/noreply sketch)))
 

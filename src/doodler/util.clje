@@ -26,12 +26,9 @@
   [frame-rate]
   (int (/ 1000 frame-rate)))
 
-(defn remove-timer
-  [timer-ref]
-  (timer/cancel timer-ref))
+(defn send-tick
+  [interval]
+  (timer/send_after interval :draw))
 
-(defn create-timer
-  [frame-rate]
-  (-> (frame-interval frame-rate)
-      (timer/send_interval  :draw)
-      second))
+(defn tick []
+  (erlang/monotonic_time :millisecond))
