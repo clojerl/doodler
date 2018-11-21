@@ -85,7 +85,9 @@
 (defn frame-rate
   [new-rate]
   (set! *internal-state*
-        (assoc *internal-state* :frame-rate new-rate)))
+        (assoc *internal-state*
+               :frame-rate new-rate
+               :frame-interval (u/frame-interval new-rate))))
 
 (defmacro defsketch
   [name & opts]

@@ -29,3 +29,6 @@
 (defn send-tick
   [interval]
   (timer/send_after interval :draw))
+
+(defn tick []
+  (erlang/monotonic_time :millisecond))

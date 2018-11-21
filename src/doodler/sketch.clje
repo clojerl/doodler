@@ -131,7 +131,10 @@
                         (fn [sketch]
                           (close-fn sketch)
                           (erlang/halt 0))
-                        close-fn))]
+                        close-fn))
+
+        internal-state {:frame-rate default-frame-rate
+                        :frame-interval (u/frame-interval default-frame-rate)}]
 
     ;; Paint events need to be handled synchronously
     (listen canvas :paint :callback true)
@@ -151,7 +154,8 @@
 
     (merge opts
            {:state nil
-            :internal-state {}
+            :internal-state internal-state
+            :tick (u/tick)
             :frame frame
             :canvas canvas
             :setup-fn setup-fn
@@ -164,15 +168,15 @@
              {:bitmap    bitmap
               :bitmap-dc (wxMemoryDC/new bitmap)}))))
 
-(defn ensure-frame-rate
-  "Ensure there is a timer that triggers the draw"
+(defn next-tick
   [sketch]
-  (if-not (-> sketch :internal-state :frame-rate)
-    (update-in sketch [:internal-state]
-               assoc
-               :frame-rate
-               default-frame-rate)
-    sketch))
+  (let [prev-tick (sketch :tick)
+        tick      (u/tick)
+        interval  (-> sketch :internal-state :frame-interval)
+        diff      (- tick prev-tick)]
+    ;; (prn :interval interval :diff diff)
+    (u/send-tick (max 0 (- interval diff)))
+    (assoc sketch :tick tick)))
 
 ;; Callbacks
 
@@ -199,24 +203,16 @@
          (handler sketch)
          sketch)))))
 
-(defn send-tick
-  [sketch]
-  (-> sketch :internal-state :frame-rate
-      (u/frame-interval)
-      (u/send-tick))
-  sketch)
-
 (defn* handle_info
   ([:setup sketch]
    (-> sketch
        (on-draw (:setup-fn sketch))
-       ensure-frame-rate
-       send-tick
+       next-tick
        u/noreply))
   ([:draw sketch]
    (-> sketch
        (on-draw (:draw-fn sketch))
-       send-tick
+       next-tick
        u/noreply))
   ([wx sketch]
    (u/noreply sketch)))
