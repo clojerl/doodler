@@ -43,18 +43,22 @@
 
 (defn setup
   []
-  (d/frame-rate 20)
+  (d/frame-rate 40)
   (points))
 
 (defn draw
   [pts]
-  (when (seq pts)
+  (when pts
     (let [max-iters 100
           w         (d/width)
           h         (d/height)]
-      (doseq [[x y] (take 200 pts)]
-        (mandelbrot-point x y w h max-iters))
-      (drop 200 pts))))
+      (loop [[[x y] & rest] pts
+             n 0]
+        (if (and rest (< n 200))
+          (do
+            (mandelbrot-point x y w h max-iters)
+            (recur rest (inc n)))
+          rest)))))
 
 (d/defsketch sketch
   :title "Mandelbrot"
