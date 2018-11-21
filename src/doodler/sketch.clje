@@ -67,6 +67,17 @@
         origin #erl[0 0]]
     (wxDC/blit dest origin size source origin)))
 
+(defn next-refresh
+  [sketch time-mark]
+  (let [interval  (-> sketch :internal-state :frame-interval)
+        time-mark (+ time-mark interval)
+        now       (u/time-mark)
+        diff      (- time-mark now)
+        delay     (max 0 diff)]
+    (prn :interval interval :diff diff :delay delay)
+    (u/send-after delay :refresh)
+    (assoc sketch :refresh false)))
+
 (defn on-paint
   [sketch]
   (let [bitmap (:bitmap sketch)
@@ -74,7 +85,8 @@
     (try
       (wxDC/drawBitmap dc bitmap #erl[0 0])
       (finally
-        (wxPaintDC/destroy dc)))))
+        (wxPaintDC/destroy dc))))
+  (u/send-message (:pid sketch) #erl[:draw (u/time-mark)]))
 
 (defn on-draw
   [sketch f]
@@ -87,7 +99,6 @@
               core/*state*  state
               core/*internal-state* internal-state]
       (f)
-      (wxWindow/refresh canvas #erl(#erl[:eraseBackground false]))
       (assoc sketch
              :state core/*state*
              :internal-state core/*internal-state*))))
@@ -150,12 +161,12 @@
     (wxWindow/show frame)
 
     ;; Signal to trigger the setup phase
-    (timer/send_after 0 :setup)
+    (u/send-message :setup)
 
     (merge opts
            {:state nil
             :internal-state internal-state
-            :tick (u/tick)
+            :pid (erlang/self)
             :frame frame
             :canvas canvas
             :setup-fn setup-fn
@@ -167,16 +178,6 @@
            (let [bitmap (make-bitmap canvas)]
              {:bitmap    bitmap
               :bitmap-dc (wxMemoryDC/new bitmap)}))))
-
-(defn next-tick
-  [sketch]
-  (let [prev-tick (sketch :tick)
-        tick      (u/tick)
-        interval  (-> sketch :internal-state :frame-interval)
-        diff      (- tick prev-tick)]
-    ;; (prn :interval interval :diff diff)
-    (u/send-tick (max 0 (- interval diff)))
-    (assoc sketch :tick tick)))
 
 ;; Callbacks
 
@@ -203,17 +204,31 @@
          (handler sketch)
          sketch)))))
 
+(defn refresh
+  [sketch]
+  (wxWindow/refresh (:canvas sketch)
+                    #erl(#erl[:eraseBackground false]))
+  (assoc sketch :refresh true))
+
 (defn* handle_info
   ([:setup sketch]
    (-> sketch
        (on-draw (:setup-fn sketch))
-       next-tick
+       refresh
        u/noreply))
-  ([:draw sketch]
+  ([:refresh sketch]
+   ;; (prn :refresh :time-mark (u/time-mark))
    (-> sketch
-       (on-draw (:draw-fn sketch))
-       next-tick
+       refresh
        u/noreply))
+  ([#erl[:draw time-mark] sketch]
+   ;; (prn :draw :time-mark time-mark)
+   (if (:refresh sketch)
+     (-> sketch
+         (on-draw (:draw-fn sketch))
+         (next-refresh time-mark)
+         u/noreply)
+     (u/noreply sketch)))
   ([wx sketch]
    (u/noreply sketch)))
 

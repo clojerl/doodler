@@ -26,9 +26,15 @@
   [frame-rate]
   (int (/ 1000 frame-rate)))
 
-(defn send-tick
-  [interval]
-  (timer/send_after interval :draw))
+(defn send-message
+  ([msg]
+   (send-message (erlang/self) msg))
+  ([pid msg]
+   (erlang/send pid msg)))
 
-(defn tick []
+(defn send-after
+  [delay msg]
+  (timer/send_after delay msg))
+
+(defn time-mark []
   (erlang/monotonic_time :millisecond))
