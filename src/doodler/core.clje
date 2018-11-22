@@ -76,11 +76,11 @@
 
 (defn width
   []
-  (first (wxDC/getSize *canvas*)))
+  (erlang/element 1 (wxDC/getSize *canvas*)))
 
 (defn height
   []
-  (second (wxDC/getSize *canvas*)))
+  (erlang/element 2 (wxDC/getSize *canvas*)))
 
 (defn frame-rate
   [new-rate]
