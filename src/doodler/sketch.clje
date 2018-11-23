@@ -51,7 +51,23 @@
   (let [[w h] (wxWindow/getSize canvas)]
     (wxBitmap/new w h)))
 
+(defmacro with-sketch
+  [sketch & body]
+  `(let [{bitmap-dc#      :bitmap-dc
+          state#          :state
+          internal-state# :internal-state} ~sketch]
+    (binding [doodler.core/*sketch* ~sketch
+              doodler.core/*canvas* bitmap-dc#
+              doodler.core/*state*  state#
+              doodler.core/*internal-state* internal-state#]
+      ~@body
+      (assoc ~sketch
+             :state doodler.core/*state*
+             :internal-state doodler.core/*internal-state*))))
+
 (defn listen
+  "Registers this component to listen events of the specified
+  event-type"
   ([component event-type & opts]
    (let [opts (apply hash-map opts)
          opts (reduce (fn [acc [k v]]
@@ -97,18 +113,8 @@
 
 (defn on-draw
   [sketch f]
-  (let [{canvas         :canvas
-         bitmap-dc      :bitmap-dc
-         state          :state
-         internal-state :internal-state} sketch]
-    (binding [core/*sketch* sketch
-              core/*canvas* bitmap-dc
-              core/*state*  state
-              core/*internal-state* internal-state]
-      (doodler.wx/batch f)
-      (assoc sketch
-             :state core/*state*
-             :internal-state core/*internal-state*))))
+  (with-sketch sketch
+    (doodler.wx/batch f)))
 
 (defn on-resize
   [sketch]
@@ -277,8 +283,8 @@
       (u/noreply ((sketch :on-resize) sketch))
       event-name
       (u/noreply
-       (do
-         (when-let [handler (sketch event-name)]
+       (if-let [handler (sketch event-name)]
+         (with-sketch sketch
            (handler event))
          sketch)))))
 

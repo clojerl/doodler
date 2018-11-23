@@ -1,6 +1,6 @@
 { application, 'doodler'
 , [ {vsn, git}
-  , {description, ""}
+  , {description, "Create drawings with code"}
   , {modules, []}
   , { applications
     , [ stdlib
@@ -8,6 +8,5 @@
       , clojerl
       ]
     }
-  , {mod, {'doodler.app', []}}
   ]
 }.

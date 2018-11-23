@@ -14,8 +14,28 @@
     (assoc opts
            :draw #(set! core/*state* (draw core/*state*)))))
 
+(def events
+  [:on-close
+   :focus-gained :focus-lost
+   :mouse-entered :mouse-exited
+   :mouse-pressed :mouse-released
+   :mouse-moved :mouse-wheel
+   :key-pressed :key-released :key-typed])
+
+(defn wrap-handlers
+  [opts]
+  (reduce (fn [acc event]
+            ;; (prn event (event acc) acc)
+            (if-let [handler (event acc)]
+              (assoc acc
+                     event #(set! core/*state* (handler core/*state* %)))
+              acc))
+          opts
+          events))
+
 (defn state-mode
   [opts]
   (-> opts
       wrap-setup
-      wrap-draw))
+      wrap-draw
+      wrap-handlers))
