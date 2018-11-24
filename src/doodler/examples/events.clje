@@ -1,4 +1,4 @@
-(ns doodler.examples.mouse-event
+(ns doodler.examples.events
   (:require [doodler.core :as d]
             [doodler.middlewares.state-mode :as state-mode]))
 
