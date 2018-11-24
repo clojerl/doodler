@@ -11,6 +11,10 @@
   [state evt]
   {:x (:x evt) :y (:y evt)})
 
+(defn on-close
+  [state]
+  (prn state))
+
 (defn draw [state]
   (d/stroke (rand-int 255))
   (d/stroke-weight (rand-int 10))
@@ -24,6 +28,9 @@
   :bgcolor [200]
   :setup setup
   :draw draw
+
   :mouse-moved mouse-move
-  :features [:resizable :keep-on-top]
+  :on-close on-close
+
+  :features [:resizable :keep-on-top :exit-on-close]
   :middleware [state-mode/state-mode])

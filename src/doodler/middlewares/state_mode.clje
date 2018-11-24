@@ -14,7 +14,11 @@
     (assoc opts
            :draw #(set! core/*state* (draw core/*state*)))))
 
-(def events
+(def state-only
+  #{:on-close
+    :focus-gained :focus-lost})
+
+(def callbacks
   [:on-close
    :focus-gained :focus-lost
    :mouse-entered :mouse-exited
@@ -24,14 +28,16 @@
 
 (defn wrap-handlers
   [opts]
-  (reduce (fn [acc event]
-            ;; (prn event (event acc) acc)
-            (if-let [handler (event acc)]
-              (assoc acc
-                     event #(set! core/*state* (handler core/*state* %)))
+  (reduce (fn [acc name]
+            (if-let [handler (name acc)]
+              (if (state-only name)
+                (assoc acc
+                       name #(set! core/*state* (handler core/*state*)))
+                (assoc acc
+                       name #(set! core/*state* (handler core/*state* %))))
               acc))
           opts
-          events))
+          callbacks))
 
 (defn state-mode
   [opts]

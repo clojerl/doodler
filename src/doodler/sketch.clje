@@ -150,10 +150,10 @@
 
         draw-fn     (or (:draw opts) u/no-fn)
         setup-fn    (or (:setup opts) u/no-fn)
-        on-close-fn (let [close-fn (or (:on-close opts) u/no-fn-state)]
+        on-close-fn (let [close-fn (or (:on-close opts) u/no-fn)]
                       (if (:exit-on-close features)
-                        (fn [sketch]
-                          (close-fn sketch)
+                        (fn []
+                          (close-fn)
                           (erlang/halt 0))
                         close-fn))
 
@@ -275,15 +275,18 @@
 (defn handle_event
   [wx sketch]
   (let* [#erl[:wx id obj data event] wx
-         event (event->map event)]
-    (case* (:event event)
+         event (event->map event)
+         event-key (:event event)
+         handler (event-key sketch)]
+    (case* event-key
       :on-close
-      (u/stop ((sketch :on-close) sketch))
+      (u/stop (with-sketch sketch
+                (handler)))
       :on-resize
-      (u/noreply ((sketch :on-resize) sketch))
+      (u/noreply (handler sketch))
       event-name
       (u/noreply
-       (if-let [handler (sketch event-name)]
+       (if handler
          (with-sketch sketch
            (handler event))
          sketch)))))
