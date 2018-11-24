@@ -136,6 +136,10 @@
                :frame-rate new-rate
                :frame-interval (u/frame-interval new-rate))))
 
+(defn frame-count
+  []
+  (:frame-count *sketch*))
+
 (defmacro defsketch
   [name & opts]
   (let [opts (apply hash-map opts)]

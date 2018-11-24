@@ -18,9 +18,9 @@
   (d/rect 10 85 20 20 5)
   (d/line 10 130 80 140)
 
-  (d/text "Hello world!" 10 110)
   (d/text (str "Fill: " (d/current-fill)) 100 10)
   (d/text (str "Stroke: " (d/current-stroke)) 100 30)
+  (d/text (str "Frame #: " (d/frame-count)) 100 50)
 
   )
 

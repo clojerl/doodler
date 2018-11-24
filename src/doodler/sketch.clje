@@ -113,7 +113,7 @@
 
 (defn on-draw
   [sketch f]
-  (with-sketch sketch
+  (with-sketch (update-in sketch [:frame-count] inc)
     (doodler.wx/batch f)))
 
 (defn on-resize
@@ -203,7 +203,8 @@
             :setup-fn setup-fn
             :draw-fn draw-fn
             :on-resize on-resize
-            :on-close on-close-fn}
+            :on-close on-close-fn
+            :frame-count 0}
             ;; Create bitmap after frame is visible to
             ;; get the right dimensions
            (let [bitmap    (make-bitmap canvas)
