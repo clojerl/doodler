@@ -22,10 +22,10 @@
   {:x 0 :y 0})
 
 (defn draw [state]
-  (d/stroke (rand-int 255))
-  (d/stroke-weight (rand-int 10))
-  (d/fill (rand-int 255))
-  (d/circle (:x state) (:y state) (rand-int 50)))
+  (d/stroke (d/random 255))
+  (d/stroke-weight (d/random 10))
+  (d/fill (d/random 255))
+  (d/circle (:x state) (:y state) (d/random 50)))
 
 (d/defsketch sketch
   :title "Handling events"

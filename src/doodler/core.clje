@@ -38,7 +38,6 @@
    #erl[r g b alpha]))
 
 (defn- save-current-stroke
-  "Save current stroke color vector in the internal state. It can be accessed using (current-stroke) function."
   [color]
   (set! *internal-state* (assoc *internal-state* :current-stroke color)))
 
@@ -81,7 +80,6 @@
      (wxDC/clear *canvas*))))
 
 (defn- save-current-fill
-  "Save current fill color vector in the internal state. It can be accessed using (current-fill) function."
   [color]
   (set! *internal-state* (assoc *internal-state* :current-fill color)))
 
