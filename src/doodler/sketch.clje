@@ -204,7 +204,8 @@
             :draw-fn draw-fn
             :on-resize on-resize
             :on-close on-close-fn
-            :frame-count 0}
+            :frame-count 0
+            :epoch (u/time-mark)}
             ;; Create bitmap after frame is visible to
             ;; get the right dimensions
            (let [bitmap    (make-bitmap canvas)

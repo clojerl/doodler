@@ -21,6 +21,8 @@
   (d/text (str "Fill: " (d/current-fill)) 100 10)
   (d/text (str "Stroke: " (d/current-stroke)) 100 30)
   (d/text (str "Frame #: " (d/frame-count)) 100 50)
+  (d/text (str "Target Frame Rate: " (d/target-frame-rate)) 100 70)
+  (d/text (str "Frame Rate: " (d/current-frame-rate)) 100 90)
 
   )
 
