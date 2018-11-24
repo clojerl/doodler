@@ -25,8 +25,7 @@
   (d/stroke (rand-int 255))
   (d/stroke-weight (rand-int 10))
   (d/fill (rand-int 255))
-  (d/circle (:x state) (:y state) (rand-int 50))
-  state)
+  (d/circle (:x state) (:y state) (rand-int 50)))
 
 (d/defsketch sketch
   :title "Handling events"

@@ -8,11 +8,17 @@
     (assoc opts
            :setup #(set! core/*state* (setup)))))
 
-(defn- wrap-draw
+(defn- wrap-draw-update
   [opts]
-  (let [draw (:draw opts u/no-fn-state)]
-    (assoc opts
-           :draw #(set! core/*state* (draw core/*state*)))))
+  (let [draw (:draw opts u/no-fn-state)
+        update (:update opts)]
+    (if update
+      (assoc opts
+             :draw #(do
+                      (set! core/*state* (update core/*state*))
+                      (draw core/*state*)))
+      (assoc opts
+             :draw #(draw core/*state*)))))
 
 (def state-only
   #{:on-close
@@ -43,5 +49,5 @@
   [opts]
   (-> opts
       wrap-setup
-      wrap-draw
+      wrap-draw-update
       wrap-handlers))
