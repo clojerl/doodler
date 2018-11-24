@@ -37,11 +37,22 @@
   ([r g b alpha]
    #erl[r g b alpha]))
 
+(defn- save-current-stroke
+  "Save current stroke color vector in the internal state. It can be accessed using (current-stroke) function."
+  [color]
+  (set! *internal-state* (assoc *internal-state* :current-stroke color)))
+
+(defn current-stroke
+  []
+  (:current-stroke *internal-state*))
+
 (defn stroke
   [& args]
-  (let [pen (wxDC/getPen *canvas*)]
-    (wxPen/setColour pen (apply color args))
-    (wxDC/setPen *canvas* pen)))
+  (let [pen (wxDC/getPen *canvas*)
+        color (apply color args)]
+    (wxPen/setColour pen color)
+    (wxDC/setPen *canvas* pen)
+    (save-current-stroke color)))
 
 (defn stroke-weight
   [weight]
@@ -56,11 +67,22 @@
     (wxDC/setBackground *canvas* brush)
     (clear)))
 
+(defn- save-current-fill
+  "Save current fill color vector in the internal state. It can be accessed using (current-fill) function."
+  [color]
+  (set! *internal-state* (assoc *internal-state* :current-fill color)))
+
 (defn fill
   [& args]
-  (let [brush (wxDC/getBrush *canvas*)]
-    (wxBrush/setColour brush (apply color args))
-    (wxDC/setBrush *canvas* brush)))
+  (let [brush (wxDC/getBrush *canvas*)
+        color (apply color args)]
+    (wxBrush/setColour brush color)
+    (wxDC/setBrush *canvas* brush)
+    (save-current-fill color)))
+
+(defn current-fill
+  []
+  (:current-fill *internal-state*))
 
 (defn arc
   [x y w h start end]
@@ -75,9 +97,13 @@
                     #erl[(- x (erlang/div w 2)) (- y (erlang/div h 2))]
                     #erl[w h]))
 
+(defn line
+  ([p1 p2] (apply line (concat p1 p2)))
+  ([x1 y1 x2 y2] (wxDC/drawLine *canvas* #erl[x1 y1] #erl[x2 y2])))
+
 (defn point
   [x y]
-  (wxDC/drawPoint *canvas* (tuple x y)))
+  (wxDC/drawPoint *canvas* #erl[x y]))
 
 (defn random
   ([max]
