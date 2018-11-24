@@ -2,18 +2,24 @@
   (:require [doodler.core :as d]
             [doodler.middlewares.state-mode :as state-mode]))
 
-(defn setup
-  []
-  (d/frame-rate 24)
-  {:x 0 :y 0})
+(defn on-close
+  [state]
+  (prn state))
+
+(defn report-event-fn
+  [event-key]
+  (fn
+    ([state] (prn event-key) state)
+    ([state evt] (prn event-key evt) state)))
 
 (defn mouse-move
   [state evt]
   {:x (:x evt) :y (:y evt)})
 
-(defn on-close
-  [state]
-  (prn state))
+(defn setup
+  []
+  (d/frame-rate 24)
+  {:x 0 :y 0})
 
 (defn draw [state]
   (d/stroke (rand-int 255))
@@ -23,14 +29,25 @@
   state)
 
 (d/defsketch sketch
-  :title "Oh so many circles"
+  :title "Handling events"
   :size [323 200]
   :bgcolor [200]
   :setup setup
   :draw draw
-
-  :mouse-moved mouse-move
-  :on-close on-close
-
   :features [:resizable :keep-on-top :exit-on-close]
-  :middleware [state-mode/state-mode])
+  ;; Use state-mode
+  :middleware [state-mode/state-mode]
+
+  ;; Event handlers
+  :on-close on-close
+  :focus-gained (report-event-fn :focus-gained)
+  :focus-lost (report-event-fn :focus-lost)
+  :mouse-pressed (report-event-fn :mouse-pressed)
+  :mouse-released (report-event-fn :mouse-released)
+  :mouse-entered (report-event-fn :mouse-entered)
+  :mouse-exited (report-event-fn :mouse-exited)
+  :mouse-moved mouse-move
+  :mouse-wheel (report-event-fn :mouse-wheel)
+  :key-pressed (report-event-fn :key-pressed)
+  :key-released (report-event-fn :key-released)
+  :key-typed (report-event-fn :key-typed))

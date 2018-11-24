@@ -164,23 +164,25 @@
     (listen canvas :paint :callback true)
     ;; When resizing the frame we should resize the bitmap
     (listen frame :size :skip true)
-    (listen frame :close_window)
+    (listen frame :close_window) ;; on-close
 
     ;; Listen to all mouse events
-    (listen canvas :enter_window)
-    (listen canvas :leave_window)
-    (listen canvas :left_down)
-    (listen canvas :middle_down)
-    (listen canvas :right_down)
-    (listen canvas :left_up)
-    (listen canvas :middle_up)
-    (listen canvas :right_up)
-    (listen canvas :motion)
-    (listen canvas :mousewheel)
+    (listen canvas :set_focus) ;; focus-gained
+    (listen canvas :kill_focus) ;; focus-lost
+    (listen canvas :enter_window) ;; mouse-entered
+    (listen canvas :leave_window) ;; mouse-exited
+    (listen canvas :left_down) ;; mouse-pressed
+    (listen canvas :middle_down) ;; mouse-pressed
+    (listen canvas :right_down) ;; mouse-pressed
+    (listen canvas :left_up) ;; mouse-release
+    (listen canvas :middle_up) ;; mouse-release
+    (listen canvas :right_up) ;; mouse-release
+    (listen canvas :motion) ;; mouse-move
+    (listen canvas :mousewheel) ;; mouse-wheel
     ;; Listen to all key events
-    (listen canvas :key_down)
-    (listen canvas :key_up)
-    (listen canvas :char)
+    (listen canvas :key_down) ;; key-pressed
+    (listen canvas :key_up) ;; key-released
+    (listen canvas :char) ;; key-typed (?)
 
     ;; Set background color before showing the frame
     (wxWindow/setBackgroundColour canvas bgcolor)
@@ -278,18 +280,26 @@
          event (event->map event)
          event-key (:event event)
          handler (event-key sketch)]
-    (case* event-key
-      :on-close
-      (u/stop (with-sketch sketch
-                (handler)))
-      :on-resize
-      (u/noreply (handler sketch))
-      event-name
-      (u/noreply
-       (if handler
+    (if-not handler
+      (u/noreply sketch)
+      (case event-key
+        :on-close
+        (u/stop (with-sketch sketch
+                  (handler)))
+        :focus-gained
+        (u/noreply (with-sketch sketch
+                     (handler)))
+        :focus-lost
+        (u/noreply (with-sketch sketch
+                     (handler)))
+
+        :on-resize
+        (u/noreply (handler sketch))
+
+        _
+        (u/noreply
          (with-sketch sketch
-           (handler event))
-         sketch)))))
+           (handler event)))))))
 
 (defn* handle_info
   ([:setup sketch]
