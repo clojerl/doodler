@@ -62,17 +62,21 @@
     (wxBrush/setColour brush (apply color args))
     (wxDC/setBrush *canvas* brush)))
 
-(defn fill-rect
+(defn arc
+  [x y w h start end]
+  (wxDC/drawEllipticArc *canvas* #erl[x y] #erl[w h] start end))
+
+(defn ellipse
+  [x y w h]
+  (wxDC/drawEllipse *canvas* #erl[x y] #erl[w h]))
+
+(defn rect
   [x y w h]
   (wxDC/drawRectangle *canvas* #erl[x y] #erl[w h]))
 
 (defn point
   [x y]
   (wxDC/drawPoint *canvas* (tuple x y)))
-
-(defn circle
-  [x y r]
-  (wxDC/drawCircle *canvas* #erl[x y] r))
 
 (defn width
   []
