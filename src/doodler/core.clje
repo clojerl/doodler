@@ -47,12 +47,18 @@
   (:current-stroke *internal-state*))
 
 (defn stroke
-  [& args]
-  (let [pen (wxDC/getPen *canvas*)
-        color (apply color args)]
-    (wxPen/setColour pen color)
-    (wxDC/setPen *canvas* pen)
-    (save-current-stroke color)))
+  ([gray]
+   (stroke gray 255))
+  ([gray alpha]
+   (stroke gray gray gray alpha))
+  ([r g b]
+   (stroke r g b 255))
+  ([r g b alpha]
+   (let [pen (wxDC/getPen *canvas*)
+         color #erl[r g b alpha]]
+     (wxPen/setColour pen color)
+     (wxDC/setPen *canvas* pen)
+     (save-current-stroke color))))
 
 (defn stroke-weight
   [weight]
@@ -61,11 +67,18 @@
     (wxDC/setPen *canvas* pen)))
 
 (defn background
-  [& args]
-  (let [brush (wxDC/getBackground *canvas*)]
-    (wxBrush/setColour brush (apply color args))
-    (wxDC/setBackground *canvas* brush)
-    (clear)))
+  ([gray]
+   (background gray 255))
+  ([gray alpha]
+   (background gray gray gray alpha))
+  ([r g b]
+   (background r g b 255))
+  ([r g b alpha]
+   (let [brush (wxDC/getBackground *canvas*)
+         color #erl[r g b alpha]]
+     (wxBrush/setColour brush color)
+     (wxDC/setBackground *canvas* brush)
+     (wxDC/clear *canvas*))))
 
 (defn- save-current-fill
   "Save current fill color vector in the internal state. It can be accessed using (current-fill) function."
@@ -73,12 +86,18 @@
   (set! *internal-state* (assoc *internal-state* :current-fill color)))
 
 (defn fill
-  [& args]
-  (let [brush (wxDC/getBrush *canvas*)
-        color (apply color args)]
+  ([gray]
+   (fill gray 255))
+  ([gray alpha]
+   (fill gray gray gray alpha))
+  ([r g b]
+   (fill r g b 255))
+  ([r g b alpha]
+   (let [brush (wxDC/getBrush *canvas*)
+         color #erl[r g b alpha]]
     (wxBrush/setColour brush color)
     (wxDC/setBrush *canvas* brush)
-    (save-current-fill color)))
+    (save-current-fill color))))
 
 (defn current-fill
   []
