@@ -165,8 +165,11 @@
 
 (defn current-frame-rate
   []
-  (/ (* (:frame-count *sketch*) 1000)
-     (- (u/time-mark) (:epoch *sketch*))))
+  (/ 1000 (- (:time-mark *sketch*) (:p-time-mark *sketch*))))
+
+(defn millis
+  []
+  (- (u/time-mark) (*sketch* :epoch)))
 
 (defmacro defsketch
   [name & opts]
