@@ -206,9 +206,10 @@
             :on-close on-close-fn}
             ;; Create bitmap after frame is visible to
             ;; get the right dimensions
-           (let [bitmap (make-bitmap canvas)]
+           (let [bitmap    (make-bitmap canvas)
+                 bitmap-dc (wxMemoryDC/new bitmap)]
              {:bitmap    bitmap
-              :bitmap-dc (wxMemoryDC/new bitmap)}))))
+              :bitmap-dc bitmap-dc}))))
 
 ;; Events
 

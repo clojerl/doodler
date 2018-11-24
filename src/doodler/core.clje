@@ -54,7 +54,7 @@
   (let [brush (wxDC/getBackground *canvas*)]
     (wxBrush/setColour brush (apply color args))
     (wxDC/setBackground *canvas* brush)
-    (wxDC/clear *canvas*)))
+    (clear)))
 
 (defn fill
   [& args]
@@ -78,6 +78,12 @@
 (defn point
   [x y]
   (wxDC/drawPoint *canvas* (tuple x y)))
+
+(defn random
+  ([max]
+   (dec (rand/uniform max)))
+  ([min max]
+   (+ min (dec (rand/uniform max)))))
 
 (defn rect
   ([x y w h]
