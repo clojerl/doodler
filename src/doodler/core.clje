@@ -75,15 +75,19 @@
                     #erl[(- x (erlang/div w 2)) (- y (erlang/div h 2))]
                     #erl[w h]))
 
+(defn point
+  [x y]
+  (wxDC/drawPoint *canvas* (tuple x y)))
+
 (defn rect
   ([x y w h]
    (wxDC/drawRectangle *canvas* #erl[x y] #erl[w h]))
   ([x y w h r]
    (wxDC/drawRoundedRectangle *canvas* #erl[x y] #erl[w h] r)))
 
-(defn point
-  [x y]
-  (wxDC/drawPoint *canvas* (tuple x y)))
+(defn text
+  [s x y]
+  (wxDC/drawText *canvas* s #erl[x y]))
 
 (defn width
   []
