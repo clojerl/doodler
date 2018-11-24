@@ -1,0 +1,29 @@
+(ns doodler.examples.mouse-event
+  (:require [doodler.core :as d]
+            [doodler.middlewares.state-mode :as state-mode]))
+
+(defn setup
+  []
+  (d/frame-rate 24)
+  {:x 0 :y 0})
+
+(defn mouse-move
+  [state evt]
+  {:x (:x evt) :y (:y evt)})
+
+(defn draw [state]
+  (d/stroke (rand-int 255))
+  (d/stroke-weight (rand-int 10))
+  (d/fill (rand-int 255))
+  (d/circle (:x state) (:y state) (rand-int 50))
+  state)
+
+(d/defsketch sketch
+  :title "Oh so many circles"
+  :size [323 200]
+  :bgcolor [200]
+  :setup setup
+  :draw draw
+  :mouse-moved mouse-move
+  :features [:resizable :keep-on-top]
+  :middleware [state-mode/state-mode])
