@@ -1,0 +1,25 @@
+(ns doodler.examples.shapes
+  (:require [doodler.core :as d]))
+
+(defn setup
+  []
+  (d/frame-rate 10))
+
+(defn draw []
+  (d/stroke (rand-int 255))
+  (d/stroke-weight (rand-int 3))
+  (d/fill (rand-int 255))
+  (d/ellipse 20 20 20 20)
+  (d/arc 10 55 50 50 0.0 45.0)
+  (d/rect 10 60 20 20)
+  (d/rect 10 85 20 20 5)
+  (d/text "Hello world!" 10 110)
+  )
+
+(d/defsketch sketch
+  :title "Shapes"
+  :size [300 300]
+  :setup setup
+  :draw draw
+  :features [:resizable :keep-on-top]
+  :bgcolor [200])
