@@ -38,32 +38,41 @@
   (let [[i j]     (->complex x y w h)
         n         (mandelbrot i j max-iters)
         color     (->color n max-iters)]
-    (d/stroke color)
-    (d/point x y)))
+    [x y color]))
 
 (defn setup
   []
   (d/frame-rate 40)
-  (points))
+  {:points (points)
+   :m-points nil})
 
-(defn draw
-  [pts]
-  (when pts
+(defn update-state
+  [{points :points :as state}]
+  (when points
     (let [max-iters 100
           w         (d/width)
           h         (d/height)]
-      (loop [[[x y] & rest] pts
+      (loop [[[x y] & rest] points
+             m-points #erl()
              n 0]
         (if (and rest (< n 200))
-          (do
-            (mandelbrot-point x y w h max-iters)
-            (recur rest (inc n)))
-          rest)))))
+          (recur rest
+                 (conj m-points (mandelbrot-point x y w h max-iters))
+                 (inc n))
+          {:points rest
+           :m-points m-points})))))
+
+(defn draw
+  [state]
+  (doseq [[x y color] (:m-points state)]
+    (d/stroke color)
+    (d/point x y)))
 
 (d/defsketch sketch
   :title "Mandelbrot"
   :size [300 300]
   :setup setup
+  :update update-state
   :draw draw
   :bgcolor [0]
   :features [:keep-on-top]

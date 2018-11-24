@@ -8,14 +8,46 @@
     (assoc opts
            :setup #(set! core/*state* (setup)))))
 
-(defn- wrap-draw
+(defn- wrap-draw-update
   [opts]
-  (let [draw (:draw opts u/no-fn-state)]
-    (assoc opts
-           :draw #(set! core/*state* (draw core/*state*)))))
+  (let [draw (:draw opts u/no-fn-state)
+        update (:update opts)]
+    (if update
+      (assoc opts
+             :draw #(do
+                      (set! core/*state* (update core/*state*))
+                      (draw core/*state*)))
+      (assoc opts
+             :draw #(draw core/*state*)))))
+
+(def state-only
+  #{:on-close
+    :focus-gained :focus-lost})
+
+(def callbacks
+  [:on-close
+   :focus-gained :focus-lost
+   :mouse-entered :mouse-exited
+   :mouse-pressed :mouse-released
+   :mouse-moved :mouse-wheel
+   :key-pressed :key-released :key-typed])
+
+(defn wrap-handlers
+  [opts]
+  (reduce (fn [acc name]
+            (if-let [handler (name acc)]
+              (if (state-only name)
+                (assoc acc
+                       name #(set! core/*state* (handler core/*state*)))
+                (assoc acc
+                       name #(set! core/*state* (handler core/*state* %))))
+              acc))
+          opts
+          callbacks))
 
 (defn state-mode
   [opts]
   (-> opts
       wrap-setup
-      wrap-draw))
+      wrap-draw-update
+      wrap-handlers))

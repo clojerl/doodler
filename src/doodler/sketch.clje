@@ -51,7 +51,23 @@
   (let [[w h] (wxWindow/getSize canvas)]
     (wxBitmap/new w h)))
 
+(defmacro with-sketch
+  [sketch & body]
+  `(let [{bitmap-dc#      :bitmap-dc
+          state#          :state
+          internal-state# :internal-state} ~sketch]
+    (binding [doodler.core/*sketch* ~sketch
+              doodler.core/*canvas* bitmap-dc#
+              doodler.core/*state*  state#
+              doodler.core/*internal-state* internal-state#]
+      ~@body
+      (assoc ~sketch
+             :state doodler.core/*state*
+             :internal-state doodler.core/*internal-state*))))
+
 (defn listen
+  "Registers this component to listen events of the specified
+  event-type"
   ([component event-type & opts]
    (let [opts (apply hash-map opts)
          opts (reduce (fn [acc [k v]]
@@ -97,18 +113,8 @@
 
 (defn on-draw
   [sketch f]
-  (let [{canvas         :canvas
-         bitmap-dc      :bitmap-dc
-         state          :state
-         internal-state :internal-state} sketch]
-    (binding [core/*sketch* sketch
-              core/*canvas* bitmap-dc
-              core/*state*  state
-              core/*internal-state* internal-state]
-      (doodler.wx/batch f)
-      (assoc sketch
-             :state core/*state*
-             :internal-state core/*internal-state*))))
+  (with-sketch sketch
+    (doodler.wx/batch f)))
 
 (defn on-resize
   [sketch]
@@ -144,10 +150,10 @@
 
         draw-fn     (or (:draw opts) u/no-fn)
         setup-fn    (or (:setup opts) u/no-fn)
-        on-close-fn (let [close-fn (or (:on-close opts) u/no-fn-state)]
+        on-close-fn (let [close-fn (or (:on-close opts) u/no-fn)]
                       (if (:exit-on-close features)
-                        (fn [sketch]
-                          (close-fn sketch)
+                        (fn []
+                          (close-fn)
                           (erlang/halt 0))
                         close-fn))
 
@@ -158,7 +164,25 @@
     (listen canvas :paint :callback true)
     ;; When resizing the frame we should resize the bitmap
     (listen frame :size :skip true)
-    (listen frame :close_window)
+    (listen frame :close_window) ;; on-close
+
+    ;; Listen to all mouse events
+    (listen canvas :set_focus) ;; focus-gained
+    (listen canvas :kill_focus) ;; focus-lost
+    (listen canvas :enter_window) ;; mouse-entered
+    (listen canvas :leave_window) ;; mouse-exited
+    (listen canvas :left_down) ;; mouse-pressed
+    (listen canvas :middle_down) ;; mouse-pressed
+    (listen canvas :right_down) ;; mouse-pressed
+    (listen canvas :left_up) ;; mouse-release
+    (listen canvas :middle_up) ;; mouse-release
+    (listen canvas :right_up) ;; mouse-release
+    (listen canvas :motion) ;; mouse-move
+    (listen canvas :mousewheel) ;; mouse-wheel
+    ;; Listen to all key events
+    (listen canvas :key_down) ;; key-pressed
+    (listen canvas :key_up) ;; key-released
+    (listen canvas :char) ;; key-typed (?)
 
     ;; Set background color before showing the frame
     (wxWindow/setBackgroundColour canvas bgcolor)
@@ -186,6 +210,63 @@
              {:bitmap    bitmap
               :bitmap-dc (wxMemoryDC/new bitmap)}))))
 
+;; Events
+
+(defn* event-type->mouse-event
+  ([:enter_window] :mouse-entered)
+  ([:leave_window] :mouse-exited)
+  ([:left_down]    :mouse-pressed)
+  ([:middle_down]  :mouse-pressed)
+  ([:right_down]   :mouse-pressed)
+  ([:left_up]      :mouse-released)
+  ([:middle_up]    :mouse-released)
+  ([:right_up]     :mouse-released)
+  ([:motion]       :mouse-moved)
+  ([:mousewheel]   :mouse-wheel))
+
+(defn* event-type->key-event
+  ([:key_down] :key-pressed)
+  ([:key_up]   :key-released)
+  ([:char]     :key-typed))
+
+(defn* event->map
+  ([#erl[:wxClose :close_window]]
+   #erl{:event :on-close})
+
+  ([#erl[:wxSize :size size rect]]
+   #erl{:event :on-resize
+        :size size})
+
+  ([#erl[:wxFocus :set_focus window]]
+   #erl{:event :focus-gained
+        :window window})
+  ([#erl[:wxFocus :kill_focus window]]
+   #erl{:event :focus-lost
+        :window window})
+
+  ([#erl[:wxMouse type
+         x y
+         left middle right
+         control shift alt meta
+         wheel-rotation wheel-delta lines-per-action]]
+   #erl{:event (event-type->mouse-event type)
+        :x x :y y
+        :left left :middle middle :right right
+        :control control :shift shift :alt alt :meta meta
+        :wheel-rotation wheel-rotation :wheel-delta wheel-delta
+        :lines-per-action lines-per-action})
+
+  ([#erl[:wxKey type
+         x y
+         key-code control shift alt meta
+         scan-code uni-char raw-code raw-flags]]
+   #erl{:event (event-type->key-event type)
+        :x x :y y
+        :key-code key-code
+        :control control :shift shift :alt alt :meta meta
+        :scan-code scan-code :uni-char uni-char
+        :raw-code raw-code :raw-flags raw-flags}))
+
 ;; Callbacks
 
 (defn handle_sync_event
@@ -193,23 +274,32 @@
   (on-paint sketch)
   :ok)
 
-(def event->handler
-  {:wxClose :on-close
-   :wxSize  :on-resize})
-
 (defn handle_event
   [wx sketch]
   (let* [#erl[:wx id obj data event] wx
-         event-type (-> (first event)
-                        event->handler)]
-    (case* event-type
-      :on-close
-      (u/stop ((sketch :on-close) sketch))
-      _
-      (u/noreply
-       (if-let [handler (sketch event-type)]
-         (handler sketch)
-         sketch)))))
+         event (event->map event)
+         event-key (:event event)
+         handler (event-key sketch)]
+    (if-not handler
+      (u/noreply sketch)
+      (case event-key
+        :on-close
+        (u/stop (with-sketch sketch
+                  (handler)))
+        :focus-gained
+        (u/noreply (with-sketch sketch
+                     (handler)))
+        :focus-lost
+        (u/noreply (with-sketch sketch
+                     (handler)))
+
+        :on-resize
+        (u/noreply (handler sketch))
+
+        _
+        (u/noreply
+         (with-sketch sketch
+           (handler event)))))))
 
 (defn* handle_info
   ([:setup sketch]
