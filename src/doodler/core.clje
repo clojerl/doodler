@@ -64,15 +64,22 @@
 
 (defn arc
   [x y w h start end]
-  (wxDC/drawEllipticArc *canvas* #erl[x y] #erl[w h] start end))
+  (wxDC/drawEllipticArc *canvas*
+                        #erl[(- x (erlang/div w 2)) (- y (erlang/div h 2))]
+                        #erl[w h]
+                        start end))
 
 (defn ellipse
   [x y w h]
-  (wxDC/drawEllipse *canvas* #erl[x y] #erl[w h]))
+  (wxDC/drawEllipse *canvas*
+                    #erl[(- x (erlang/div w 2)) (- y (erlang/div h 2))]
+                    #erl[w h]))
 
 (defn rect
-  [x y w h]
-  (wxDC/drawRectangle *canvas* #erl[x y] #erl[w h]))
+  ([x y w h]
+   (wxDC/drawRectangle *canvas* #erl[x y] #erl[w h]))
+  ([x y w h r]
+   (wxDC/drawRoundedRectangle *canvas* #erl[x y] #erl[w h] r)))
 
 (defn point
   [x y]
