@@ -146,11 +146,8 @@
 
 (defn current-frame-rate
   []
-  (let [diff (erlang/- (u/time-mark) (:epoch *sketch*))]
-    (if (pos? diff)
-      (erlang/div (erlang/* (:frame-count *sketch*) 1000)
-                  diff)
-      0)))
+  (/ (* (:frame-count *sketch*) 1000)
+     (- (u/time-mark) (:epoch *sketch*))))
 
 (defmacro defsketch
   [name & opts]
