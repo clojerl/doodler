@@ -1,4 +1,8 @@
 [{<<"clojerl">>,
   {git,"https://github.com/clojerl/clojerl.git",
        {ref,"60281e71b747e7afffd97f35f4a3b075f6eb72ff"}},
+  0},
+ {<<"eper">>,
+  {git,"https://github.com/massemanet/eper",
+       {ref,"17b0f97ea8287b72e8ebbe7132214db182ff1a1d"}},
   0}].
