@@ -25,7 +25,8 @@
   (d/stroke (d/random 255))
   (d/stroke-weight (d/random 10))
   (d/fill (d/random 255))
-  (d/circle (:x state) (:y state) (d/random 50)))
+  (let [diam (d/random 50)]
+    (d/ellipse (:x state) (:y state) diam diam)))
 
 (d/defsketch sketch
   :title "Handling events"
