@@ -6,7 +6,7 @@
   []
   (shuffle (for [x (range (d/width))
                  y (range (d/height))]
-             [x y])))
+             #erl[x y])))
 
 (defn ->complex
   [x y w h]
@@ -52,14 +52,14 @@
     (let [max-iters 100
           w         (d/width)
           h         (d/height)]
-      (loop [[[x y] & rest] points
-             m-points #erl()
-             n 0]
-        (if (and rest (< n 200))
+      (loop* [#erl(#erl[x y] & rest) points
+              m-points #erl()
+              n 0]
+        (if (and (< n 500) (seq rest))
           (recur rest
                  (conj m-points (mandelbrot-point x y w h max-iters))
                  (inc n))
-          {:points rest
+          {:points (seq rest)
            :m-points m-points})))))
 
 (defn draw
