@@ -56,7 +56,7 @@
    (let [pen (:pen *sketch*)
          color #erl[r g b alpha]]
      (wxPen/setColour pen color)
-     ;; (wxDC/setPen *canvas* pen)
+     (wxDC/setPen *canvas* pen)
      (save-current-stroke color))))
 
 (defn stroke-weight
@@ -76,7 +76,7 @@
    (let [brush (:background-brush *sketch*)
          color #erl[r g b alpha]]
      (wxBrush/setColour brush color)
-     ;; (wxDC/setBackground *canvas* brush)
+     (wxDC/setBackground *canvas* brush)
      (wxDC/clear *canvas*))))
 
 (defn- save-current-fill
@@ -140,11 +140,11 @@
 
 (defn width
   []
-  (erlang/element 1 (wxDC/getSize *canvas*)))
+  (:width *sketch*))
 
 (defn height
   []
-  (erlang/element 2 (wxDC/getSize *canvas*)))
+  (:height *sketch*))
 
 (defn frame-rate
   [new-rate]
