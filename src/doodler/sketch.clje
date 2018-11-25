@@ -123,10 +123,14 @@
   [sketch]
   (wxMemoryDC/destroy (:bitmap-dc sketch))
   (wxBitmap/destroy (:bitmap sketch))
-  (let [bitmap (make-bitmap (:canvas sketch))]
+  (let [bitmap    (make-bitmap (:canvas sketch))
+        bitmap-dc (wxMemoryDC/new bitmap)]
     (assoc sketch
-           :bitmap bitmap
-           :bitmap-dc (wxMemoryDC/new bitmap))))
+           :bitmap           bitmap
+           :bitmap-dc        bitmap-dc
+           :background-brush (wxDC/getBackground bitmap-dc)
+           :brush            (wxDC/getBrush bitmap-dc)
+           :pen              (wxDC/getPen bitmap-dc))))
 
 (def ^{:private true}
   supported-features
@@ -215,8 +219,11 @@
             ;; get the right dimensions
            (let [bitmap    (make-bitmap canvas)
                  bitmap-dc (wxMemoryDC/new bitmap)]
-             {:bitmap    bitmap
-              :bitmap-dc bitmap-dc}))))
+             {:bitmap           bitmap
+              :bitmap-dc        bitmap-dc
+              :background-brush (wxDC/getBackground bitmap-dc)
+              :brush            (wxDC/getBrush bitmap-dc)
+              :pen              (wxDC/getPen bitmap-dc)}))))
 
 ;; Events
 

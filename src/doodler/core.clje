@@ -53,15 +53,15 @@
   ([r g b]
    (stroke r g b 255))
   ([r g b alpha]
-   (let [pen (wxDC/getPen *canvas*)
+   (let [pen (:pen *sketch*)
          color #erl[r g b alpha]]
      (wxPen/setColour pen color)
-     (wxDC/setPen *canvas* pen)
+     ;; (wxDC/setPen *canvas* pen)
      (save-current-stroke color))))
 
 (defn stroke-weight
   [weight]
-  (let [pen (wxDC/getPen *canvas*)]
+  (let [pen (:pen *sketch*)]
     (wxPen/setWidth pen weight)
     (wxDC/setPen *canvas* pen)))
 
@@ -73,10 +73,10 @@
   ([r g b]
    (background r g b 255))
   ([r g b alpha]
-   (let [brush (wxDC/getBackground *canvas*)
+   (let [brush (:background-brush *sketch*)
          color #erl[r g b alpha]]
      (wxBrush/setColour brush color)
-     (wxDC/setBackground *canvas* brush)
+     ;; (wxDC/setBackground *canvas* brush)
      (wxDC/clear *canvas*))))
 
 (defn- save-current-fill
@@ -91,11 +91,11 @@
   ([r g b]
    (fill r g b 255))
   ([r g b alpha]
-   (let [brush (wxDC/getBrush *canvas*)
+   (let [brush (:brush *sketch*)
          color #erl[r g b alpha]]
-    (wxBrush/setColour brush color)
-    (wxDC/setBrush *canvas* brush)
-    (save-current-fill color))))
+     (wxBrush/setColour brush color)
+     (wxDC/setBrush *canvas* brush)
+     (save-current-fill color))))
 
 (defn current-fill
   []
