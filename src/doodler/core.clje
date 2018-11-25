@@ -53,7 +53,7 @@
   ([r g b]
    (stroke r g b 255))
   ([r g b alpha]
-   (let [pen (wxDC/getPen *canvas*)
+   (let [pen (:pen *sketch*)
          color #erl[r g b alpha]]
      (wxPen/setColour pen color)
      (wxDC/setPen *canvas* pen)
@@ -61,7 +61,7 @@
 
 (defn stroke-weight
   [weight]
-  (let [pen (wxDC/getPen *canvas*)]
+  (let [pen (:pen *sketch*)]
     (wxPen/setWidth pen weight)
     (wxDC/setPen *canvas* pen)))
 
@@ -73,7 +73,7 @@
   ([r g b]
    (background r g b 255))
   ([r g b alpha]
-   (let [brush (wxDC/getBackground *canvas*)
+   (let [brush (:background-brush *sketch*)
          color #erl[r g b alpha]]
      (wxBrush/setColour brush color)
      (wxDC/setBackground *canvas* brush)
@@ -91,11 +91,11 @@
   ([r g b]
    (fill r g b 255))
   ([r g b alpha]
-   (let [brush (wxDC/getBrush *canvas*)
+   (let [brush (:brush *sketch*)
          color #erl[r g b alpha]]
-    (wxBrush/setColour brush color)
-    (wxDC/setBrush *canvas* brush)
-    (save-current-fill color))))
+     (wxBrush/setColour brush color)
+     (wxDC/setBrush *canvas* brush)
+     (save-current-fill color))))
 
 (defn current-fill
   []
@@ -140,11 +140,11 @@
 
 (defn width
   []
-  (erlang/element 1 (wxDC/getSize *canvas*)))
+  (:width *sketch*))
 
 (defn height
   []
-  (erlang/element 2 (wxDC/getSize *canvas*)))
+  (:height *sketch*))
 
 (defn frame-rate
   [new-rate]

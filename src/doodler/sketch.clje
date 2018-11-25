@@ -47,9 +47,30 @@
   (wxPanel/new frame))
 
 (defn make-bitmap
+  "Creates a bitmap the same size as the provided canvas.
+  Returns a map with bitmap and canvas related information to
+  avoid having to fetch it while drawing.
+
+    :bitmap        The bitmap
+    :bitmap-dc     Device context for the bitmap
+
+    :background-brush, :brush, :pen
+                   References to the DC's elements
+
+    :width         Bitmap's width
+    :height        Bitmap's height
+  "
   [canvas]
-  (let [[w h] (wxWindow/getSize canvas)]
-    (wxBitmap/new w h)))
+  (let [[w h]     (wxWindow/getSize canvas)
+        bitmap    (wxBitmap/new w h)
+        bitmap-dc (wxMemoryDC/new bitmap)]
+    {:bitmap           bitmap
+     :bitmap-dc        bitmap-dc
+     :background-brush (wxDC/getBackground bitmap-dc)
+     :brush            (wxDC/getBrush bitmap-dc)
+     :pen              (wxDC/getPen bitmap-dc)
+     :width            w
+     :height           h}))
 
 (defmacro with-sketch
   [sketch & body]
@@ -123,10 +144,7 @@
   [sketch]
   (wxMemoryDC/destroy (:bitmap-dc sketch))
   (wxBitmap/destroy (:bitmap sketch))
-  (let [bitmap (make-bitmap (:canvas sketch))]
-    (assoc sketch
-           :bitmap bitmap
-           :bitmap-dc (wxMemoryDC/new bitmap))))
+  (merge sketch (make-bitmap (:canvas sketch))))
 
 (def ^{:private true}
   supported-features
@@ -203,20 +221,20 @@
             :pid (erlang/self)
             :frame frame
             :canvas canvas
+
             :setup-fn setup-fn
             :draw-fn draw-fn
             :on-resize on-resize
             :on-close on-close-fn
+
             :frame-count 0
             :epoch (u/time-mark)
             :p-time-mark (u/time-mark)
             :time-mark (inc (u/time-mark))}
+
             ;; Create bitmap after frame is visible to
-            ;; get the right dimensions
-           (let [bitmap    (make-bitmap canvas)
-                 bitmap-dc (wxMemoryDC/new bitmap)]
-             {:bitmap    bitmap
-              :bitmap-dc bitmap-dc}))))
+           ;; get the right dimensions
+           (make-bitmap canvas))))
 
 ;; Events
 
