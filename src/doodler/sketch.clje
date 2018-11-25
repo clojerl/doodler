@@ -75,16 +75,13 @@
 (defmacro with-sketch
   [sketch & body]
   `(let [{bitmap-dc#      :bitmap-dc
-          state#          :state
-          internal-state# :internal-state} ~sketch]
+          state#          :state} ~sketch]
     (binding [doodler.core/*sketch* ~sketch
               doodler.core/*canvas* bitmap-dc#
-              doodler.core/*state*  state#
-              doodler.core/*internal-state* internal-state#]
+              doodler.core/*state*  state#]
       ~@body
-      (assoc ~sketch
-             :state doodler.core/*state*
-             :internal-state doodler.core/*internal-state*))))
+      (assoc doodler.core/*sketch*
+             :state doodler.core/*state*))))
 
 (defn listen
   "Registers this component to listen events of the specified
@@ -112,16 +109,18 @@
 
 (defn next-refresh
   [sketch time-mark]
-  (let [interval       (-> sketch :internal-state :frame-interval)
-        next-time-mark (+ time-mark interval)
-        now            (u/time-mark)
-        diff           (- next-time-mark now)
-        delay          (max 0 diff)]
+  (let [interval       (sketch :frame-interval)
+        p-time-mark    (sketch :time-mark)
+        correction     (erlang/div (- time-mark p-time-mark interval) 2)
+        prev-delay     (sketch :frame-delay)
+        delay          (max 0 (- prev-delay correction))]
+    ;; (prn :correction correction :delay delay :frame-interval interval)
     (u/send-after delay :refresh)
     (assoc sketch
            :refresh false
-           :p-time-mark (sketch :time-mark)
+           :p-time-mark p-time-mark
            :time-mark time-mark
+           :frame-delay delay
            :frame-count (inc (sketch :frame-count)))))
 
 (defn on-paint
@@ -178,8 +177,7 @@
                           (erlang/halt 0))
                         close-fn))
 
-        internal-state {:frame-rate default-frame-rate
-                        :frame-interval (u/frame-interval default-frame-rate)}]
+        frame-delay    (u/frame-interval default-frame-rate)]
 
     ;; Paint events need to be handled synchronously
     (listen canvas :paint :callback true)
@@ -217,7 +215,6 @@
 
     (merge opts
            {:state nil
-            :internal-state internal-state
             :pid (erlang/self)
             :frame frame
             :canvas canvas
@@ -226,6 +223,10 @@
             :draw-fn draw-fn
             :on-resize on-resize
             :on-close on-close-fn
+
+            :frame-rate default-frame-rate
+            :frame-interval frame-delay
+            :frame-delay frame-delay
 
             :frame-count 0
             :epoch (u/time-mark)
