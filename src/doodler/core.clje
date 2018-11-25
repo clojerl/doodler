@@ -37,11 +37,27 @@
   ([r g b alpha]
    #erl[r g b alpha]))
 
+(defn- save-current-stroke
+  [color]
+  (set! *internal-state* (assoc *internal-state* :current-stroke color)))
+
+(defn current-stroke
+  []
+  (:current-stroke *internal-state*))
+
 (defn stroke
-  [& args]
-  (let [pen (wxDC/getPen *canvas*)]
-    (wxPen/setColour pen (apply color args))
-    (wxDC/setPen *canvas* pen)))
+  ([gray]
+   (stroke gray 255))
+  ([gray alpha]
+   (stroke gray gray gray alpha))
+  ([r g b]
+   (stroke r g b 255))
+  ([r g b alpha]
+   (let [pen (wxDC/getPen *canvas*)
+         color #erl[r g b alpha]]
+     (wxPen/setColour pen color)
+     (wxDC/setPen *canvas* pen)
+     (save-current-stroke color))))
 
 (defn stroke-weight
   [weight]
@@ -50,29 +66,77 @@
     (wxDC/setPen *canvas* pen)))
 
 (defn background
-  [& args]
-  (let [brush (wxDC/getBackground *canvas*)]
-    (wxBrush/setColour brush (apply color args))
-    (wxDC/setBackground *canvas* brush)
-    (wxDC/clear *canvas*)))
+  ([gray]
+   (background gray 255))
+  ([gray alpha]
+   (background gray gray gray alpha))
+  ([r g b]
+   (background r g b 255))
+  ([r g b alpha]
+   (let [brush (wxDC/getBackground *canvas*)
+         color #erl[r g b alpha]]
+     (wxBrush/setColour brush color)
+     (wxDC/setBackground *canvas* brush)
+     (wxDC/clear *canvas*))))
+
+(defn- save-current-fill
+  [color]
+  (set! *internal-state* (assoc *internal-state* :current-fill color)))
 
 (defn fill
-  [& args]
-  (let [brush (wxDC/getBrush *canvas*)]
-    (wxBrush/setColour brush (apply color args))
-    (wxDC/setBrush *canvas* brush)))
+  ([gray]
+   (fill gray 255))
+  ([gray alpha]
+   (fill gray gray gray alpha))
+  ([r g b]
+   (fill r g b 255))
+  ([r g b alpha]
+   (let [brush (wxDC/getBrush *canvas*)
+         color #erl[r g b alpha]]
+    (wxBrush/setColour brush color)
+    (wxDC/setBrush *canvas* brush)
+    (save-current-fill color))))
 
-(defn fill-rect
+(defn current-fill
+  []
+  (:current-fill *internal-state*))
+
+(defn arc
+  [x y w h start end]
+  (wxDC/drawEllipticArc *canvas*
+                        #erl[(- x (erlang/div w 2)) (- y (erlang/div h 2))]
+                        #erl[w h]
+                        start end))
+
+(defn ellipse
   [x y w h]
-  (wxDC/drawRectangle *canvas* #erl[x y] #erl[w h]))
+  (wxDC/drawEllipse *canvas*
+                    #erl[(- x (erlang/div w 2)) (- y (erlang/div h 2))]
+                    #erl[w h]))
+
+(defn line
+  ([p1 p2] (apply line (concat p1 p2)))
+  ([x1 y1 x2 y2] (wxDC/drawLine *canvas* #erl[x1 y1] #erl[x2 y2])))
 
 (defn point
   [x y]
-  (wxDC/drawPoint *canvas* (tuple x y)))
+  (wxDC/drawPoint *canvas* #erl[x y]))
 
-(defn circle
-  [x y r]
-  (wxDC/drawCircle *canvas* #erl[x y] r))
+(defn random
+  ([max]
+   (dec (rand/uniform max)))
+  ([min max]
+   (+ min (dec (rand/uniform max)))))
+
+(defn rect
+  ([x y w h]
+   (wxDC/drawRectangle *canvas* #erl[x y] #erl[w h]))
+  ([x y w h r]
+   (wxDC/drawRoundedRectangle *canvas* #erl[x y] #erl[w h] r)))
+
+(defn text
+  [s x y]
+  (wxDC/drawText *canvas* s #erl[x y]))
 
 (defn width
   []
@@ -88,6 +152,22 @@
         (assoc *internal-state*
                :frame-rate new-rate
                :frame-interval (u/frame-interval new-rate))))
+
+(defn frame-count
+  []
+  (*sketch* :frame-count))
+
+(defn target-frame-rate
+  []
+  (*internal-state* :frame-rate))
+
+(defn current-frame-rate
+  []
+  (/ 1000 (- (:time-mark *sketch*) (:p-time-mark *sketch*))))
+
+(defn millis
+  []
+  (- (u/time-mark) (*sketch* :epoch)))
 
 (defmacro defsketch
   [name & opts]

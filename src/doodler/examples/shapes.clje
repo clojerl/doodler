@@ -1,0 +1,35 @@
+(ns doodler.examples.shapes
+  (:require [doodler.core :as d]))
+
+(defn setup
+  []
+  (d/frame-rate 10))
+
+(defn draw []
+  (d/background 200)
+
+  (d/stroke (rand-int 255))
+  (d/stroke-weight (rand-int 3))
+  (d/fill (rand-int 255))
+
+  (d/ellipse 20 20 20 20)
+  (d/arc 10 55 50 50 0.0 45.0)
+  (d/rect 10 60 20 20)
+  (d/rect 10 85 20 20 5)
+  (d/line 10 130 80 140)
+
+  (d/text (str "Fill: " (d/current-fill)) 100 10)
+  (d/text (str "Stroke: " (d/current-stroke)) 100 30)
+  (d/text (str "Frame #: " (d/frame-count)) 100 50)
+  (d/text (str "Target Frame Rate: " (d/target-frame-rate)) 100 70)
+  (d/text (str "Frame Rate: " (d/current-frame-rate)) 100 90)
+
+  )
+
+(d/defsketch sketch
+  :title "Shapes"
+  :size [300 300]
+  :setup setup
+  :draw draw
+  :features [:resizable :keep-on-top]
+  :bgcolor [200])

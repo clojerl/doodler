@@ -91,14 +91,17 @@
 
 (defn next-refresh
   [sketch time-mark]
-  (let [interval  (-> sketch :internal-state :frame-interval)
-        time-mark (+ time-mark interval)
-        now       (u/time-mark)
-        diff      (- time-mark now)
-        delay     (max 0 diff)]
-    ;; (prn :interval interval :diff diff :delay delay)
+  (let [interval       (-> sketch :internal-state :frame-interval)
+        next-time-mark (+ time-mark interval)
+        now            (u/time-mark)
+        diff           (- next-time-mark now)
+        delay          (max 0 diff)]
     (u/send-after delay :refresh)
-    (assoc sketch :refresh false)))
+    (assoc sketch
+           :refresh false
+           :p-time-mark (sketch :time-mark)
+           :time-mark time-mark
+           :frame-count (inc (sketch :frame-count)))))
 
 (defn on-paint
   [sketch]
@@ -203,12 +206,17 @@
             :setup-fn setup-fn
             :draw-fn draw-fn
             :on-resize on-resize
-            :on-close on-close-fn}
+            :on-close on-close-fn
+            :frame-count 0
+            :epoch (u/time-mark)
+            :p-time-mark (u/time-mark)
+            :time-mark (inc (u/time-mark))}
             ;; Create bitmap after frame is visible to
             ;; get the right dimensions
-           (let [bitmap (make-bitmap canvas)]
+           (let [bitmap    (make-bitmap canvas)
+                 bitmap-dc (wxMemoryDC/new bitmap)]
              {:bitmap    bitmap
-              :bitmap-dc (wxMemoryDC/new bitmap)}))))
+              :bitmap-dc bitmap-dc}))))
 
 ;; Events
 
