@@ -7,8 +7,6 @@
 
 (def ^:dynamic *state* nil)
 
-(def ^:dynamic *internal-state* nil)
-
 (defn state
   ([] *state*)
   ([key] (get *state* key)))
@@ -39,11 +37,11 @@
 
 (defn- save-current-stroke
   [color]
-  (set! *internal-state* (assoc *internal-state* :current-stroke color)))
+  (set! *sketch* (assoc *sketch* :current-stroke color)))
 
 (defn current-stroke
   []
-  (:current-stroke *internal-state*))
+  (:current-stroke *sketch*))
 
 (defn stroke
   ([gray]
@@ -81,7 +79,11 @@
 
 (defn- save-current-fill
   [color]
-  (set! *internal-state* (assoc *internal-state* :current-fill color)))
+  (set! *sketch* (assoc *sketch* :current-fill color)))
+
+(defn current-fill
+  []
+  (:current-fill *sketch*))
 
 (defn fill
   ([gray]
@@ -96,10 +98,6 @@
      (wxBrush/setColour brush color)
      (wxDC/setBrush *canvas* brush)
      (save-current-fill color))))
-
-(defn current-fill
-  []
-  (:current-fill *internal-state*))
 
 (defn arc
   [x y w h start end]
@@ -148,10 +146,11 @@
 
 (defn frame-rate
   [new-rate]
-  (set! *internal-state*
-        (assoc *internal-state*
+  (set! *sketch*
+        (assoc *sketch*
                :frame-rate new-rate
-               :frame-interval (u/frame-interval new-rate))))
+               :frame-interval (u/frame-interval new-rate)
+               :frame-delay (u/frame-interval new-rate))))
 
 (defn frame-count
   []
@@ -159,7 +158,7 @@
 
 (defn target-frame-rate
   []
-  (*internal-state* :frame-rate))
+  (*sketch* :frame-rate))
 
 (defn current-frame-rate
   []

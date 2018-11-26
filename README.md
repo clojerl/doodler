@@ -16,5 +16,5 @@ to start the circles example use the following code:
 
     $ rebar3 clojerl repl
     Clojure 0.4.0
-    clje.user=> (require '[doodler.examples.circles :as c]) (c/circles)
+    clje.user=> (require '[doodler.examples.circles :as c]) (c/sketch)
     nil
