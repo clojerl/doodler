@@ -151,7 +151,8 @@
           (assoc *sketch*
                  :frame-rate new-rate
                  :frame-period frame-period
-                 :frame-delay frame-period))))
+                 :frame-delay frame-period
+                 :current-frame-rate new-rate))))
 
 (defn frame-count
   []

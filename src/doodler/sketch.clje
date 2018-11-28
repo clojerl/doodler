@@ -120,7 +120,10 @@
         prev-delay  (sketch :frame-delay)
         delay       (max 0 (- prev-delay correction))
         current-frame-rate (sketch :current-frame-rate)]
-    ;; (prn :correction correction :delay delay :frame-period period)
+    #_(prn :correction correction
+         :delay delay
+         :frame-period period
+         :current-frame-rate current-frame-rate)
     (u/send-after delay :refresh)
     (assoc sketch
            :current-frame-rate (calculate-frame-rate current-frame-rate
