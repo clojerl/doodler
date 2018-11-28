@@ -146,11 +146,12 @@
 
 (defn frame-rate
   [new-rate]
-  (set! *sketch*
-        (assoc *sketch*
-               :frame-rate new-rate
-               :frame-interval (u/frame-interval new-rate)
-               :frame-delay (u/frame-interval new-rate))))
+  (let [frame-period (u/frame-period new-rate)]
+    (set! *sketch*
+          (assoc *sketch*
+                 :frame-rate new-rate
+                 :frame-period frame-period
+                 :frame-delay frame-period))))
 
 (defn frame-count
   []
@@ -162,7 +163,7 @@
 
 (defn current-frame-rate
   []
-  (/ 1000 (- (:time-mark *sketch*) (:p-time-mark *sketch*))))
+  (*sketch* :current-frame-rate))
 
 (defn millis
   []
