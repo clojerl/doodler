@@ -44,6 +44,7 @@
   :focus-lost (report-event-fn :focus-lost)
   :mouse-pressed (report-event-fn :mouse-pressed)
   :mouse-released (report-event-fn :mouse-released)
+  :mouse-clicked (report-event-fn :mouse-clicked)
   :mouse-entered (report-event-fn :mouse-entered)
   :mouse-exited (report-event-fn :mouse-exited)
   :mouse-moved mouse-move

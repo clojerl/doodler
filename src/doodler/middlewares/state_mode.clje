@@ -28,7 +28,7 @@
   [:on-close
    :focus-gained :focus-lost
    :mouse-entered :mouse-exited
-   :mouse-pressed :mouse-released
+   :mouse-pressed :mouse-released :mouse-clicked
    :mouse-moved :mouse-wheel
    :key-pressed :key-released :key-typed])
 
