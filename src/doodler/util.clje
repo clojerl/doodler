@@ -20,11 +20,11 @@
   ([reason state]
    #erl[:stop reason state]))
 
-(defn frame-interval
+(defn frame-period
   "Returns the interval in ms between frames for the
    provided frame-rate."
   [frame-rate]
-  (int (/ 1000 frame-rate)))
+  (erlang/div 1000 frame-rate))
 
 (defn send-message
   ([msg]

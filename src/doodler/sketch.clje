@@ -107,16 +107,25 @@
                     #erl(#erl[:eraseBackground false]))
   (assoc sketch :refresh true))
 
+(defn calculate-frame-rate
+  [current-frame-rate time-mark p-time-mark]
+  (+ (* 0.9 current-frame-rate)
+     (* 0.1 (/ 1000 (- time-mark p-time-mark)))))
+
 (defn next-refresh
   [sketch time-mark]
-  (let [interval       (sketch :frame-interval)
-        p-time-mark    (sketch :time-mark)
-        correction     (erlang/div (- time-mark p-time-mark interval) 2)
-        prev-delay     (sketch :frame-delay)
-        delay          (max 0 (- prev-delay correction))]
-    ;; (prn :correction correction :delay delay :frame-interval interval)
+  (let [period      (sketch :frame-period)
+        p-time-mark (sketch :time-mark)
+        correction  (erlang/div (- time-mark p-time-mark period) 2)
+        prev-delay  (sketch :frame-delay)
+        delay       (max 0 (- prev-delay correction))
+        current-frame-rate (sketch :current-frame-rate)]
+    ;; (prn :correction correction :delay delay :frame-period period)
     (u/send-after delay :refresh)
     (assoc sketch
+           :current-frame-rate (calculate-frame-rate current-frame-rate
+                                                     time-mark
+                                                     p-time-mark)
            :refresh false
            :p-time-mark p-time-mark
            :time-mark time-mark
@@ -177,7 +186,7 @@
                           (erlang/halt 0))
                         close-fn))
 
-        frame-delay    (u/frame-interval default-frame-rate)]
+        frame-period (u/frame-period default-frame-rate)]
 
     ;; Paint events need to be handled synchronously
     (listen canvas :paint :callback true)
@@ -225,8 +234,9 @@
             :on-close on-close-fn
 
             :frame-rate default-frame-rate
-            :frame-interval frame-delay
-            :frame-delay frame-delay
+            :frame-period frame-period
+            :frame-delay frame-period
+            :current-frame-rate default-frame-rate
 
             :frame-count 0
             :epoch (u/time-mark)
