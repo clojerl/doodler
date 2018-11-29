@@ -180,7 +180,8 @@
 
 (defn start-loop
   []
-  (u/swap-var! *sketch* assoc :looping? true))
+  (u/swap-var! *sketch* assoc :looping? true)
+  (u/send-message (:pid *sketch*) :refresh))
 
 (defmacro defsketch
   [name & opts]

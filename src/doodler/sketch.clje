@@ -226,6 +226,7 @@
             :frame-delay frame-period
             :current-frame-rate default-frame-rate
 
+            :looping? true
             :frame-count 0
             :epoch (u/time-mark)
             :p-time-mark (u/time-mark)
@@ -280,10 +281,12 @@
        refresh
        u/noreply))
   ([#erl[:draw time-mark] sketch]
-   (-> sketch
-       (on-draw (:draw-fn sketch))
-       (next-refresh time-mark)
-       u/noreply))
+   (u/noreply
+    (if (:looping? sketch)
+      (-> sketch
+          (on-draw (:draw-fn sketch))
+          (next-refresh time-mark))
+      sketch)))
   ([wx sketch]
    (u/noreply sketch)))
 
