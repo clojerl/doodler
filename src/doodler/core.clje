@@ -37,7 +37,7 @@
 
 (defn- save-current-stroke
   [color]
-  (set! *sketch* (assoc *sketch* :current-stroke color)))
+  (u/swap-var! *sketch* assoc :current-stroke color))
 
 (defn current-stroke
   []
@@ -79,7 +79,7 @@
 
 (defn- save-current-fill
   [color]
-  (set! *sketch* (assoc *sketch* :current-fill color)))
+  (u/swap-var! *sketch* assoc :current-fill color))
 
 (defn current-fill
   []
@@ -169,6 +169,19 @@
 (defn millis
   []
   (- (u/time-mark) (*sketch* :epoch)))
+
+(defn no-loop
+  []
+  (u/swap-var! *sketch* assoc :looping? false))
+
+(defn looping?
+  []
+  (*sketch* :looping?))
+
+(defn start-loop
+  []
+  (u/swap-var! *sketch* assoc :looping? true)
+  (u/send-message (:pid *sketch*) :refresh))
 
 (defmacro defsketch
   [name & opts]

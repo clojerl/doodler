@@ -38,3 +38,7 @@
 
 (defn time-mark []
   (erlang/monotonic_time :millisecond))
+
+(defmacro swap-var!
+  [var f & args]
+  `(set! ~var (~f ~var ~@args)))
