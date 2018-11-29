@@ -61,13 +61,13 @@
     (do
       (d/no-loop)
       state)
-    (let [max-iters 100
+    (let [max-iters 255
           w         (d/width)
           h         (d/height)]
       (loop* [#erl(#erl[x y] & rest) points
               m-points #erl()
               n 0]
-        (if (and (< n 500) (seq rest))
+        (if (and (< n 1000) (seq rest))
           (recur rest
                  (conj m-points (mandelbrot-point x y w h max-iters))
                  (inc n))
