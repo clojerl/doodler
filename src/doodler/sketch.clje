@@ -106,7 +106,7 @@
   [sketch]
   (wxWindow/refresh (:canvas sketch)
                     #erl(#erl[:eraseBackground false]))
-  (assoc sketch :refresh true))
+  sketch)
 
 (defn calculate-frame-rate
   [current-frame-rate time-mark p-time-mark]
@@ -130,22 +130,20 @@
            :current-frame-rate (calculate-frame-rate current-frame-rate
                                                      time-mark
                                                      p-time-mark)
-           :refresh false
            :p-time-mark p-time-mark
            :time-mark time-mark
            :frame-delay delay
            :frame-count (inc (sketch :frame-count)))))
 
 (defn on-paint
-  [sketch]
+  [{bitmap :bitmap canvas :canvas pid :pid}]
   (doodler.wx/batch
-   #(let [bitmap (:bitmap sketch)
-          dc     (wxPaintDC/new (:canvas sketch))]
+   #(let [dc (wxPaintDC/new canvas)]
       (try
         (wxDC/drawBitmap dc bitmap #erl[0 0])
         (finally
           (wxPaintDC/destroy dc)))))
-  (u/send-message (:pid sketch) #erl[:draw (u/time-mark)]))
+  (u/send-message pid #erl[:draw (u/time-mark)]))
 
 (defn on-draw
   [sketch f]
@@ -282,12 +280,10 @@
        refresh
        u/noreply))
   ([#erl[:draw time-mark] sketch]
-   (if (:refresh sketch)
-     (-> sketch
-         (on-draw (:draw-fn sketch))
-         (next-refresh time-mark)
-         u/noreply)
-     (u/noreply sketch)))
+   (-> sketch
+       (on-draw (:draw-fn sketch))
+       (next-refresh time-mark)
+       u/noreply))
   ([wx sketch]
    (u/noreply sketch)))
 
