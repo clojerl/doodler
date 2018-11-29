@@ -89,3 +89,16 @@
         :control control :shift shift :alt alt :meta meta
         :scan-code scan-code :uni-char uni-char
         :raw-code raw-code :raw-flags raw-flags}))
+
+(defn listen
+  "Registers this component to listen events of the specified
+  event-type"
+  ([component event-type & opts]
+   (let [opts (apply hash-map opts)
+         opts (reduce (fn [acc [k v]]
+                        (if (and (= k :callback) (true? v))
+                          (conj acc :callback)
+                          (conj acc #erl[k v])))
+                      #erl()
+                      opts)]
+     (wxEvtHandler/connect component event-type opts))))

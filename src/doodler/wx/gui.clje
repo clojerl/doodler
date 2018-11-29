@@ -1,0 +1,44 @@
+(ns doodler.wx.gui)
+
+(def frame-style-system-menu 2048)
+(def frame-style-resize-border 64)
+(def frame-style-minimize-box 1024)
+(def frame-style-maximize-box 512)
+(def frame-style-caption 536870912)
+(def frame-style-clip-children 4194304)
+(def frame-style-close-box 4096)
+(def frame-style-stay-on-top 32768)
+
+(def default-frame-style
+  (bit-or frame-style-system-menu
+          frame-style-minimize-box
+          frame-style-close-box
+          frame-style-caption
+          frame-style-clip-children))
+
+(def feature->style {:keep-on-top [frame-style-stay-on-top]
+                     :resizable   [frame-style-resize-border
+                                   frame-style-maximize-box]})
+
+(defn frame-style
+  [features]
+  (reduce (fn [style [name active?]]
+            (if (and active? (feature->style name))
+              (apply bit-or style (feature->style name))
+              style))
+          default-frame-style
+          features))
+
+(defn make-frame
+  [title [x y] [w h] features]
+  (let [pos         #erl[:pos #erl[x y]]
+        size        #erl[:size #erl[w h]]
+        style       #erl[:style (frame-style features)]
+        frame-opts  #erl(pos size style)
+        wx          (wx/new)]
+    ;; (wx/debug :driver)
+    (wxFrame/new wx -1 title frame-opts)))
+
+(defn make-canvas
+  [frame]
+  (wxPanel/new frame))
