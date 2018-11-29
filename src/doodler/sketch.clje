@@ -1,5 +1,6 @@
 (ns doodler.sketch
   (:require [doodler.core :as core]
+            [doodler.events :as e]
             [doodler.util :as u]))
 
 (def SYSTEM_MENU 2048)
@@ -198,25 +199,8 @@
     (listen frame :close_window) ;; on-close
 
     ;; Listen to all mouse events
-    (listen canvas :set_focus)     ;; focus-gained
-    (listen canvas :kill_focus)    ;; focus-lost
-    (listen canvas :enter_window)  ;; mouse-entered
-    (listen canvas :leave_window)  ;; mouse-exited
-    (listen canvas :left_down)     ;; mouse-pressed
-    (listen canvas :middle_down)   ;; mouse-pressed
-    (listen canvas :right_down)    ;; mouse-pressed
-    (listen canvas :left_up)       ;; mouse-released
-    (listen canvas :middle_up)     ;; mouse-released
-    (listen canvas :right_up)      ;; mouse-released
-    (listen canvas :motion)        ;; mouse-moved
-    (listen canvas :left_dclick)   ;; mouse-clicked (twice)
-    (listen canvas :middle_dclick) ;; mouse-clicked (twice)
-    (listen canvas :right_dclick)  ;; mouse-clicked (twice)
-    (listen canvas :mousewheel)    ;; mouse-wheel
-    ;; Listen to all key events
-    (listen canvas :key_down) ;; key-pressed
-    (listen canvas :key_up) ;; key-released
-    (listen canvas :char) ;; key-typed (?)
+    (doseq [event-name e/event-names]
+      (listen canvas event-name))
 
     ;; Set background color before showing the frame
     (wxWindow/setBackgroundColour canvas bgcolor)
@@ -253,76 +237,6 @@
            ;; get the right dimensions
            (make-bitmap canvas))))
 
-;; Events
-
-(defn* event-type->mouse-event
-  ([:enter_window]  :mouse-entered)
-  ([:leave_window]  :mouse-exited)
-  ([:left_down]     :mouse-pressed)
-  ([:middle_down]   :mouse-pressed)
-  ([:right_down]    :mouse-pressed)
-  ([:left_up]       :mouse-released)
-  ([:middle_up]     :mouse-released)
-  ([:right_up]      :mouse-released)
-  ([:left_dclick]   :mouse-clicked)
-  ([:middle_dclick] :mouse-clicked)
-  ([:right_dclick]  :mouse-clicked)
-  ([:motion]        :mouse-moved)
-  ([:mousewheel]    :mouse-wheel))
-
-(defn* event-type->mouse-clicks
-  ([:left_dclick]   2)
-  ([:middle_dclick] 2)
-  ([:right_dclick]  2)
-  ([:left_up]       1)
-  ([:middle_up]     1)
-  ([:right_up]      1)
-  ([_]              0))
-
-(defn* event-type->key-event
-  ([:key_down] :key-pressed)
-  ([:key_up]   :key-released)
-  ([:char]     :key-typed))
-
-(defn* event->map
-  ([#erl[:wxClose :close_window]]
-   #erl{:event :on-close})
-
-  ([#erl[:wxSize :size size rect]]
-   #erl{:event :on-resize
-        :size size})
-
-  ([#erl[:wxFocus :set_focus window]]
-   #erl{:event :focus-gained
-        :window window})
-  ([#erl[:wxFocus :kill_focus window]]
-   #erl{:event :focus-lost
-        :window window})
-
-  ([#erl[:wxMouse type
-         x y
-         left middle right
-         control shift alt meta
-         wheel-rotation wheel-delta lines-per-action]]
-   #erl{:event (event-type->mouse-event type)
-        :clicks (event-type->mouse-clicks type)
-        :x x :y y
-        :left left :middle middle :right right
-        :control control :shift shift :alt alt :meta meta
-        :wheel-rotation wheel-rotation :wheel-delta wheel-delta
-        :lines-per-action lines-per-action})
-
-  ([#erl[:wxKey type
-         x y
-         key-code control shift alt meta
-         scan-code uni-char raw-code raw-flags]]
-   #erl{:event (event-type->key-event type)
-        :x x :y y
-        :key-code key-code
-        :control control :shift shift :alt alt :meta meta
-        :scan-code scan-code :uni-char uni-char
-        :raw-code raw-code :raw-flags raw-flags}))
-
 ;; Callbacks
 
 (defn handle_sync_event
@@ -333,7 +247,7 @@
 (defn handle_event
   [wx sketch]
   (let* [#erl[:wx id obj data event] wx
-         event (event->map event)
+         event (e/event->map event)
          event-key (:event event)
          handler (event-key sketch)]
     (if-not handler
