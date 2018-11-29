@@ -225,10 +225,8 @@
 - [ ] [`state`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L227) - "Retrieve sketch-specific state by key"
 - [ ] [`state-atom`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L202) - "Retrieve sketch-specific state-atom"
 - [x] [`stroke`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L3885) - "Sets the color used to draw lines and borders around shapes"
-- [ ] [`stroke-cap`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L3915) - "Sets the style for rendering line endings"
-- [ ] [`stroke-cap-modes`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L51)
-- [ ] [`stroke-join`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L3931) - "Sets the style of the joints which connect line  segments"
-- [ ] [`stroke-join-modes`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L51)
+- [x] [`stroke-cap`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L3915) - "Sets the style for rendering line endings"
+- [x] [`stroke-join`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L3931) - "Sets the style of the joints which connect line  segments"
 - [x] [`stroke-weight`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L3951) - "Sets the width of the stroke used for lines, points, and the border  around shapes"
 - [ ] [`tan`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L3963) - "Calculates the ratio of the sine and cosine of an angle"
 - [x] [`target-frame-rate`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L3978) - "Returns the target framerate specified with the fn frame-rate"

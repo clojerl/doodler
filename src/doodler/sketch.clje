@@ -1,51 +1,10 @@
 (ns doodler.sketch
   (:require [doodler.core :as core]
             [doodler.events :as e]
-            [doodler.util :as u]))
-
-(def SYSTEM_MENU 2048)
-(def RESIZE_BORDER 64)
-(def MINIMIZE_BOX 1024)
-(def MAXIMIZE_BOX 512)
-(def CAPTION 536870912)
-(def CLIP_CHILDREN 4194304)
-(def CLOSE_BOX 4096)
-(def STAY_ON_TOP, 32768)
-
-(def DEFAULT_FRAME_STYLE
-  (bit-or SYSTEM_MENU
-          MINIMIZE_BOX
-          CLOSE_BOX
-          CAPTION
-          CLIP_CHILDREN))
-
-(def feature->style {:keep-on-top [STAY_ON_TOP]
-                     :resizable   [RESIZE_BORDER MAXIMIZE_BOX]})
+            [doodler.util :as u]
+            [doodler.wx.gui :as gui]))
 
 (def default-frame-rate 60)
-
-(defn frame-style
-  [features]
-  (reduce (fn [style [name active?]]
-            (if (and active? (feature->style name))
-              (apply bit-or style (feature->style name))
-              style))
-          DEFAULT_FRAME_STYLE
-          features))
-
-(defn make-frame
-  [title [x y] [w h] features]
-  (let [pos         #erl[:pos #erl[x y]]
-        size        #erl[:size #erl[w h]]
-        style       #erl[:style (frame-style features)]
-        frame-opts  #erl(pos size style)
-        wx          (wx/new)]
-    ;; (wx/debug :driver)
-    (wxFrame/new wx -1 title frame-opts)))
-
-(defn make-canvas
-  [frame]
-  (wxPanel/new frame))
 
 (defn make-bitmap
   "Creates a bitmap the same size as the provided canvas.
@@ -83,19 +42,6 @@
       ~@body
       (assoc doodler.core/*sketch*
              :state doodler.core/*state*))))
-
-(defn listen
-  "Registers this component to listen events of the specified
-  event-type"
-  ([component event-type & opts]
-   (let [opts (apply hash-map opts)
-         opts (reduce (fn [acc [k v]]
-                        (if (and (= k :callback) (true? v))
-                          (conj acc :callback)
-                          (conj acc #erl[k v])))
-                      #erl()
-                      opts)]
-     (wxEvtHandler/connect component event-type opts))))
 
 (defn blit [dest source]
   (let [size (wxDC/getSize source)
@@ -171,11 +117,11 @@
                         (reduce #(assoc %1 %2 (contains? user-features %2)) {}
                                 supported-features))
 
-        frame       (make-frame (or (:title opts) "Sketch")
-                                (or (:pos opts) [-1 -1]) ;; default position
-                                (or (:size opts) [500 300])
-                                features)
-        canvas      (make-canvas frame)
+        frame       (gui/make-frame (or (:title opts) "Sketch")
+                                    (or (:pos opts) [-1 -1]) ;; default position
+                                    (or (:size opts) [500 300])
+                                    features)
+        canvas      (gui/make-canvas frame)
 
         bgcolor     (apply core/color (:bgcolor opts))
 
@@ -191,14 +137,14 @@
         frame-period (u/frame-period default-frame-rate)]
 
     ;; Paint events need to be handled synchronously
-    (listen canvas :paint :callback true)
+    (e/listen canvas :paint :callback true)
     ;; When resizing the frame we should resize the bitmap
-    (listen frame :size :skip true)
-    (listen frame :close_window) ;; on-close
+    (e/listen frame :size :skip true)
+    (e/listen frame :close_window) ;; on-close
 
     ;; Listen to all mouse events
     (doseq [event-name e/event-names]
-      (listen canvas event-name))
+      (e/listen canvas event-name))
 
     ;; Set background color before showing the frame
     (wxWindow/setBackgroundColour canvas bgcolor)
