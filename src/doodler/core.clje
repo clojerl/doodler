@@ -1,5 +1,6 @@
 (ns doodler.core
-  (:require [doodler.util :as u]))
+  (:require [doodler.util :as u]
+            [doodler.wx.gui :as gui]))
 
 (def ^:dynamic *canvas* nil)
 
@@ -61,6 +62,18 @@
   [weight]
   (let [pen (:pen *sketch*)]
     (wxPen/setWidth pen weight)
+    (wxDC/setPen *canvas* pen)))
+
+(defn stroke-cap
+  [cap-mode]
+  (let [pen (:pen *sketch*)]
+    (wxPen/setCap pen (gui/->stroke-cap cap-mode))
+    (wxDC/setPen *canvas* pen)))
+
+(defn stroke-join
+  [join-mode]
+  (let [pen (:pen *sketch*)]
+    (wxPen/setJoin pen (gui/->stroke-join join-mode))
     (wxDC/setPen *canvas* pen)))
 
 (defn background

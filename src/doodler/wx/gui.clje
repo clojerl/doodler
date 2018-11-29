@@ -9,6 +9,14 @@
 (def frame-style-close-box 4096)
 (def frame-style-stay-on-top 32768)
 
+(def stroke-cap-round 130)
+(def stroke-cap-projecting 131)
+(def stroke-cap-butt 132)
+
+(def stroke-join-bevel 120)
+(def stroke-join-mitter 121)
+(def stroke-join-round 122)
+
 (def default-frame-style
   (bit-or frame-style-system-menu
           frame-style-minimize-box
@@ -16,9 +24,20 @@
           frame-style-caption
           frame-style-clip-children))
 
-(def feature->style {:keep-on-top [frame-style-stay-on-top]
-                     :resizable   [frame-style-resize-border
-                                   frame-style-maximize-box]})
+(def feature->style
+  {:keep-on-top [frame-style-stay-on-top]
+   :resizable   [frame-style-resize-border
+                 frame-style-maximize-box]})
+
+(def ->stroke-cap
+  {:round   stroke-cap-round
+   :project stroke-cap-projecting
+   :square  stroke-cap-butt})
+
+(def ->stroke-join
+  {:miter stroke-join-mitter
+   :bevel stroke-join-bevel
+   :round stroke-join-round})
 
 (defn frame-style
   [features]
