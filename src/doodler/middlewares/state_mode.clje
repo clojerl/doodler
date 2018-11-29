@@ -15,7 +15,7 @@
     (if update
       (assoc opts
              :draw #(do
-                      (set! core/*state* (update core/*state*))
+                      (u/swap-var! core/*state* update)
                       (draw core/*state*)))
       (assoc opts
              :draw #(draw core/*state*)))))
@@ -38,9 +38,9 @@
             (if-let [handler (name acc)]
               (if (state-only name)
                 (assoc acc
-                       name #(set! core/*state* (handler core/*state*)))
+                       name #(u/swap-var! core/*state* handler))
                 (assoc acc
-                       name #(set! core/*state* (handler core/*state* %))))
+                       name #(u/swap-var! core/*state* handler %)))
               acc))
           opts
           callbacks))
