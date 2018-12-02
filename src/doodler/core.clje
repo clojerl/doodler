@@ -26,6 +26,8 @@
   [f & args]
   (set! *state* (apply f *state* args)))
 
+;; Trigonometry
+
 (def PI (math/pi))
 (def HALF-PI    (/ PI 2.0))
 (def THIRD-PI   (/ PI 3.0))
@@ -63,6 +65,50 @@
   [y x]
   (math/atan2 y x))
 
+(defn radians
+  [degrees]
+  (* DEG-TO-RAD degrees))
+
+;; Numbers
+
+(defn abs
+  [n]
+  (erlang/abs n))
+
+(defn ceil
+  [n]
+  (erlang/ceil n))
+
+(defn exp
+  [n]
+  (math/exp n))
+
+(defn floor
+  [n]
+  (erlang/trunc n))
+
+(defn log
+  [n]
+  (math/log n))
+
+(defn pow
+  [num exponent]
+  (math/pow num exponent))
+
+(defn round
+  [n]
+  (erlang/round n))
+
+(defn sq
+  [n]
+  (* n n))
+
+(defn sqrt
+  [n]
+  (math/sqrt n))
+
+;; Color
+
 (defn color
   ([gray]
    (color gray 255))
@@ -72,6 +118,8 @@
    (color r g b 255))
   ([r g b alpha]
    #erl[r g b alpha]))
+
+;; Stroke & fill
 
 (defn- save-current-stroke
   [color]
@@ -149,6 +197,8 @@
      (wxDC/setBrush *canvas* brush)
      (save-current-fill color))))
 
+;; Drawing
+
 (defn arc
   [x y w h start end]
   (wxDC/drawEllipticArc *canvas*
@@ -169,12 +219,6 @@
 (defn point
   [x y]
   (wxDC/drawPoint *canvas* #erl[x y]))
-
-(defn random
-  ([max]
-   (dec (rand/uniform max)))
-  ([min max]
-   (+ min (dec (rand/uniform max)))))
 
 (defn rect
   ([x y w h]
@@ -232,6 +276,18 @@
   []
   (u/swap-var! *sketch* assoc :looping? true)
   (u/send-message (:pid *sketch*) :refresh))
+
+;; Utils
+
+(defn random
+  ([max]
+   (dec (rand/uniform max)))
+  ([min max]
+   (+ min (dec (rand/uniform max)))))
+
+(defn exit
+  []
+  (erlang/halt 0))
 
 (defmacro defsketch
   [name & opts]
