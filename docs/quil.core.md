@@ -120,7 +120,7 @@
 - [x] [`log`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L2265) - "Calculates the natural logarithm (the base-e logarithm) of a  number"
 - [x] [`looping?`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L1705) - "Returns whether the sketch is looping"
 - [ ] [`mag`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L2278) - "Calculates the magnitude (or length) of a vector"
-- [ ] [`map-range`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L2297) - "Re-maps a number from one range to another"
+- [x] [`map-range`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L2297) - "Re-maps a number from one range to another"
 - [ ] [`mask-image`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L2313) - "Masks part of an image from displaying by loading another image and  using it as an alpha channel"
 - [x] [`millis`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L2335) - "Returns the number of milliseconds (thousandths of a second) since  starting the sketch"
 - [x] [`minute`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L2348) - "Returns the current minute as a value from 0 - 59"

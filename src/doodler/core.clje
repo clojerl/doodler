@@ -143,6 +143,12 @@
   [n]
   (math/sqrt n))
 
+(defn map-range
+  [val low1 high1 low2 high2]
+  (+ low2
+     (* (- high2 low2)
+        (/ (- val low1) (- high1 low1)))))
+
 ;; Color
 
 (defn color
