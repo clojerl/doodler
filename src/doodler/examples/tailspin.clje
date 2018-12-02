@@ -1,0 +1,52 @@
+;; Copied from http://quil.info/examples
+(ns doodler.examples.tailspin
+  (:require [doodler.core :as d]
+            [doodler.middlewares.state-mode :as m]))
+
+(defn setup []
+  (d/frame-rate 30)
+  (let [max-r (/ (d/width) 2)
+        n (int (d/map-range (d/width)
+                            200 500
+                            20 50))]
+   {:dots (into [] (for [r (map #(* max-r %)
+                                (range 0 1 (/ 1 n)))]
+                     [r 0]))}))
+
+(def speed 0.0003)
+
+(defn move [dot]
+  (let [[r a] dot]
+    [r (+ a (* r speed))]))
+
+(defn update-state [state]
+  (update-in state [:dots] #(mapv move %)))
+
+(defn dot->coord [[r a]]
+  [(int (+ (/ (d/width) 2) (* r (d/cos a))))
+   (int (+ (/ (d/height) 2) (* r (d/sin a))))])
+
+(defn draw-state [state]
+  (d/background 255)
+  (d/fill 0)
+  (let [dots (:dots state)]
+    (loop [curr (first dots)
+           tail (rest dots)
+           prev nil]
+      (let [[x y] (dot->coord curr)]
+        (d/ellipse x y 5 5)
+        (when prev
+          (let [[x2 y2] (dot->coord prev)]
+            (d/line x y x2 y2))))
+      (when (seq tail)
+        (recur (first tail)
+               (rest tail)
+               curr)))))
+
+(d/defsketch sketch
+  :host "host"
+  :size [500 500]
+  :setup setup
+  :update update-state
+  :draw draw-state
+  :middleware [m/state-mode])
