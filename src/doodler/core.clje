@@ -119,6 +119,59 @@
   ([r g b alpha]
    #erl[r g b alpha]))
 
+(defn* red
+  [#erl[red _ _ _]]
+  red)
+
+(defn* green
+  [#erl[_ green _ _]]
+  green)
+
+(defn* blue
+  [#erl[_ _ blue _]]
+  blue)
+
+(defn* alpha
+  [#erl[r g b alpha]]
+  alpha)
+
+(defn* hsb-helper
+  [#erl[r g b _]]
+  (let* [r (/ r 255)
+         g (/ g 255)
+         b (/ b 255)
+         max (max r g b)
+         min (min r g b)
+         delta (- max min)]
+    #erl[r g b min max delta]))
+
+(defn* hue
+  [color]
+  (let* [#erl[r g b min max delta] (hsb-helper color)]
+    (if (zero? delta)
+      0
+      (let* [hue (case* max
+                   r (/ (- g b) delta)
+                   g (+ 2.0 (/ (- b r) delta))
+                   b (+ 4.0 (/ (- r g) delta)))
+             hue (* hue 60)
+             hue (if (< hue 0) (+ hue 360) hue)]
+        (round hue)))))
+
+(defn* saturation
+  [color]
+  (let* [#erl[r g b min max delta] (hsb-helper color)]
+    (if (zero? delta)
+      0
+      (/ delta
+         (- 1
+            (abs (- (+ min max) 1)))))))
+
+(defn* brightness
+  [color]
+  (let* [#erl[_ _ _ min max _] (hsb-helper color)]
+    (/ (+ min max) 2)))
+
 ;; Stroke & fill
 
 (defn- save-current-stroke
