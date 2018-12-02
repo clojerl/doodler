@@ -35,6 +35,34 @@
 (def DEG-TO-RAD (/ PI 180.0))
 (def RAD-TO-DEG (/ 180.0 PI))
 
+(defn cos
+  [n]
+  (math/cos n))
+
+(defn sin
+  [n]
+  (math/sin n))
+
+(defn tan
+  [n]
+  (math/tan n))
+
+(defn acos
+  [n]
+  (math/acos n))
+
+(defn asin
+  [n]
+  (math/asin n))
+
+(defn atan
+  [n]
+  (math/atan n))
+
+(defn atan2
+  [y x]
+  (math/atan2 y x))
+
 (defn color
   ([gray]
    (color gray 255))

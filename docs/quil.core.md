@@ -1,21 +1,21 @@
-- [ ] [`DEG-TO-RAD`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L90)
-- [ ] [`HALF-PI`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L85)
-- [ ] [`PI`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L83)
-- [ ] [`QUARTER-PI`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L87)
-- [ ] [`RAD-TO-DEG`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L91)
-- [ ] [`THIRD-PI`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L86)
-- [ ] [`TWO-PI`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L88)
+- [x] [`DEG-TO-RAD`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L90)
+- [x] [`HALF-PI`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L85)
+- [x] [`PI`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L83)
+- [x] [`QUARTER-PI`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L87)
+- [x] [`RAD-TO-DEG`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L91)
+- [x] [`THIRD-PI`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L86)
+- [x] [`TWO-PI`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L88)
 - [ ] [`abs`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L265) - "Calculates the absolute value (magnitude) of a number"
-- [ ] [`acos`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L283) - "The inverse of cos, returns the arc cosine of a value"
+- [x] [`acos`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L283) - "The inverse of cos, returns the arc cosine of a value"
 - [ ] [`alpha`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L297) - "Extracts the alpha value from a color"
 - [ ] [`ambient`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L308) - "Sets the ambient reflectance for shapes drawn to the screen"
 - [ ] [`ambient-light`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L325) - "Adds an ambient light"
 - [ ] [`apply-matrix`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L346) - "Multiplies the current matrix by the one specified through the  parameters"
 - [x] [`arc`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L372) - "Draws an arc in the display window"
 - [ ] [`arc-modes`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L51)
-- [ ] [`asin`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L394) - "The inverse of sin, returns the arc sine of a value"
-- [ ] [`atan`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L408) - "The inverse of tan, returns the arc tangent of a value"
-- [ ] [`atan2`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L423) - "Calculates the angle (in radians) from a specified point to the  coordinate origin as measured from the positive x-axis"
+- [x] [`asin`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L394) - "The inverse of sin, returns the arc sine of a value"
+- [x] [`atan`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L408) - "The inverse of tan, returns the arc tangent of a value"
+- [x] [`atan2`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L423) - "Calculates the angle (in radians) from a specified point to the  coordinate origin as measured from the positive x-axis"
 - [ ] [`available-fonts`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L441) - "A sequence of strings representing the fonts on this system  available for use"
 - [x] [`background`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L462) - "Sets the color used for the background of the Processing  window"
 - [ ] [`background-image`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L482) - "Specify an image to be used as the background for a sketch"
@@ -45,7 +45,7 @@
 - [ ] [`color-modes`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L51)
 - [ ] [`constrain`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L980) - "Constrains a value to not exceed a maximum and minimum value"
 - [ ] [`copy`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L995) - "Copies a region of pixels from the one image to another"
-- [ ] [`cos`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L1021) - "Calculates the cosine of an angle"
+- [x] [`cos`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L1021) - "Calculates the cosine of an angle"
 - [ ] [`create-font`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L1050) - "Dynamically converts a font to the format used by Processing (a  PFont) from either a font name that's installed on the computer, or  from a "
 - [ ] [`create-graphics`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L1087) - "Creates and returns a new PGraphics object of the types :p2d, :p3d,  :java2d, :pdf"
 - [ ] [`create-image`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L1126) - "Creates a new PImage (the datatype for storing images)"
@@ -212,7 +212,7 @@
 - [ ] [`show-cats`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L4768) - "Print out a list of all the categories and subcategories,  associated index nums and fn count (in parens)"
 - [ ] [`show-fns`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L4778) - "If given a number, print all the functions within category or  subcategory specified by the category index (use show-cats to see a  list of index nums)"
 - [ ] [`show-meths`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L4816) - "Takes a string representing the start of a method name in the  original Processing API and prints out all matches alongside the  Processing-core equivalent"
-- [ ] [`sin`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L3726) - "Calculates the sine of an angle"
+- [x] [`sin`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L3726) - "Calculates the sine of an angle"
 - [ ] [`sketch`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L4545) - "Create and start a new visualisation applet"
 - [ ] [`smooth`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L3740) - "Draws all geometry with smooth (anti-aliased) edges"
 - [ ] [`specular`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L3770) - "Sets the specular color of the materials used for shapes drawn to  the screen, which sets the color of hightlights"
@@ -228,7 +228,7 @@
 - [x] [`stroke-cap`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L3915) - "Sets the style for rendering line endings"
 - [x] [`stroke-join`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L3931) - "Sets the style of the joints which connect line  segments"
 - [x] [`stroke-weight`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L3951) - "Sets the width of the stroke used for lines, points, and the border  around shapes"
-- [ ] [`tan`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L3963) - "Calculates the ratio of the sine and cosine of an angle"
+- [x] [`tan`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L3963) - "Calculates the ratio of the sine and cosine of an angle"
 - [x] [`target-frame-rate`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L3978) - "Returns the target framerate specified with the fn frame-rate"
 - [x] [`text`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L4020) - "Draws text to the screen in the position specified by the x and y  parameters and the optional z parameter"
 - [ ] [`text-align`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L4048) - "Sets the current alignment for drawing text"
@@ -259,7 +259,6 @@
 - [ ] [`with-fill`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L4426) - "Temporarily set the fill color for the body of this macro"
 - [ ] [`with-graphics`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L4529) - "All subsequent calls of any drawing function will draw on given  graphics"
 - [ ] [`with-rotation`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L4502) - "Performs body with rotation, restores current transformation on exit"
-- [ ] [`with-sketch`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L198)
 - [ ] [`with-stroke`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L4455) - "Temporarily set the stroke color for the body of this macro"
 - [ ] [`with-translation`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L4484) - "Performs body with translation, restores current transformation on  exit"
 - [ ] [`year`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L4401) - "Returns the current year as an integer (2003, 2004, 2005, etc)"
