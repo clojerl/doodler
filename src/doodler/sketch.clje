@@ -123,7 +123,8 @@
                                     features)
         canvas      (gui/make-canvas frame)
 
-        bgcolor     (apply core/color (:bgcolor opts))
+        bgcolor     (when-let [bgcolor (:bgcolor opts)]
+                      (apply core/color bgcolor))
 
         draw-fn     (or (:draw opts) u/no-fn)
         setup-fn    (or (:setup opts) u/no-fn)
@@ -147,7 +148,8 @@
       (e/listen canvas event-name))
 
     ;; Set background color before showing the frame
-    (wxWindow/setBackgroundColour canvas bgcolor)
+    (when bgcolor
+      (wxWindow/setBackgroundColour canvas bgcolor))
 
     ;; Show frame, maybe in fullscreen
     (wxFrame/showFullScreen frame (:present features))

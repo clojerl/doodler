@@ -208,6 +208,16 @@
   (let* [#erl[_ _ _ min max _] (hsb-helper color)]
     (/ (+ min max) 2)))
 
+;; Image
+
+(defn background-image
+  [img]
+  (wxDC/drawBitmap *canvas* img #erl[0 0]))
+
+(defn create-image
+  [w h]
+  (wxBitmap/new w h))
+
 ;; Stroke & fill
 
 (defn- save-current-stroke
@@ -315,9 +325,13 @@
   ([x y w h r]
    (wxDC/drawRoundedRectangle *canvas* #erl[x y] #erl[w h] r)))
 
+;; Text
+
 (defn text
   [s x y]
   (wxDC/drawText *canvas* s #erl[x y]))
+
+;; Dimension
 
 (defn width
   []
