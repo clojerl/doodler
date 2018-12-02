@@ -2,6 +2,9 @@
   (:require [doodler.core :as d]
             [doodler.middlewares.state-mode :as state-mode]))
 
+(def MAX-ITERATIONS 255)
+(def POINTS-PER-FRAME 500)
+
 (defn points
   []
   (shuffle (for [x (range (d/width))
@@ -9,14 +12,9 @@
              #erl[x y])))
 
 (defn ->complex
-  [x y w h]
-  (let [cx 0.0
-        cy 0.0
-        minx -2.5
-        miny -2.0
-        wh 4.0]
-    #erl[(+ minx (* wh (/ x w)))
-         (+ miny (* wh (/ y h)))]))
+  [x y w h minx miny wh]
+  #erl[(+ minx (* wh (/ x w)))
+       (+ miny (* wh (/ y h)))])
 
 (defn ->color
   [n max-iters]
@@ -34,26 +32,43 @@
              (+ y (* 2.0 (* a b)))
              (inc n)))))
 
-(defn mandelbrot-point [x y w h max-iters]
-  (let* [#erl[i j] (->complex x y w h)
+(defn mandelbrot-point [x y w h minx miny wh max-iters]
+  (let* [#erl[i j] (->complex x y w h minx miny wh)
          n         (mandelbrot i j max-iters)
          color     (->color n max-iters)]
     #erl[x y color]))
 
-(defn on-mouse-pressed [state handler]
-  (if-not (d/looping?)
-    (do
-      (d/start-loop)
-      (d/background 0)
-      {:points (points)
-       :m-points nil})
-    state))
+(defn recalulate-bounds
+  [x y minx miny wh]
+  (let [[x' y'] (->complex x y
+                           (d/width) (d/height)
+                           minx miny
+                           wh)
+        wh' (* 0.6 wh)
+        minx' (- x' (/ wh' 2))
+        miny' (- y' (/ wh' 2))]
+    {:minx minx'
+     :miny miny'
+     :wh wh'}))
+
+(defn on-mouse-clicked
+  [{minx :minx miny :miny wh :wh :as state} event]
+  (when-not (d/looping?)
+    (d/start-loop))
+  (d/background 0)
+  (merge state
+         (recalulate-bounds (:x event) (:y event) minx miny wh)
+         {:points (points)
+          :m-points nil}))
 
 (defn setup
   []
   (d/frame-rate 40)
   {:points (points)
-   :m-points nil})
+   :m-points nil
+   :minx -2.5
+   :miny -2.0
+   :wh 4.0})
 
 (defn update-state
   [{points :points :as state}]
@@ -61,18 +76,22 @@
     (do
       (d/no-loop)
       state)
-    (let [max-iters 255
-          w         (d/width)
-          h         (d/height)]
+    (let [max-iters   MAX-ITERATIONS
+          w           (d/width)
+          h           (d/height)
+          {minx :minx
+           miny :miny
+           wh   :wh}  state]
       (loop* [#erl(#erl[x y] & rest) points
               m-points #erl()
               n 0]
-        (if (and (< n 1000) (seq rest))
+        (if (and (< n POINTS-PER-FRAME) (seq rest))
           (recur rest
-                 (conj m-points (mandelbrot-point x y w h max-iters))
+                 (conj m-points (mandelbrot-point x y w h minx miny wh max-iters))
                  (inc n))
-          {:points (seq rest)
-           :m-points m-points})))))
+          (assoc state
+                 :points (seq rest)
+                 :m-points m-points))))))
 
 (defn draw
   [state]
@@ -85,7 +104,7 @@
   :size [300 300]
   :setup setup
   :update update-state
-  :mouse-pressed on-mouse-pressed
+  :mouse-clicked on-mouse-clicked
   :draw draw
   :bgcolor [0]
   :features [:keep-on-top]
