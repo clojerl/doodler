@@ -26,6 +26,43 @@
   [f & args]
   (set! *state* (apply f *state* args)))
 
+(def PI (math/pi))
+(def HALF-PI    (/ PI 2.0))
+(def THIRD-PI   (/ PI 3.0))
+(def QUARTER-PI (/ PI 4.0))
+(def TWO-PI     (* PI 2.0))
+
+(def DEG-TO-RAD (/ PI 180.0))
+(def RAD-TO-DEG (/ 180.0 PI))
+
+(defn cos
+  [n]
+  (math/cos n))
+
+(defn sin
+  [n]
+  (math/sin n))
+
+(defn tan
+  [n]
+  (math/tan n))
+
+(defn acos
+  [n]
+  (math/acos n))
+
+(defn asin
+  [n]
+  (math/asin n))
+
+(defn atan
+  [n]
+  (math/atan n))
+
+(defn atan2
+  [y x]
+  (math/atan2 y x))
+
 (defn color
   ([gray]
    (color gray 255))
