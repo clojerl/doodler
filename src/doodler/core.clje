@@ -26,6 +26,15 @@
   [f & args]
   (set! *state* (apply f *state* args)))
 
+(def PI (math/pi))
+(def HALF-PI    (/ PI 2.0))
+(def THIRD-PI   (/ PI 3.0))
+(def QUARTER-PI (/ PI 4.0))
+(def TWO-PI     (* PI 2.0))
+
+(def DEG-TO-RAD (/ PI 180.0))
+(def RAD-TO-DEG (/ 180.0 PI))
+
 (defn color
   ([gray]
    (color gray 255))
