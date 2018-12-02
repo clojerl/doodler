@@ -69,6 +69,42 @@
   [degrees]
   (* DEG-TO-RAD degrees))
 
+(defn degrees
+  [radians]
+  (* RAD-TO-DEG radians))
+
+;; Day & hour
+
+(defn hour
+  []
+  (let* [#erl[hour _ _] (erlang/time)]
+    hour))
+
+(defn minute
+  []
+  (let* [#erl[_ minute _] (erlang/time)]
+    minute))
+
+(defn seconds
+  []
+  (let* [#erl[_ _ seconds] (erlang/time)]
+    seconds))
+
+(defn day
+  []
+  (let* [#erl[_ _ day] (erlang/date)]
+    day))
+
+(defn month
+  []
+  (let* [#erl[_ month _] (erlang/date)]
+    month))
+
+(defn year
+  []
+  (let* [#erl[year _ _] (erlang/date)]
+    year))
+
 ;; Numbers
 
 (defn abs
