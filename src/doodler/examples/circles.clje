@@ -1,3 +1,4 @@
+;; Copied from http://quil.info/examples
 (ns doodler.examples.circles
   (:require [doodler.core :as d]))
 
