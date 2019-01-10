@@ -1,0 +1,41 @@
+;; Copied from http://quil.info/examples
+(ns doodler.examples.emerald
+  (:require [doodler.core :as d]))
+
+(defn pulse [low high rate]
+  (let [diff (- high low)
+        half (/ diff 2)
+        mid (+ low half)
+        s (/ (d/millis) 1000.0)
+        x (d/sin (* s (/ 1.0 rate)))]
+    (int (+ mid (* x half)))))
+
+(defn setup []
+  (d/frame-rate 60))
+
+(defn draw []
+  (d/no-stroke)
+  (d/background 255)
+  (let [w (d/width)
+        h (d/height)
+        hw (int (/ w 2))
+        hh (int (/ h 2))
+        inner-r (* hw 0.5)
+        outer-r hw]
+    (d/fill (pulse 20 50 2.0) 230 (pulse 150 200 1.0))
+    (d/ellipse hw hh w h)
+    (d/stroke 255 255 255 100)
+    (d/with-translation [hw hh]
+      (doseq [a (range 0 d/TWO-PI (/ d/PI 256.0))]
+        (let [skew1 (* 0.001 (d/millis) a)
+              skew2 (* skew1 2.0)]
+          (d/line (int (* inner-r (d/cos (+ skew1 a))))
+                  (int (* inner-r (d/sin (+ skew1 a))))
+                  (int (* outer-r (d/cos (+ skew2 a))))
+                  (int (* outer-r (d/sin (+ skew2 a))))))))))
+
+(d/defsketch sketch
+   :host "host"
+   :size [500 500]
+   :setup setup
+   :draw draw)

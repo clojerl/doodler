@@ -8,6 +8,10 @@
 
 (def ^:dynamic *state* nil)
 
+;; Translation coordinates
+(def ^:dynamic *translate-x* 0)
+(def ^:dynamic *translate-y* 0)
+
 (defn state
   ([] *state*)
   ([key] (get *state* key)))
@@ -234,6 +238,21 @@
   []
   (:current-stroke *sketch*))
 
+(defmacro with-stroke
+  [stroke & body]
+  `(let [stroke# ~stroke
+         previous-stroke# (doodler.core/current-stroke)]
+
+     (cond (sequential? stroke#) (apply doodler.core/stroke stroke#)
+           true (doodler.core/stroke stroke#))
+
+     ;;return the value from body, not from the if after it.
+     (let [return-val# (do ~@body)]
+       (if (nil? previous-stroke#)
+         (doodler.core/no-stroke)
+         (apply doodler.core/stroke previous-stroke#))
+       return-val#)))
+
 (defn stroke
   ([gray]
    (stroke gray 255))
@@ -266,6 +285,11 @@
     (wxPen/setJoin pen (gui/->stroke-join join-mode))
     (wxDC/setPen *canvas* pen)))
 
+(defn no-stroke
+  []
+  (wxDC/setPen *canvas* (wxPen/new))
+  (save-current-stroke nil))
+
 (defn background
   ([gray]
    (background gray 255))
@@ -288,6 +312,21 @@
   []
   (:current-fill *sketch*))
 
+(defmacro with-fill
+  [fill & body]
+  `(let [fill# ~fill
+         previous-fill# (doodler.core/current-fill)]
+
+     (cond (sequential? fill#) (apply doodler.core/fill fill#)
+           true (doodler.core/fill fill#))
+
+     ;;return the value from body, not from the if after it.
+     (let [return-val# (do ~@body)]
+       (if (nil? previous-fill#)
+         (doodler.core/no-fill)
+         (apply doodler.core/fill previous-fill#))
+       return-val#)))
+
 (defn fill
   ([gray]
    (fill gray 255))
@@ -302,40 +341,68 @@
      (wxDC/setBrush *canvas* brush)
      (save-current-fill color))))
 
+(defn no-fill
+  []
+  (wxDC/setBrush *canvas* (wxBrush/new))
+  (save-current-fill nil))
+
+;; Translation
+
+(defmacro with-translation
+  [[x y] & body]
+  `(binding [doodler.core/*translate-x* ~x
+             doodler.core/*translate-y* ~y]
+     ~@body))
+
+(defn* translate
+  [#erl[x y]]
+  #erl[(+ *translate-x* x) (+ *translate-y* y)])
+
 ;; Drawing
 
 (defn arc
   [x y w h start end]
-  (wxDC/drawEllipticArc *canvas*
-                        #erl[(- x (erlang/div w 2)) (- y (erlang/div h 2))]
-                        #erl[w h]
-                        start end))
+  (wxDC/drawEllipticArc
+   *canvas*
+   (translate #erl[(- x (erlang/div w 2)) (- y (erlang/div h 2))])
+   #erl[w h]
+   start end))
 
 (defn ellipse
   [x y w h]
-  (wxDC/drawEllipse *canvas*
-                    #erl[(- x (erlang/div w 2)) (- y (erlang/div h 2))]
-                    #erl[w h]))
+  (wxDC/drawEllipse
+   *canvas*
+   (translate #erl[(- x (erlang/div w 2)) (- y (erlang/div h 2))])
+   #erl[w h]))
 
 (defn line
-  ([p1 p2] (apply line (concat p1 p2)))
-  ([x1 y1 x2 y2] (wxDC/drawLine *canvas* #erl[x1 y1] #erl[x2 y2])))
+  ([p1 p2]
+   (apply line (concat p1 p2)))
+  ([x1 y1 x2 y2]
+   (wxDC/drawLine *canvas*
+                  (translate #erl[x1 y1])
+                  (translate #erl[x2 y2]))))
 
 (defn point
   [x y]
-  (wxDC/drawPoint *canvas* #erl[x y]))
+  (wxDC/drawPoint *canvas* (translate #erl[x y])))
 
 (defn rect
   ([x y w h]
-   (wxDC/drawRectangle *canvas* #erl[x y] #erl[w h]))
+   (wxDC/drawRectangle *canvas*
+                       (translate #erl[x y])
+                       #erl[w h]))
   ([x y w h r]
-   (wxDC/drawRoundedRectangle *canvas* #erl[x y] #erl[w h] r)))
+   (wxDC/drawRoundedRectangle *canvas*
+                              (translate #erl[x y])
+                              #erl[w h]
+                              r)))
 
 ;; Text
 
 (defn text
   [s x y]
-  (wxDC/drawText *canvas* s #erl[x y]))
+  (wxDC/drawText *canvas* s (translate #erl[x y])))
 
 ;; Dimension
 
