@@ -1,4 +1,4 @@
-;; Copied from http://quil.info/examples
+;; Source: http://quil.info/sketches/show/example_leaf
 (ns doodler.examples.leaf
   (:require [doodler.core :as q]))
 
