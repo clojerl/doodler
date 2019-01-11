@@ -2,7 +2,8 @@
   (:require [doodler.core :as core]
             [doodler.events :as e]
             [doodler.util :as u]
-            [doodler.wx.gui :as gui]))
+            [doodler.wx.gui :as gui]
+            [doodler.middlewares.safe-fns :refer [safe-fns]]))
 
 (def default-frame-rate 60)
 
@@ -116,6 +117,10 @@
         features    (let [user-features (set (:features opts))]
                         (reduce #(assoc %1 %2 (contains? user-features %2)) {}
                                 supported-features))
+
+        opts        (if (:no-safe-fns features)
+                      opts
+                      (safe-fns opts))
 
         frame       (gui/make-frame (or (:title opts) "Sketch")
                                     (or (:pos opts) [-1 -1]) ;; default position

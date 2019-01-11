@@ -1,5 +1,9 @@
 (ns doodler.util)
 
+(defn callable? [value]
+     (or (fn? value)
+         (var? value)))
+
 (defn no-fn
   "Does nothing"
   [])
