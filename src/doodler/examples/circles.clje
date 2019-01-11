@@ -1,4 +1,4 @@
-;; Copied from http://quil.info/examples
+;; Source: https://github.com/quil/quil/blob/master/README.md
 (ns doodler.examples.circles
   (:require [doodler.core :as d]))
 

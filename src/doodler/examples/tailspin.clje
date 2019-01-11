@@ -1,4 +1,4 @@
-;; Copied from http://quil.info/examples
+;; Source: http://quil.info/sketches/show/example_tailspin
 (ns doodler.examples.tailspin
   (:require [doodler.core :as d]
             [doodler.middlewares.state-mode :as m]))

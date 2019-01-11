@@ -1,4 +1,4 @@
-;; Copied from http://quil.info/examples
+;; Source: http://quil.info/sketches/show/example_emerald
 (ns doodler.examples.emerald
   (:require [doodler.core :as d]))
 
@@ -36,6 +36,6 @@
 
 (d/defsketch sketch
    :host "host"
-   :size [500 500]
+   :size [200 200]
    :setup setup
    :draw draw)

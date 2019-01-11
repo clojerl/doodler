@@ -1,0 +1,36 @@
+;; Source: http://quil.info/sketches/show/example_golder_ratio_flower
+(ns doodler.examples.golden-ratio-flower
+    (:require [doodler.core :as d]))
+
+(def PHI (/ (+ 1 (d/sqrt 5)) 2))
+
+(def palette
+  (->> (cycle [[249 187  78]
+               [ 70 162 141]
+               [220 112 100]])
+       (take 1000)
+       vec))
+
+(defn setup []
+  (d/frame-rate 10))
+
+(defn draw []
+  (d/no-stroke)
+  (d/background 255 255 236)
+  (d/with-translation [(int (/ (d/width) 2)) (int (/ (d/height) 2))]
+    (doseq [i (range 1000)]
+      (let [v (+ (mod (d/frame-count) 3) i)
+            ang (* v PHI d/TWO-PI)
+            r   (* (d/sqrt v) (d/width) (/ 1 70))
+            x   (* (d/cos ang) r)
+            y   (* (d/sin ang) r)
+            sz  4]
+        ;;(prn [x y sz sz])
+        (apply d/fill (nth palette i))
+        (apply d/ellipse (map d/floor [x y sz sz]))))))
+
+(d/defsketch sketch
+  :host "host"
+  :size [200 200]
+  :setup setup
+  :draw draw)
