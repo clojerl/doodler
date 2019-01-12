@@ -44,7 +44,6 @@
                curr)))))
 
 (d/defsketch sketch
-  :host "host"
   :size [500 500]
   :setup setup
   :update update-state

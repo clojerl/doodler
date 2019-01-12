@@ -21,7 +21,6 @@
     (q/line (leaf-fn t) (leaf-fn (+ t 0.1)))))
 
 (q/defsketch sketch
-  :host "host"
   :size [500 500]
   :setup setup
   :draw draw)

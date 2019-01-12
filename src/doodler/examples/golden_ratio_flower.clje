@@ -30,7 +30,6 @@
         (apply d/ellipse (map d/floor [x y sz sz]))))))
 
 (d/defsketch sketch
-  :host "host"
   :size [200 200]
   :setup setup
   :draw draw)

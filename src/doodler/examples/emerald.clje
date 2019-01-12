@@ -35,7 +35,6 @@
                   (int (* outer-r (d/sin (+ skew2 a))))))))))
 
 (d/defsketch sketch
-   :host "host"
    :size [200 200]
    :setup setup
    :draw draw)

@@ -58,7 +58,6 @@
         (d/rect x y cell-size cell-size)))))
 
 (d/defsketch sketch
-  :host "host"
   :size [500 500]
   :setup setup
   :update update-state
