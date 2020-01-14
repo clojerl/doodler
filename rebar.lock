@@ -1,6 +1,6 @@
 [{<<"clojerl">>,
   {git,"https://github.com/clojerl/clojerl.git",
-       {ref,"622ca89953145b45985ad794a5c105b841749221"}},
+       {ref,"96bab57937758cedb05de42a0655a606a4647e4f"}},
   0},
  {<<"eper">>,
   {git,"https://github.com/massemanet/eper",
