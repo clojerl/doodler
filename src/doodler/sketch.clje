@@ -84,7 +84,7 @@
 
 (defn on-paint
   [{bitmap :bitmap canvas :canvas pid :pid}]
-  (doodler.wx/batch
+  (wx/batch
    #(let [dc (wxPaintDC/new canvas)]
       (try
         (wxDC/drawBitmap dc bitmap #erl[0 0])
@@ -95,7 +95,7 @@
 (defn on-draw
   [sketch f]
   (with-sketch sketch
-    (doodler.wx/batch f)))
+    (wx/batch f)))
 
 (defn on-resize
   [sketch]
