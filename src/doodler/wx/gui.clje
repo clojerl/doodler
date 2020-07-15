@@ -57,7 +57,3 @@
         wx          (wx/new)]
     ;; (wx/debug :driver)
     (wxFrame/new wx -1 title frame-opts)))
-
-(defn make-canvas
-  [frame]
-  (wxPanel/new frame))

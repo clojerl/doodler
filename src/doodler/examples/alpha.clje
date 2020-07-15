@@ -1,0 +1,35 @@
+;; This sketch is meant to demonstrate the behavior of drawing points
+;; while have multisample anti-aliasing enabled or disabled.
+(ns doodler.examples.alpha
+  (:require [doodler.core :as d]))
+
+(def delta 2)
+
+(defn setup
+  []
+  (d/frame-rate 1))
+
+(defn draw []
+  (d/background 0)
+  (d/stroke 255 255)
+  (d/fill 255 255)
+  (d/triangle 0 5 0 10 10 10)
+  (d/quad 50 0 70 0 60 10 40 10)
+  (doseq [x (range 100 (- (d/width) 100) delta)
+          y (range 100 (- (d/height) 100) delta)]
+    (d/point x y)))
+
+(d/defsketch sketch*
+  :title "Alpha"
+  :size [300 300]
+  :pos [300 300]
+  :setup setup
+  :draw draw
+  :features [:resizable :keep-on-top]
+  :bgcolor [0])
+
+(defn sketch []
+  (sketch*)
+  (sketch* :title "Alpha (OpenGL)"
+           :pos [600, 300]
+           :open-gl true))

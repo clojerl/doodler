@@ -1,58 +1,34 @@
 (ns doodler.sketch
   (:require [doodler.core :as core]
             [doodler.events :as e]
+            [doodler.protocols :as p]
             [doodler.util :as u]
             [doodler.wx.gui :as gui]
+            [doodler.wx.open-gl :as wx.open-gl]
+            [doodler.wx.panel :as wx.panel]
             [doodler.middlewares.safe-fns :refer [safe-fns]]))
 
 (def default-frame-rate 60)
 
-(defn make-bitmap
-  "Creates a bitmap the same size as the provided canvas.
-  Returns a map with bitmap and canvas related information to
-  avoid having to fetch it while drawing.
-
-    :bitmap        The bitmap
-    :bitmap-dc     Device context for the bitmap
-
-    :background-brush, :brush, :pen
-                   References to the DC's elements
-
-    :width         Bitmap's width
-    :height        Bitmap's height
-  "
-  [canvas]
-  (let [[w h]     (wxWindow/getSize canvas)
-        bitmap    (wxBitmap/new w h)
-        bitmap-dc (wxMemoryDC/new bitmap)]
-    {:bitmap           bitmap
-     :bitmap-dc        bitmap-dc
-     :background-brush (wxDC/getBackground bitmap-dc)
-     :brush            (wxDC/getBrush bitmap-dc)
-     :pen              (wxDC/getPen bitmap-dc)
-     :width            w
-     :height           h}))
-
 (defmacro with-sketch
   [sketch & body]
-  `(let [{bitmap-dc#      :bitmap-dc
-          state#          :state} ~sketch]
-    (binding [doodler.core/*sketch* ~sketch
-              doodler.core/*canvas* bitmap-dc#
-              doodler.core/*state*  state#]
-      ~@body
-      (assoc doodler.core/*sketch*
-             :state doodler.core/*state*))))
+  `(let [{canvas# :canvas
+          state#  :state} ~sketch]
+     (binding [doodler.core/*sketch* ~sketch
+               doodler.core/*canvas* canvas#
+               doodler.core/*state*  state#]
+       ~@body
+       (assoc doodler.core/*sketch*
+              :state doodler.core/*state*))))
 
-(defn blit [dest source]
+#_(defn blit [dest source]
   (let [size (wxDC/getSize source)
         origin #erl[0 0]]
     (wxDC/blit dest origin size source origin)))
 
 (defn refresh
   [sketch]
-  (wxWindow/refresh (:canvas sketch)
-                    #erl(#erl[:eraseBackground false]))
+  (p/refresh (:canvas sketch))
   sketch)
 
 (defn calculate-frame-rate
@@ -83,13 +59,8 @@
            :frame-count (inc (sketch :frame-count)))))
 
 (defn on-paint
-  [{bitmap :bitmap canvas :canvas pid :pid}]
-  (wx/batch
-   #(let [dc (wxPaintDC/new canvas)]
-      (try
-        (wxDC/drawBitmap dc bitmap #erl[0 0])
-        (finally
-          (wxPaintDC/destroy dc)))))
+  [{canvas :canvas pid :pid}]
+  (wx/batch #(p/paint canvas))
   (u/send-message pid #erl[:draw (u/time-mark)]))
 
 (defn on-draw
@@ -99,9 +70,7 @@
 
 (defn on-resize
   [sketch]
-  (wxMemoryDC/destroy (:bitmap-dc sketch))
-  (wxBitmap/destroy (:bitmap sketch))
-  (merge sketch (make-bitmap (:canvas sketch))))
+  (update sketch :canvas p/resize))
 
 (def ^{:private true}
   supported-features
@@ -126,10 +95,13 @@
                                     (or (:pos opts) [-1 -1]) ;; default position
                                     (or (:size opts) [500 300])
                                     features)
-        canvas      (gui/make-canvas frame)
 
-        bgcolor     (when-let [bgcolor (:bgcolor opts)]
+        bgcolor     (let [bgcolor (:bgcolor opts [0])]
                       (apply core/color bgcolor))
+
+        canvas      (if (:open-gl opts)
+                      (wx.open-gl/make-canvas frame bgcolor)
+                      (wx.panel/make-canvas frame bgcolor))
 
         draw-fn     (or (:draw opts) u/no-fn)
         setup-fn    (or (:setup opts) u/no-fn)
@@ -143,18 +115,14 @@
         frame-period (u/frame-period default-frame-rate)]
 
     ;; Paint events need to be handled synchronously
-    (e/listen canvas :paint :callback true)
+    (e/listen (p/canvas canvas) :paint :callback true)
     ;; When resizing the frame we should resize the bitmap
     (e/listen frame :size :skip true)
     (e/listen frame :close_window) ;; on-close
 
     ;; Listen to all mouse events
     (doseq [event-name e/event-names]
-      (e/listen canvas event-name))
-
-    ;; Set background color before showing the frame
-    (when bgcolor
-      (wxWindow/setBackgroundColour canvas bgcolor))
+      (e/listen (p/canvas canvas) event-name))
 
     ;; Show frame, maybe in fullscreen
     (wxFrame/showFullScreen frame (:present features))
@@ -183,11 +151,7 @@
             :frame-count 0
             :epoch (u/time-mark)
             :p-time-mark (u/time-mark)
-            :time-mark (inc (u/time-mark))}
-
-            ;; Create bitmap after frame is visible to
-           ;; get the right dimensions
-           (make-bitmap canvas))))
+            :time-mark (inc (u/time-mark))})))
 
 ;; Callbacks
 

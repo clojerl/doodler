@@ -1,8 +1,0 @@
-(ns doodler.examples.open-gl
-  (:require [doodler.wx.gui :as gui]))
-
-(defn run []
-  (let [frame (gui/make-frame "OpenGL" [0 30] [300 300] [])
-        canvas (doodler_gl/canvas frame)]
-    (wxWindow/show frame)
-    (doodler_gl/render canvas)))

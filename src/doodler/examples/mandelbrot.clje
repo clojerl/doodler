@@ -2,7 +2,7 @@
   (:require [doodler.core :as d]
             [doodler.middlewares.state-mode :as state-mode]))
 
-(def MAX-ITERATIONS 255)
+(def MAX-ITERATIONS 100)
 (def POINTS-PER-FRAME 500)
 
 (defn points
@@ -66,9 +66,9 @@
   (d/frame-rate 40)
   {:points (points)
    :m-points nil
-   :minx -2.5
-   :miny -2.0
-   :wh 4.0})
+   :minx -2.1
+   :miny -1.4
+   :wh 3.0})
 
 (defn update-state
   [{points :points :as state}]

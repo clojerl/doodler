@@ -1,7 +1,11 @@
 (ns doodler.protocols)
 
+(defprotocol ICanvas
+  (canvas [this])
+  (width [this])
+  (height [this]))
+
 (defprotocol IBitmap
-  (draw-bitmap [this img x y])
   (create-image [this w h]))
 
 (defprotocol IPrimitives
@@ -13,11 +17,14 @@
   (rect [this x y w h] [this x y w h r])
   (triangle [this x1 y1 x2 y2 x3 y3]))
 
+(defprotocol IText
+  (text [this s x y]))
+
 (defprotocol IPen
   (stroke [this color])
   (stroke-weight [this weight])
   (stroke-cap [this cap-mode])
-  (storke-join [this join-mode])
+  (stroke-join [this join-mode])
   (no-stroke [this]))
 
 (defprotocol IFill

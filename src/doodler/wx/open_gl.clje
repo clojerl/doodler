@@ -1,0 +1,107 @@
+(ns doodler.wx.open-gl
+  (:require [doodler.protocols :as p]
+            [doodler.core :as core]
+            [doodler.wx.gui :as gui]))
+
+(declare init-panel)
+
+(deftype OpenGLCanvas [canvas width height]
+  p/ICanvas
+  (canvas [this] canvas)
+  (width [this] width)
+  (height [this] height)
+
+  p/IBitmap
+  (create-image [this w h]
+    ;; TODO
+    )
+
+  p/IPrimitives
+  (arc [this x y w h start end]
+    (doodler_gl/arc x y (/ w 2) start end))
+  (ellipse [this x y w h]
+    (gl/loadIdentity)
+    (gl/translatef core/*translate-x* core/*translate-y* 0.0)
+    (wxGLCanvas/setCurrent canvas)
+    (doodler_gl/circle x y (/ w 2)))
+  (line [this x1 y1 x2 y2]
+    (gl/loadIdentity)
+    (gl/translatef core/*translate-x* core/*translate-y* 0.0)
+    (doodler_gl/line x1 y1 x2 y2))
+  (point [this x y]
+    (doodler_gl/point x y))
+  (quad [this x1 y1 x2 y2 x3 y3 x4 y4]
+    (doodler_gl/quad x1 y1 x2 y2 x3 y3 x4 y4))
+  (rect [this x y w h]
+    (doodler_gl/rect x y w h))
+  (rect [this x y w h r]
+    ;; TODO: implement rounded rectangles
+    (doodler_gl/rect x y w h))
+  (triangle [this x1 y1 x2 y2 x3 y3]
+    (doodler_gl/triangle x1 y1 x2 y2 x3 y3))
+
+  p/IText
+  (text [this s x y]
+    ;; TODO
+    )
+
+  p/IPen
+  (stroke [this color]
+    (doodler_gl/stroke color))
+  (stroke-weight [this weight]
+    ;; TODO
+    )
+  (stroke-cap [this cap-mode]
+    ;; TODO
+    )
+  (stroke-join [this join-mode]
+    ;; TODO
+    )
+  (no-stroke [this]
+    (doodler_gl/stroke nil))
+
+  p/IFill
+  (fill [this color]
+    (doodler_gl/fill color))
+  (no-fill [this]
+    (doodler_gl/fill nil))
+
+  p/IBackground
+  (background [this color]
+    (doodler_gl/background color))
+  (background-image [this img x y]
+    ;; TODO
+    )
+
+  p/IEvents
+  #_(draw [this]
+    (wxGLCanvas/setCurrent canvas)
+    (gl/loadIdentity)
+    (gl/translatef core/*translate-x* core/*translate-y* core/*translate-z*))
+  (paint [this]
+    (wxGLCanvas/setCurrent canvas)
+    (wxGLCanvas/swapBuffers canvas))
+  (refresh [this]
+    (wxWindow/refresh canvas
+                      #erl(#erl[:eraseBackground false])))
+  (resize [this]
+    (let [[width height] (doodler_gl/resize canvas)]
+      (OpenGLCanvas. canvas width height))))
+
+(defn make-canvas
+  "Creates a bitmap the same size as the provided canvas.
+  Returns a PanelCanvas which contains all related information to
+  avoid having to fetch it while drawing.
+
+    bitmap        The bitmap
+    bitmap-dc     Device context for the bitmap
+
+    bg-brush, brush, pen
+                  bitmap-dc's elements
+
+    width         Bitmap's width
+    height        Bitmap's height"
+  [frame bgcolor]
+  (let [canvas (doodler_gl/canvas frame bgcolor)
+        [width height] (wxWindow/getSize frame)]
+    (OpenGLCanvas. canvas width height)))
