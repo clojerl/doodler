@@ -204,7 +204,7 @@
          handler (event-key sketch)]
     (if-not handler
       (u/noreply sketch)
-      (case event-key
+      (case* event-key
         :on-close
         (u/stop (with-sketch sketch
                   (handler)))
@@ -217,6 +217,11 @@
 
         :on-resize
         (u/noreply (handler sketch))
+
+        :mouse-wheel
+        (u/noreply
+         (with-sketch sketch
+           (handler (:wheel-rotation event))))
 
         _
         (u/noreply
