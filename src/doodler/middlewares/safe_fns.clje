@@ -10,13 +10,20 @@
         (println "Error in " name " function: " e "\nstacktrace: " (with-out-str (print-stack-trace st)))
         (timer/sleep 1000)))))
 
-(defn- wrap-mouse-wheel [function]
-  (fn [rotation]
+(defn- wrap-event-handler [name function]
+  (fn [event]
     (try
-      (function rotation)
+      (function event)
       (catch :error e :stack st
-        (println "Error in :mouse-wheel function:" e "\nstacktrace: " (with-out-str (print-stack-trace st)))
+        (println "Error in " name " function: " e "\nstacktrace: " (with-out-str (print-stack-trace st)))
         (timer/sleep 1000)))))
+
+(def handlers-with-one-argument
+  "List of event handlers that receive one argument"
+  #{:mouse-entered :mouse-exited
+    :mouse-pressed :mouse-released :mouse-clicked
+    :mouse-moved :mouse-wheel
+    :key-pressed :key-released :key-typed})
 
 (defn safe-fns
   "Wraps all functions in options such that they will not throw exceptions
@@ -30,7 +37,7 @@
           [name (if (u/callable? value)
                   ; :mouse-wheel is a special case as it takes single argument
                   ; while all other fns don't take any arguments
-                  (if (= name :mouse-wheel)
-                    (wrap-mouse-wheel value)
+                  (if (name handlers-with-one-argument)
+                    (wrap-event-handler name value)
                     (wrap-fn name value))
                   value)])))
