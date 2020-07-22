@@ -20,13 +20,8 @@
   (arc [this x y w h start end]
     (doodler_gl/arc x y (/ w 2) start end))
   (ellipse [this x y w h]
-    (gl/loadIdentity)
-    (gl/translatef core/*translate-x* core/*translate-y* 0.0)
-    (wxGLCanvas/setCurrent canvas)
     (doodler_gl/circle x y (/ w 2)))
   (line [this x1 y1 x2 y2]
-    (gl/loadIdentity)
-    (gl/translatef core/*translate-x* core/*translate-y* 0.0)
     (doodler_gl/line x1 y1 x2 y2))
   (point [this x y]
     (doodler_gl/point x y))
@@ -74,10 +69,8 @@
     )
 
   p/IEvents
-  #_(draw [this]
-    (wxGLCanvas/setCurrent canvas)
-    (gl/loadIdentity)
-    (gl/translatef core/*translate-x* core/*translate-y* core/*translate-z*))
+  (pre-draw [this]
+    (wxGLCanvas/setCurrent canvas))
   (paint [this]
     (wxGLCanvas/setCurrent canvas)
     (wxGLCanvas/swapBuffers canvas))
@@ -86,7 +79,17 @@
                       #erl(#erl[:eraseBackground false])))
   (resize [this]
     (let [[width height] (doodler_gl/resize canvas)]
-      (OpenGLCanvas. canvas width height))))
+      (OpenGLCanvas. canvas width height)))
+
+  p/ITransform
+  (push-matrix [this]
+    (gl/pushMatrix))
+  (pop-matrix [this]
+    (gl/popMatrix))
+  (rotate [this angle]
+    (gl/rotatef angle 0.0 0.0 1.0))
+  (translate [this x y]
+    (gl/translatef x y 0.0)))
 
 (defn make-canvas
   "Creates a bitmap the same size as the provided canvas.

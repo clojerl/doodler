@@ -66,7 +66,8 @@
 (defn on-draw
   [sketch f]
   (with-sketch sketch
-    (wx/batch f)))
+    (wx/batch #(do (p/pre-draw core/*canvas*)
+                   (f)))))
 
 (defn on-resize
   [sketch]

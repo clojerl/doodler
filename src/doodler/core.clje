@@ -8,10 +8,6 @@
 
 (def ^:dynamic *state* nil)
 
-;; Translation coordinates
-(def ^:dynamic *translate-x* 0)
-(def ^:dynamic *translate-y* 0)
-
 (defn state
   ([] *state*)
   ([key] (get *state* key)))
@@ -331,15 +327,28 @@
 
 ;; Translation
 
-(defmacro with-translation
-  [[x y] & body]
-  `(binding [doodler.core/*translate-x* ~x
-             doodler.core/*translate-y* ~y]
-     ~@body))
+(defn push-matrix
+  []
+  (p/push-matrix *canvas*))
 
-(defn* translate
-  [#erl[x y]]
-  #erl[(+ *translate-x* x) (+ *translate-y* y)])
+(defn pop-matrix
+  []
+  (p/pop-matrix *canvas*))
+
+(defmacro with-translation
+  [translation-vector & body]
+  `(let [tr# ~translation-vector]
+     (doodler.core/push-matrix)
+     (try
+       (doodler.core/translate tr#)
+       ~@body
+       (finally
+         (doodler.core/pop-matrix)))))
+
+(defn translate
+  ([v] (apply translate v))
+  ([tx ty] (p/translate *canvas* tx ty))
+  ([tx ty tz] (throw "Unsupported")))
 
 ;; Drawing
 
