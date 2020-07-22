@@ -1,0 +1,167 @@
+(ns doodler.wx.panel
+  (:require [doodler.protocols :as p]
+            [doodler.core :as core]
+            [doodler.wx.gui :as gui]))
+
+(def identity-matrix
+  {:translation [0.0 0.0]
+   :rotation 0.0})
+
+(declare init-panel)
+
+(defn translate [matrix x y]
+  (let [[tx ty] (-> matrix :translation)]
+    #erl[(int (+ x tx)) (int (+ y ty))]))
+
+(deftype PanelCanvas [panel
+                      width height
+                      bitmap bitmap-dc
+                      pen brush bg-brush
+                      matrix]
+  p/ICanvas
+  (canvas [this] panel)
+  (width [this] width)
+  (height [this] height)
+
+  p/IBitmap
+  (create-image [this w h]
+    (wxBitmap/new w h))
+
+  p/IPrimitives
+  (arc [this x y w h start end]
+    (wxDC/drawEllipticArc
+     bitmap-dc
+     (translate @matrix (- x (erlang/div w 2)) (- y (erlang/div h 2)))
+     #erl[w h]
+     start end))
+  (ellipse [this x y w h]
+    (wxDC/drawEllipse
+     bitmap-dc
+     (translate @matrix (- x (erlang/div w 2)) (- y (erlang/div h 2)))
+     #erl[w h]))
+  (line [this x1 y1 x2 y2]
+    (wxDC/drawLine bitmap-dc
+                   (translate @matrix x1 y1)
+                   (translate @matrix x2 y2)))
+  (point [this x y]
+    (wxDC/drawPoint bitmap-dc (translate @matrix x y)))
+  (quad [this x1 y1 x2 y2 x3 y3 x4 y4]
+    (wxDC/drawPolygon bitmap-dc
+                      #erl((translate @matrix x1 y1)
+                           (translate @matrix x2 y2)
+                           (translate @matrix x3 y3)
+                           (translate @matrix x4 y4))))
+  (rect [this x y w h]
+    (wxDC/drawRectangle bitmap-dc
+                        (translate @matrix x y)
+                        #erl[w h]))
+  (rect [this x y w h r]
+    (wxDC/drawRoundedRectangle bitmap-dc
+                               (translate @matrix x y)
+                               #erl[w h]
+                               r))
+  (triangle [this x1 y1 x2 y2 x3 y3]
+    (wxDC/drawPolygon bitmap-dc
+                      #erl((translate @matrix x1 y1)
+                           (translate @matrix x2 y2)
+                           (translate @matrix x3 y3))))
+
+  p/IText
+  (text [this s x y]
+    (wxDC/drawText bitmap-dc s (translate @matrix x y)))
+
+  p/IPen
+  (stroke [this color]
+    (wxPen/setColour pen color)
+    (wxDC/setPen bitmap-dc pen))
+  (stroke-weight [this weight]
+    (wxPen/setWidth pen weight)
+    (wxDC/setPen bitmap-dc pen))
+  (stroke-cap [this cap-mode]
+    (wxPen/setCap pen (gui/->stroke-cap cap-mode))
+    (wxDC/setPen bitmap-dc pen))
+  (stroke-join [this join-mode]
+    (wxPen/setJoin pen (gui/->stroke-join join-mode))
+    (wxDC/setPen bitmap-dc pen))
+  (no-stroke [this]
+    (wxDC/setPen bitmap-dc (wxPen/new)))
+
+  p/IFill
+  (fill [this color]
+    (wxBrush/setColour brush color)
+    (wxDC/setBrush bitmap-dc brush))
+  (no-fill [this]
+    (wxDC/setBrush bitmap-dc (wxBrush/new)))
+
+  p/IBackground
+  (background [this color]
+    (wxBrush/setColour bg-brush color)
+    (wxDC/setBackground bitmap-dc bg-brush)
+    (wxDC/clear bitmap-dc)
+    ;; The following is maybe unnecessary
+    (wxWindow/setBackgroundColour panel color))
+  (background-image [this img x y]
+    (wxDC/drawBitmap bitmap-dc img #erl[x y]))
+
+  p/IEvents
+  (pre-draw [this])
+  (paint [this]
+    (let [dc (wxPaintDC/new panel)]
+      (try
+        (wxDC/drawBitmap dc bitmap #erl[0 0])
+        (finally
+          (wxPaintDC/destroy dc)))))
+  (refresh [this]
+    (wxWindow/refresh panel
+                      #erl(#erl[:eraseBackground false])))
+  (resize [this]
+    (wxMemoryDC/destroy bitmap-dc)
+    (wxBitmap/destroy bitmap)
+    (init-panel panel))
+
+  p/ITransform
+  (push-matrix [this]
+    (vswap! matrix #(assoc identity-matrix :parent %)))
+  (pop-matrix [this]
+    (when-let [parent (:parent @matrix)]
+      (vreset! matrix parent)))
+  (rotate [this angle]
+    (vswap! matrix update :rotation + angle))
+  (translate [this x y]
+    (vswap! matrix
+            update
+            :translation
+            #(mapv + % [x y]))))
+
+(defn- init-panel
+  [panel]
+  (let [[w h]     (wxWindow/getSize panel)
+        bitmap    (wxBitmap/new w h)
+        bitmap-dc (wxMemoryDC/new bitmap)
+        bg-brush  (wxDC/getBackground bitmap-dc)
+        brush     (wxDC/getBrush bitmap-dc)
+        pen       (wxDC/getPen bitmap-dc)
+        matrix    (process-val! identity-matrix)]
+    (PanelCanvas. panel w h bitmap bitmap-dc pen brush bg-brush matrix)))
+
+(defn make-canvas
+  "Creates a bitmap the same size as the provided canvas.
+  Returns a PanelCanvas which contains all related information to
+  avoid having to fetch it while drawing.
+
+    bitmap        The bitmap
+    bitmap-dc     Device context for the bitmap
+
+    bg-brush, brush, pen
+                  bitmap-dc's elements
+
+    width         Bitmap's width
+    height        Bitmap's height"
+  [frame bgcolor]
+  (let [panel        (wxPanel/new frame)
+        panel-canvas (init-panel panel)]
+    ;; Set background color before showing the frame
+    ;; (Maybe unnecessary?)
+    (when bgcolor
+      (wxWindow/setBackgroundColour panel bgcolor))
+    panel-canvas))

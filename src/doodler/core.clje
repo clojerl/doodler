@@ -1,16 +1,12 @@
 (ns doodler.core
   (:require [doodler.util :as u]
-            [doodler.wx.gui :as gui]))
+            [doodler.protocols :as p]))
 
 (def ^:dynamic *canvas* nil)
 
 (def ^:dynamic *sketch* nil)
 
 (def ^:dynamic *state* nil)
-
-;; Translation coordinates
-(def ^:dynamic *translate-x* 0)
-(def ^:dynamic *translate-y* 0)
 
 (defn state
   ([] *state*)
@@ -222,11 +218,11 @@
 
 (defn background-image
   [img]
-  (wxDC/drawBitmap *canvas* img #erl[0 0]))
+  (p/background-image *canvas* img 0 0))
 
 (defn create-image
   [w h]
-  (wxBitmap/new w h))
+  (p/create-image *canvas* w h))
 
 ;; Stroke & fill
 
@@ -261,33 +257,23 @@
   ([r g b]
    (stroke r g b 255))
   ([r g b alpha]
-   (let [pen (:pen *sketch*)
-         color #erl[r g b alpha]]
-     (wxPen/setColour pen color)
-     (wxDC/setPen *canvas* pen)
-     (save-current-stroke color))))
+   (p/stroke *canvas* #erl[r g b alpha])))
 
 (defn stroke-weight
   [weight]
-  (let [pen (:pen *sketch*)]
-    (wxPen/setWidth pen weight)
-    (wxDC/setPen *canvas* pen)))
+  (p/stroke-weight *canvas* weight))
 
 (defn stroke-cap
   [cap-mode]
-  (let [pen (:pen *sketch*)]
-    (wxPen/setCap pen (gui/->stroke-cap cap-mode))
-    (wxDC/setPen *canvas* pen)))
+  (p/stroke-cap *canvas* cap-mode))
 
 (defn stroke-join
   [join-mode]
-  (let [pen (:pen *sketch*)]
-    (wxPen/setJoin pen (gui/->stroke-join join-mode))
-    (wxDC/setPen *canvas* pen)))
+  (p/stroke-join *canvas* join-mode))
 
 (defn no-stroke
   []
-  (wxDC/setPen *canvas* (wxPen/new))
+  (p/no-stroke *canvas*)
   (save-current-stroke nil))
 
 (defn background
@@ -298,11 +284,7 @@
   ([r g b]
    (background r g b 255))
   ([r g b alpha]
-   (let [brush (:background-brush *sketch*)
-         color #erl[r g b alpha]]
-     (wxBrush/setColour brush color)
-     (wxDC/setBackground *canvas* brush)
-     (wxDC/clear *canvas*))))
+   (p/background *canvas* #erl[r g b alpha])))
 
 (defn- save-current-fill
   [color]
@@ -335,84 +317,88 @@
   ([r g b]
    (fill r g b 255))
   ([r g b alpha]
-   (let [brush (:brush *sketch*)
-         color #erl[r g b alpha]]
-     (wxBrush/setColour brush color)
-     (wxDC/setBrush *canvas* brush)
-     (save-current-fill color))))
+   (p/fill *canvas* #erl[r g b alpha])
+   (save-current-fill color)))
 
 (defn no-fill
   []
-  (wxDC/setBrush *canvas* (wxBrush/new))
+  (p/no-fill *canvas*)
   (save-current-fill nil))
 
 ;; Translation
 
-(defmacro with-translation
-  [[x y] & body]
-  `(binding [doodler.core/*translate-x* ~x
-             doodler.core/*translate-y* ~y]
-     ~@body))
+(defn push-matrix
+  []
+  (p/push-matrix *canvas*))
 
-(defn* translate
-  [#erl[x y]]
-  #erl[(+ *translate-x* x) (+ *translate-y* y)])
+(defn pop-matrix
+  []
+  (p/pop-matrix *canvas*))
+
+(defmacro with-translation
+  [translation-vector & body]
+  `(let [tr# ~translation-vector]
+     (doodler.core/push-matrix)
+     (try
+       (doodler.core/translate tr#)
+       ~@body
+       (finally
+         (doodler.core/pop-matrix)))))
+
+(defn translate
+  ([v] (apply translate v))
+  ([tx ty] (p/translate *canvas* tx ty))
+  ([tx ty tz] (throw "Unsupported")))
 
 ;; Drawing
 
 (defn arc
   [x y w h start end]
-  (wxDC/drawEllipticArc
-   *canvas*
-   (translate #erl[(- x (erlang/div w 2)) (- y (erlang/div h 2))])
-   #erl[w h]
-   start end))
+  (p/arc *canvas* x y w h start end))
 
 (defn ellipse
   [x y w h]
-  (wxDC/drawEllipse
-   *canvas*
-   (translate #erl[(- x (erlang/div w 2)) (- y (erlang/div h 2))])
-   #erl[w h]))
+  (p/ellipse *canvas* x y w h))
 
 (defn line
   ([p1 p2]
    (apply line (concat p1 p2)))
   ([x1 y1 x2 y2]
-   (wxDC/drawLine *canvas*
-                  (translate #erl[x1 y1])
-                  (translate #erl[x2 y2]))))
+   (p/line *canvas* x1 y1 x2 y2)))
 
 (defn point
   [x y]
-  (wxDC/drawPoint *canvas* (translate #erl[x y])))
+  (p/point *canvas* x y))
+
+(defn quad
+  [x1 y1 x2 y2 x3 y3 x4 y4]
+  (p/quad *canvas* x1 y1 x2 y2 x3 y3 x4 y4))
 
 (defn rect
   ([x y w h]
-   (wxDC/drawRectangle *canvas*
-                       (translate #erl[x y])
-                       #erl[w h]))
+   (p/rect *canvas* x y w h))
   ([x y w h r]
-   (wxDC/drawRoundedRectangle *canvas*
-                              (translate #erl[x y])
-                              #erl[w h]
-                              r)))
+   (p/rect *canvas* x y w h r)))
+
+(defn triangle
+  [x1 y1 x2 y2 x3 y3]
+  (p/triangle *canvas* x1 y1 x2 y2 x3 y3))
 
 ;; Text
 
 (defn text
   [s x y]
-  (wxDC/drawText *canvas* s (translate #erl[x y])))
+  (p/text *canvas* s x y))
 
 ;; Dimension
 
 (defn width
   []
-  (:width *sketch*))
+  (p/width *canvas*))
 
 (defn height
   []
-  (:height *sketch*))
+  (p/height *canvas*))
 
 (defn frame-rate
   [new-rate]
@@ -468,5 +454,7 @@
 (defmacro defsketch
   [name & opts]
   (let [opts (apply hash-map opts)]
-    `(defn ~name []
-       (wx_object/start_link :doodler.sketch ~opts #erl()))))
+    `(defn ~name [& opts#]
+       (wx_object/start_link :doodler.sketch
+                             (merge ~opts (apply hash-map opts#))
+                             #erl()))))

@@ -161,7 +161,7 @@
 - [ ] [`print-projection`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L2910) - "Prints the current projection matrix to std out"
 - [ ] [`push-matrix`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L2922) - "Pushes the current transformation matrix onto the matrix  stack"
 - [ ] [`push-style`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L2940) - "Saves the current style settings onto a 'style stack'"
-- [ ] [`quad`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L2963) - "A quad is a quadrilateral, a four sided polygon"
+- [x] [`quad`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L2963) - "A quad is a quadrilateral, a four sided polygon"
 - [ ] [`quadratic-vertex`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L2982) - "Specifies vertex coordinates for quadratic Bezier curves"
 - [x] [`radians`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L3002) - "Converts a degree measurement to its corresponding value in  radians"
 - [x] [`random`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L3019) - "Generates random numbers"
@@ -243,7 +243,7 @@
 - [ ] [`texture-wrap-modes`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L51)
 - [ ] [`tint`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L4257) - "Sets the fill value for displaying images"
 - [ ] [`translate`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L4282) - "Specifies an amount to displace objects within the display  window"
-- [ ] [`triangle`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L4303) - "A triangle is a plane created by connecting three points"
+- [x] [`triangle`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L4303) - "A triangle is a plane created by connecting three points"
 - [ ] [`unbinary`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L4320) - "Unpack a binary string to an integer"
 - [ ] [`unhex`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L4333) - "Converts a String representation of a hexadecimal number to its  equivalent integer value"
 - [ ] [`update-pixels`](https://github.com/quil/quil/blob/2.8.0/src/cljc/quil/core.cljc#L4345) - "Updates the display window or image with the data in the pixels array"

@@ -1,0 +1,48 @@
+(ns doodler.protocols)
+
+(defprotocol ICanvas
+  (canvas [this])
+  (width [this])
+  (height [this]))
+
+(defprotocol IBitmap
+  (create-image [this w h]))
+
+(defprotocol IPrimitives
+  (arc [this x y w h start end])
+  (ellipse [this x y w h])
+  (line [this p1 p2] [this x1 y1 x2 y2])
+  (point [this x y])
+  (quad [this x1 y1 x2 y2 x3 y3 x4 y4])
+  (rect [this x y w h] [this x y w h r])
+  (triangle [this x1 y1 x2 y2 x3 y3]))
+
+(defprotocol IText
+  (text [this s x y]))
+
+(defprotocol IPen
+  (stroke [this color])
+  (stroke-weight [this weight])
+  (stroke-cap [this cap-mode])
+  (stroke-join [this join-mode])
+  (no-stroke [this]))
+
+(defprotocol IFill
+  (fill [this color])
+  (no-fill [this]))
+
+(defprotocol IBackground
+  (background [this color])
+  (background-image [this img x y]))
+
+(defprotocol IEvents
+  (pre-draw [this])
+  (paint [this])
+  (refresh [this])
+  (resize [this]))
+
+(defprotocol ITransform
+  (push-matrix [this])
+  (pop-matrix [this])
+  (rotate [this angle])
+  (translate [this x y]))
