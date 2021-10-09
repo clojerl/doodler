@@ -3,7 +3,7 @@
 (ns doodler.examples.alpha
   (:require [doodler.core :as d]))
 
-(def delta 2)
+(def delta 2.0)
 
 (defn setup
   []
@@ -13,10 +13,10 @@
   (d/background 0)
   (d/stroke 255 255)
   (d/fill 255 255)
-  (d/triangle 0 5 0 10 10 10)
-  (d/quad 50 0 70 0 60 10 40 10)
-  (doseq [x (range 100 (- (d/width) 100) delta)
-          y (range 100 (- (d/height) 100) delta)]
+  (d/triangle 0.0 5.0 0.0 10.0 10.0 10.0)
+  (d/quad 50.0 0.0 70.0 0.0 60.0 10.0 40.0 10.0)
+  (doseq [x (range 100.0 (- (d/width) 100) delta)
+          y (range 100.0 (- (d/height) 100) delta)]
     (d/point x y)))
 
 (d/defsketch sketch*

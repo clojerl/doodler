@@ -5,7 +5,7 @@
 
 (declare init-panel)
 
-(deftype OpenGLCanvas [canvas width height]
+(deftype OpenGLCanvas [canvas context width height]
   p/ICanvas
   (canvas [this] canvas)
   (width [this] width)
@@ -70,16 +70,16 @@
 
   p/IEvents
   (pre-draw [this]
-    (wxGLCanvas/setCurrent canvas))
+    (wxGLCanvas/setCurrent canvas context))
   (paint [this]
-    (wxGLCanvas/setCurrent canvas)
+    (wxGLCanvas/setCurrent canvas context)
     (wxGLCanvas/swapBuffers canvas))
   (refresh [this]
     (wxWindow/refresh canvas
                       #erl(#erl[:eraseBackground false])))
   (resize [this]
-    (let [[width height] (doodler_gl/resize canvas)]
-      (OpenGLCanvas. canvas width height)))
+    (let [[width height] (doodler_gl/resize canvas context)]
+      (OpenGLCanvas. canvas context width height)))
 
   p/ITransform
   (push-matrix [this]
@@ -105,6 +105,6 @@
     width         Bitmap's width
     height        Bitmap's height"
   [frame bgcolor]
-  (let [canvas (doodler_gl/canvas frame bgcolor)
+  (let [[canvas context] (doodler_gl/canvas frame bgcolor)
         [width height] (wxWindow/getSize frame)]
-    (OpenGLCanvas. canvas width height)))
+    (OpenGLCanvas. canvas context width height)))
