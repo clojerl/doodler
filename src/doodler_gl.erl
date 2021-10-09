@@ -21,7 +21,7 @@
         , stroke/1
         ]).
 
--export([resize/1]).
+-export([resize/2]).
 
 -include_lib("wx/include/gl.hrl").
 -include_lib("wx/include/wx.hrl").
@@ -38,7 +38,8 @@
 %% API
 %%==============================================================================
 
--spec canvas(wxWindow:wxWindow(), color() | undefined) -> wxWindow:wxWindow().
+-spec canvas(wxWindow:wxWindow(), color() | undefined) ->
+  {wxWindow:wxWindow(), wxGLContext:wxGLContext()}.
 canvas(Frame, BgColor) ->
   Size = wxWindow:getSize(Frame),
   Opts = [{size, Size}],
@@ -57,13 +58,14 @@ canvas(Frame, BgColor) ->
             }
           ],
   Canvas = wxGLCanvas:new(Frame, Opts ++ Attrs),
+  Context = wxGLContext:new(Canvas),
 
   %% Setup OpenGL
-  setup_gl(Canvas, BgColor),
+  setup_gl(Canvas, Context, BgColor),
 
   io:format(info()),
 
-  Canvas.
+  {Canvas, Context}.
 
 -spec info() -> binary().
 info() ->
@@ -273,19 +275,21 @@ is_color(FillOrStroke) ->
 
 %% Events
 
--spec resize(wxWindow:wxWindow()) -> {integer(), integer()}.
-resize(Canvas) ->
-  resize(Canvas, erlang:get(?BACKGROUND_COLOR)).
+-spec resize(wxWindow:wxWindow(), wxGLContext:wxGLContext()) ->
+  {integer(), integer()}.
+resize(Canvas, Context) ->
+  resize(Canvas, Context, erlang:get(?BACKGROUND_COLOR)).
 
--spec resize(wxWindow:wxWindow(), color()) -> {integer(), integer()}.
-resize(Canvas, BgColor) ->
-  wxGLCanvas:setCurrent(Canvas),
+-spec resize(wxWindow:wxWindow(), wxGLContext:wxGLContext(),color()) ->
+  {integer(), integer()}.
+resize(Canvas, Context, BgColor) ->
+  wxGLCanvas:setCurrent(Canvas, Context),
 
   {Width, Height} = wxWindow:getSize(Canvas),
   gl:viewport(0, 0, Width, Height),
   gl:matrixMode(?GL_PROJECTION),
   gl:loadIdentity(),
-  glu:ortho2D(0, Width, Height, 0),
+  glu:ortho2D(0.0, 1.0 * Width, 1.0 * Height, 0.0),
   gl:matrixMode(?GL_MODELVIEW),
   gl:loadIdentity(),
 
@@ -302,9 +306,9 @@ resize(Canvas, BgColor) ->
 colorf({R, G, B, Alpha}) ->
   {R / 255, G / 255, B / 255, Alpha / 255}.
 
--spec setup_gl(wxWindow:wxWindow(), color()) -> ok.
-setup_gl(Canvas, BgColor) ->
-  resize(Canvas, BgColor),
+-spec setup_gl(wxWindow:wxWindow(), wxGLContext:wxGLContext(), color()) -> ok.
+setup_gl(Canvas, Context, BgColor) ->
+  resize(Canvas, Context, BgColor),
 
   %% Smooth shading
   gl:shadeModel(?GL_SMOOTH),
