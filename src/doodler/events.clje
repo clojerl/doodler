@@ -81,14 +81,14 @@
 
   ([#erl[:wxKey type
          x y
-         key-code control shift alt meta
-         scan-code uni-char raw-code raw-flags]]
+         key-code
+         control shift alt meta
+         uni-char raw-code raw-flags]]
    #erl{:event (event-type->key-event type)
         :x x :y y
         :key-code key-code
         :control control :shift shift :alt alt :meta meta
-        :scan-code scan-code :uni-char uni-char
-        :raw-code raw-code :raw-flags raw-flags}))
+        :uni-char uni-char :raw-code raw-code :raw-flags raw-flags}))
 
 (defn listen
   "Registers this component to listen events of the specified
