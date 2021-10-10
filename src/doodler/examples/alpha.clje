@@ -19,7 +19,7 @@
           y (range 100.0 (- (d/height) 100) delta)]
     (d/point x y)))
 
-(d/defsketch sketch*
+(d/defsketch sketch
   :title "Alpha"
   :size [300 300]
   :pos [300 300]
@@ -27,9 +27,3 @@
   :draw draw
   :features [:resizable :keep-on-top]
   :bgcolor [0])
-
-(defn sketch []
-  (sketch*)
-  (sketch* :title "Alpha (OpenGL)"
-           :pos [600, 300]
-           :open-gl true))

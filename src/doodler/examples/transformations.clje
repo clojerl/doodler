@@ -8,11 +8,11 @@
 (defn draw []
   (d/stroke (rand-int 256) (rand-int 256) (rand-int 256))
   (d/fill (rand-int 256) (rand-int 256) (rand-int 256))
-  ;; Provide a mix of integers and floats.
-  ;; They should be handled correctly by each canvas.
-  (d/with-translation [(float (rand-int 100)) (rand-int 100)]
-    (d/with-rotation [(rand-int 360)]
-      (d/rect 0.0 0 10 10.0))))
+  ;; Provide a mix of integers and floats. They should be
+  ;; handled correctly by each canvas (i.e. wxPanel and wxOpenGLCanvas).
+   (d/with-translation [(float (rand-int 100)) (rand-int 100)]
+     (d/with-rotation [(rand-int 360)]
+       (d/rect 0.0 0 10 10.0))))
 
 (d/defsketch sketch
   :title "Transformations"
@@ -20,14 +20,4 @@
   :setup setup
   :draw draw
   :features [:resizable :keep-on-top]
-  :bgcolor [200]
-  :open-gl false)
-
-(d/defsketch sketch-opengl
-  :title "Transformations (OpenGL)"
-  :size [100 100]
-  :setup setup
-  :draw draw
-  :features [:resizable :keep-on-top]
-  :bgcolor [200]
-  :open-gl true)
+  :bgcolor [200])
