@@ -1,0 +1,22 @@
+(ns doodler.examples.transformations
+  (:require [doodler.core :as d]))
+
+(defn setup
+  []
+  (d/frame-rate 10))
+
+(defn draw []
+  (d/stroke (rand-int 256) (rand-int 256) (rand-int 256))
+  (d/fill (rand-int 256) (rand-int 256) (rand-int 256))
+  (d/with-translation [(float (rand-int 100)) (float (rand-int 100))]
+    (d/with-rotation [(float (rand-int 360))]
+      (d/rect 0.0 0.0 10.0 10.0))))
+
+(d/defsketch sketch
+  :title "Transformations"
+  :size [100 100]
+  :setup setup
+  :draw draw
+  :features [:resizable :keep-on-top]
+  :bgcolor [200]
+  :open-gl true)

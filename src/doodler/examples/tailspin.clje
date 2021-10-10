@@ -28,6 +28,7 @@
 
 (defn draw-state [state]
   (d/background 255)
+  (d/stroke 0)
   (d/fill 0)
   (let [dots (:dots state)]
     (loop [curr (first dots)
