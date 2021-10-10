@@ -37,6 +37,7 @@
 
 (defprotocol IEvents
   (pre-draw [this])
+  (post-draw [this])
   (paint [this])
   (refresh [this])
   (resize [this]))

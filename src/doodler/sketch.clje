@@ -67,7 +67,8 @@
   [sketch f]
   (with-sketch sketch
     (wx/batch #(do (p/pre-draw core/*canvas*)
-                   (f)))))
+                   (f)
+                   (p/post-draw core/*canvas*)))))
 
 (defn on-resize
   [sketch]
@@ -100,9 +101,9 @@
         bgcolor     (let [bgcolor (:bgcolor opts [0])]
                       (apply core/color bgcolor))
 
-        canvas      (if (:open-gl opts)
-                      (wx.open-gl/make-canvas frame bgcolor)
-                      (wx.panel/make-canvas frame bgcolor))
+        canvas      (case (:renderer opts :panel)
+                      :opengl   (wx.open-gl/make-canvas frame bgcolor)
+                      :panel    (wx.panel/make-canvas frame bgcolor))
 
         draw-fn     (or (:draw opts) u/no-fn)
         setup-fn    (or (:setup opts) u/no-fn)

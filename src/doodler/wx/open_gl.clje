@@ -82,6 +82,7 @@
   p/IEvents
   (pre-draw [this]
     (wxGLCanvas/setCurrent canvas context))
+  (post-draw [this])
   (paint [this]
     (wxGLCanvas/setCurrent canvas context)
     (wxGLCanvas/swapBuffers canvas))

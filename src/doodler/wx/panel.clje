@@ -3,21 +3,14 @@
             [doodler.core :as core]
             [doodler.wx.gui :as gui]))
 
-(def identity-matrix
-  {:translation [0.0 0.0]
-   :rotation 0.0})
-
 (declare init-panel)
-
-(defn translate [matrix x y]
-  (let [[tx ty] (-> matrix :translation)]
-    #erl[(int (+ x tx)) (int (+ y ty))]))
 
 (deftype PanelCanvas [panel
                       width height
-                      bitmap bitmap-dc
+                      bitmap bitmap-dc gc
                       pen brush bg-brush
-                      matrix]
+                      matrix
+                      current-shape]
   p/ICanvas
   (canvas [this] panel)
   (width [this] width)
@@ -29,69 +22,68 @@
 
   p/IPrimitives
   (arc [this x y w h start end]
-    (wxDC/drawEllipticArc
-     bitmap-dc
-     (translate @matrix (- x (erlang/div w 2)) (- y (erlang/div h 2)))
-     #erl[(int w) (int h)]
-     start end))
+    (let [path (wxGraphicsContext/createPath @gc)
+          r (/ (math/sqrt (+ (* w w) (* h h))) 2)]
+      (wxGraphicsPath/addArc path
+                             x y
+                             r
+                             start end
+                             true)
+      (wxGraphicsContext/drawPath @gc path)))
   (ellipse [this x y w h]
-    (wxDC/drawEllipse
-     bitmap-dc
-     (translate @matrix (- x (erlang/div w 2)) (- y (erlang/div h 2)))
-     #erl[(int w) (int h)]))
+    (wxGraphicsContext/drawEllipse
+     @gc
+     (- x (erlang/div w 2)) (- y (erlang/div h 2))
+     w h))
   (line [this x1 y1 x2 y2]
-    (wxDC/drawLine bitmap-dc
-                   (translate @matrix x1 y1)
-                   (translate @matrix x2 y2)))
+    (wxGraphicsContext/strokeLine @gc x1 y1 x2 y2))
   (point [this x y]
-    (wxDC/drawPoint bitmap-dc (translate @matrix x y)))
+    (wxGraphicsContext/drawRectangle @gc x y 1 1))
   (quad [this x1 y1 x2 y2 x3 y3 x4 y4]
-    (wxDC/drawPolygon bitmap-dc
-                      #erl((translate @matrix x1 y1)
-                           (translate @matrix x2 y2)
-                           (translate @matrix x3 y3)
-                           (translate @matrix x4 y4))))
+    (wxGraphicsContext/drawLines @gc
+                                 #erl(#erl[x1 y1]
+                                      #erl[x2 y2]
+                                      #erl[x3 y3]
+                                      #erl[x4 y4])))
   (rect [this x y w h]
-    (wxDC/drawRectangle bitmap-dc
-                        (translate @matrix x y)
-                        #erl[(int w) (int h)]))
+    (wxGraphicsContext/drawRectangle @gc x y w h))
   (rect [this x y w h r]
-    (wxDC/drawRoundedRectangle bitmap-dc
-                               (translate @matrix x y)
-                               #erl[(int w) (int h)]
-                               (int r)))
+    (wxGraphicsContext/drawRoundedRectangle @gc x y w h r))
   (triangle [this x1 y1 x2 y2 x3 y3]
-    (wxDC/drawPolygon bitmap-dc
-                      #erl((translate @matrix x1 y1)
-                           (translate @matrix x2 y2)
-                           (translate @matrix x3 y3))))
+    (wxGraphicsContext/drawLines @gc
+                                 #erl(#erl[x1 y1]
+                                      #erl[x2 y2]
+                                      #erl[x3 y3])))
 
   p/IText
   (text [this s x y]
-    (wxDC/drawText bitmap-dc s (translate @matrix x y)))
+    (wxGraphicsContext/setFont @gc
+                               (wxe_util/get_const :wxNORMAL_FONT)
+                               #erl[0 0 0])
+    (wxGraphicsContext/drawText @gc s x y))
 
   p/IPen
   (stroke [this color]
     (wxPen/setColour pen color)
-    (wxDC/setPen bitmap-dc pen))
+    (wxGraphicsContext/setPen @gc pen))
   (stroke-weight [this weight]
     (wxPen/setWidth pen weight)
-    (wxDC/setPen bitmap-dc pen))
+    (wxGraphicsContext/setPen @gc pen))
   (stroke-cap [this cap-mode]
     (wxPen/setCap pen (gui/->stroke-cap cap-mode))
-    (wxDC/setPen bitmap-dc pen))
+    (wxGraphicsContext/setPen @gc pen))
   (stroke-join [this join-mode]
     (wxPen/setJoin pen (gui/->stroke-join join-mode))
-    (wxDC/setPen bitmap-dc pen))
+    (wxGraphicsContext/setPen @gc pen))
   (no-stroke [this]
-    (wxDC/setPen bitmap-dc (wxPen/new)))
+    (wxGraphicsContext/setPen @gc pen))
 
   p/IFill
   (fill [this color]
     (wxBrush/setColour brush color)
-    (wxDC/setBrush bitmap-dc brush))
+    (wxGraphicsContext/setBrush @gc brush))
   (no-fill [this]
-    (wxDC/setBrush bitmap-dc (wxBrush/new)))
+    (wxGraphicsContext/setBrush @gc (wxBrush/new)))
 
   p/IBackground
   (background [this color]
@@ -104,7 +96,10 @@
     (wxDC/drawBitmap bitmap-dc img #erl[x y]))
 
   p/IEvents
-  (pre-draw [this])
+  (pre-draw [this]
+    (vreset! gc (wxGraphicsContext/create bitmap-dc)))
+  (post-draw [this]
+    (wxGraphicsContext/destroy @gc))
   (paint [this]
     (let [dc (wxPaintDC/new panel)]
       (try
@@ -121,25 +116,49 @@
 
   p/ITransform
   (push-matrix [this]
-    (vswap! matrix #(assoc % :parent %)))
+    #_(vswap! matrix #(assoc % :parent %)))
   (pop-matrix [this]
-    (when-let [parent (:parent @matrix)]
+    #_(when-let [parent (:parent @matrix)]
       (vreset! matrix parent)))
   (rotate [this angle]
-    (vswap! matrix update :rotation + (int angle)))
+    (wxGraphicsContext/rotate @gc angle))
+  (scale [this x-scale y-scale]
+    (wxGraphicsContext/scale @gc x-scale y-scale))
   (translate [this x y]
-    (vswap! matrix update :translation #(mapv + % [x y]))))
+    (wxGraphicsContext/translate @gc x y))
+
+  p/IShape
+  (begin-shape [this]
+    (let [path (wxGraphicsContext/createPath @gc)]
+      (vreset! current-shape path)))
+  (begin-shape [this mode]
+    (throw (ex-info "Not supported" {:op :begin-shape :args [mode]})))
+  (end-shape [this]
+    (wxGraphicsPath/closeSubpath @current-shape)
+    (wxGraphicsContext/drawPath @gc @current-shape)
+    (vreset! current-shape nil))
+  (vertex [this x y]
+    (wxGraphicsPath/addLineToPoint @current-shape x y))
+  (vertex [this x y z]
+    (throw (ex-info "Not supported" {:op :vertex :args [x y z]}))))
 
 (defn- init-panel
   [panel]
-  (let [[w h]     (wxWindow/getSize panel)
-        bitmap    (wxBitmap/new w h)
-        bitmap-dc (wxMemoryDC/new bitmap)
-        bg-brush  (wxDC/getBackground bitmap-dc)
-        brush     (wxDC/getBrush bitmap-dc)
-        pen       (wxDC/getPen bitmap-dc)
-        matrix    (process-val! identity-matrix)]
-    (PanelCanvas. panel w h bitmap bitmap-dc pen brush bg-brush matrix)))
+  (let [[w h]         (wxWindow/getSize panel)
+        bitmap        (wxBitmap/new w h)
+        bitmap-dc     (wxMemoryDC/new bitmap)
+        gc            (process-val! nil)
+        bg-brush      (wxDC/getBackground bitmap-dc)
+        brush         (wxDC/getBrush bitmap-dc)
+        pen           (wxDC/getPen bitmap-dc)
+        matrix        (process-val! [])
+        current-shape (process-val! nil)]
+    (->PanelCanvas panel
+                   w h
+                   bitmap bitmap-dc gc
+                   pen brush bg-brush
+                   matrix
+                   current-shape)))
 
 (defn make-canvas
   "Creates a bitmap the same size as the provided canvas.
