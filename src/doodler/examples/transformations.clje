@@ -10,9 +10,10 @@
   (d/fill (rand-int 256) (rand-int 256) (rand-int 256))
   ;; Provide a mix of integers and floats. They should be
   ;; handled correctly by each canvas (i.e. wxPanel and wxOpenGLCanvas).
-   (d/with-translation [(float (rand-int 100)) (rand-int 100)]
-     (d/with-rotation [(rand-int 360)]
-       (d/rect 0.0 0 10 10.0))))
+  (d/with-translation [(float (rand-int (d/width)))
+                       (rand-int (d/height))]
+    (d/with-rotation [(rand-int 360)]
+      (d/rect 0.0 0 10 10.0))))
 
 (d/defsketch sketch
   :title "Transformations"
