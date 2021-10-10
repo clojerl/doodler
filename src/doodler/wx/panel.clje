@@ -121,7 +121,7 @@
 
   p/ITransform
   (push-matrix [this]
-    (vswap! matrix #(assoc identity-matrix :parent %)))
+    (vswap! matrix #(assoc % :parent %)))
   (pop-matrix [this]
     (when-let [parent (:parent @matrix)]
       (vreset! matrix parent)))
