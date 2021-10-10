@@ -103,15 +103,12 @@
     (gl/translatef (float x) (float y) 0.0)))
 
 (defn make-canvas
-  "Creates a bitmap the same size as the provided canvas.
-  Returns a PanelCanvas which contains all related information to
+  "Creates an OpenGL canvas the same size as the provided canvas.
+  Returns an OpenGLCanvas which contains all related information to
   avoid having to fetch it while drawing.
 
-    bitmap        The bitmap
-    bitmap-dc     Device context for the bitmap
-
-    bg-brush, brush, pen
-                  bitmap-dc's elements
+    canvas        OpenGL canvas
+    context       OpenGL context
 
     width         Bitmap's width
     height        Bitmap's height"

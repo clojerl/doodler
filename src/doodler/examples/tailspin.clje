@@ -45,6 +45,7 @@
                curr)))))
 
 (d/defsketch sketch
+  :title "Tailspin"
   :size [500 500]
   :setup setup
   :update update-state
