@@ -350,6 +350,20 @@
   ([tx ty] (p/translate *canvas* tx ty))
   ([tx ty tz] (throw "Unsupported")))
 
+(defmacro with-rotation
+  [rotation & body]
+  `(let [tr# ~rotation]
+     (doodler.core/push-matrix)
+     (try
+       (apply doodler.core/rotate tr#)
+       ~@body
+       (finally
+         (doodler.core/pop-matrix)))))
+
+(defn rotate
+  [angle]
+  (p/rotate *canvas* angle))
+
 ;; Drawing
 
 (defn arc
