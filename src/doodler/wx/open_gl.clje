@@ -101,6 +101,8 @@
     (gl/popMatrix))
   (rotate [this angle]
     (gl/rotatef (core/degrees angle) 0.0 0.0 1.0))
+  (scale [this x-scale y-scale]
+    (gl/scalef x-scale y-scale 1.0))
   (translate [this x y]
     (gl/translatef (float x) (float y) 0.0)))
 

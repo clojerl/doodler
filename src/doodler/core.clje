@@ -365,6 +365,10 @@
   [angle]
   (p/rotate *canvas* angle))
 
+(defn scale
+  [x-scale y-scale]
+  (p/scale *canvas* x-scale y-scale))
+
 ;; Drawing
 
 (defn arc

@@ -13,6 +13,7 @@
   (d/with-translation [(float (rand-int (d/width)))
                        (rand-int (d/height))]
     (d/with-rotation [(rand-int d/TWO-PI)]
+      (d/scale (rand 2) (rand 2))
       (d/rect 0.0 0 10 10.0))))
 
 (d/defsketch sketch

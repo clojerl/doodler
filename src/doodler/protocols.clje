@@ -46,4 +46,5 @@
   (push-matrix [this])
   (pop-matrix [this])
   (rotate [this angle])
+  (scale [this x-scale y-scale])
   (translate [this x y]))
