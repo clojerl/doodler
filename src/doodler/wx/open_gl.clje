@@ -18,9 +18,10 @@
 
   p/IPrimitives
   (arc [this x y w h start end]
-    (doodler_gl/arc (float x) (float y)
-                    (/ w 2)
-                    start end))
+    (let [r (/ (math/sqrt (+ (* w w) (* h h))) 2)]
+      (doodler_gl/arc (float x) (float y)
+                      r
+                      start (- end start))))
   (ellipse [this x y w h]
     (doodler_gl/circle (float x) (float y)
                        (/ w 2)))
