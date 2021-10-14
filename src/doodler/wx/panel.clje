@@ -35,6 +35,11 @@
      @gc
      (- x (erlang/div w 2)) (- y (erlang/div h 2))
      w h))
+  (bezier [this x1 y1 cx1 cy1 cx2 cy2 x2 y2]
+    (let [path (wxGraphicsContext/createPath @gc)]
+      (wxGraphicsPath/addLineToPoint path x1 y1)
+      (wxGraphicsPath/addCurveToPoint path cx1 cy1 cx2 cy2 x2 y2)
+      (wxGraphicsContext/drawPath @gc path)))
   (line [this x1 y1 x2 y2]
     (wxGraphicsContext/strokeLine @gc x1 y1 x2 y2))
   (point [this x y]

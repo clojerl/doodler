@@ -25,6 +25,8 @@
   (ellipse [this x y w h]
     (doodler_gl/circle (float x) (float y)
                        (/ w 2)))
+  (bezier [this x1 y1 cx1 cy1 cx2 cy2 x2 y2]
+    (throw (ex-info "Not supported" {:op :bezier})))
   (line [this x1 y1 x2 y2]
     (doodler_gl/line (float x1) (float y1)
                      (float x2) (float y2)))
