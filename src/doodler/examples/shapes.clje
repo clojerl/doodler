@@ -21,11 +21,12 @@
   (d/begin-shape)
   (dotimes [_ 5]
     (d/vertex (rand-int (d/width)) (rand-int (d/height)))
-    (d/bezier-vertex (rand-int (d/width)) (rand-int (d/height))
-                     (rand-int (d/width)) (rand-int (d/height))
-                     (rand-int (d/width)) (rand-int (d/height)))
-    (d/quadratic-vertex (rand-int (d/width)) (rand-int (d/height))
-                        (rand-int (d/width)) (rand-int (d/height))))
+    (when-not (= :opengl (:renderer d/*sketch*))
+      (d/bezier-vertex (rand-int (d/width)) (rand-int (d/height))
+                       (rand-int (d/width)) (rand-int (d/height))
+                       (rand-int (d/width)) (rand-int (d/height)))
+      (d/quadratic-vertex (rand-int (d/width)) (rand-int (d/height))
+                          (rand-int (d/width)) (rand-int (d/height)))))
   (d/end-shape)
 
   (d/text (str "Fill: " (d/current-fill)) 100 10)

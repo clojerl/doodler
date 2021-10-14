@@ -101,9 +101,11 @@
         bgcolor     (let [bgcolor (:bgcolor opts [0])]
                       (apply core/color bgcolor))
 
-        canvas      (case (:renderer opts :panel)
-                      :opengl   (wx.opengl/make-canvas frame bgcolor)
-                      :panel    (wx.panel/make-canvas frame bgcolor))
+        renderer    (:renderer opts :panel)
+
+        canvas      (case renderer
+                      :opengl (wx.opengl/make-canvas frame bgcolor)
+                      :panel  (wx.panel/make-canvas frame bgcolor))
 
         draw-fn     (or (:draw opts) u/no-fn)
         setup-fn    (or (:setup opts) u/no-fn)
@@ -138,7 +140,7 @@
             :pid (erlang/self)
             :frame frame
             :canvas canvas
-
+            :renderer renderer
             :setup-fn setup-fn
             :draw-fn draw-fn
             :on-resize on-resize
