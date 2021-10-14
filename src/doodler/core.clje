@@ -257,7 +257,8 @@
   ([r g b]
    (stroke r g b 255))
   ([r g b alpha]
-   (p/stroke *canvas* #erl[r g b alpha])))
+   (p/stroke *canvas* #erl[r g b alpha])
+   (save-current-stroke (color r g b alpha))))
 
 (defn stroke-weight
   [weight]
@@ -318,7 +319,7 @@
    (fill r g b 255))
   ([r g b alpha]
    (p/fill *canvas* #erl[r g b alpha])
-   (save-current-fill color)))
+   (save-current-fill (color r g b alpha))))
 
 (defn no-fill
   []
