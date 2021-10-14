@@ -4,7 +4,7 @@
             [doodler.protocols :as p]
             [doodler.util :as u]
             [doodler.wx.gui :as gui]
-            [doodler.wx.open-gl :as wx.open-gl]
+            [doodler.wx.opengl :as wx.opengl]
             [doodler.wx.panel :as wx.panel]
             [doodler.middlewares.safe-fns :refer [safe-fns]]))
 
@@ -102,7 +102,7 @@
                       (apply core/color bgcolor))
 
         canvas      (case (:renderer opts :panel)
-                      :opengl   (wx.open-gl/make-canvas frame bgcolor)
+                      :opengl   (wx.opengl/make-canvas frame bgcolor)
                       :panel    (wx.panel/make-canvas frame bgcolor))
 
         draw-fn     (or (:draw opts) u/no-fn)

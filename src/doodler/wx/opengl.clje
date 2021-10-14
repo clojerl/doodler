@@ -1,4 +1,4 @@
-(ns doodler.wx.open-gl
+(ns doodler.wx.opengl
   (:require [doodler.protocols :as p]
             [doodler.core :as core]
             [doodler.wx.gui :as gui]))
@@ -135,4 +135,4 @@
   [frame bgcolor]
   (let [[canvas context] (doodler_gl/canvas frame bgcolor)
         [width height] (wxWindow/getSize frame)]
-    (OpenGLCanvas. canvas context width height)))
+    (->OpenGLCanvas canvas context width height)))
