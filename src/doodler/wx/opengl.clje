@@ -1,4 +1,4 @@
-(ns doodler.wx.open-gl
+(ns doodler.wx.opengl
   (:require [doodler.protocols :as p]
             [doodler.core :as core]
             [doodler.wx.gui :as gui]))
@@ -18,9 +18,10 @@
 
   p/IPrimitives
   (arc [this x y w h start end]
-    (doodler_gl/arc (float x) (float y)
-                    (/ w 2)
-                    start end))
+    (let [r (/ (math/sqrt (+ (* w w) (* h h))) 2)]
+      (doodler_gl/arc (float x) (float y)
+                      r
+                      start (- end start))))
   (ellipse [this x y w h]
     (doodler_gl/circle (float x) (float y)
                        (/ w 2)))
@@ -82,6 +83,7 @@
   p/IEvents
   (pre-draw [this]
     (wxGLCanvas/setCurrent canvas context))
+  (post-draw [this])
   (paint [this]
     (wxGLCanvas/setCurrent canvas context)
     (wxGLCanvas/swapBuffers canvas))
@@ -98,9 +100,27 @@
   (pop-matrix [this]
     (gl/popMatrix))
   (rotate [this angle]
-    (gl/rotatef (float angle) 0.0 0.0 1.0))
+    (gl/rotatef (core/degrees angle) 0.0 0.0 1.0))
+  (scale [this x-scale y-scale]
+    (gl/scalef x-scale y-scale 1.0))
   (translate [this x y]
-    (gl/translatef (float x) (float y) 0.0)))
+    (gl/translatef (float x) (float y) 0.0))
+
+  p/IShape
+  (begin-shape [this]
+    (doodler_gl/begin_shape))
+  (begin-shape [this mode]
+    (doodler_gl/begin_shape mode))
+  (end-shape [this]
+    (doodler_gl/end_shape))
+  (vertex [this x y]
+    (doodler_gl/vertex (float x) (float y)))
+  (vertex [this x y z]
+    (doodler_gl/vertex (float x) (float y) (float z)))
+  (bezier-vertex [this cx1 cy1 cx2 cy2 x y]
+    (throw (ex-info "Not supported" {:op :bezier-vertex})))
+  (quadratic-vertex [this cx cy x3 y3]
+    (throw (ex-info "Not supported" {:op :quadratic-vertex}))))
 
 (defn make-canvas
   "Creates an OpenGL canvas the same size as the provided canvas.
@@ -115,4 +135,4 @@
   [frame bgcolor]
   (let [[canvas context] (doodler_gl/canvas frame bgcolor)
         [width height] (wxWindow/getSize frame)]
-    (OpenGLCanvas. canvas context width height)))
+    (->OpenGLCanvas canvas context width height)))

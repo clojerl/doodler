@@ -37,6 +37,7 @@
 
 (defprotocol IEvents
   (pre-draw [this])
+  (post-draw [this])
   (paint [this])
   (refresh [this])
   (resize [this]))
@@ -45,4 +46,12 @@
   (push-matrix [this])
   (pop-matrix [this])
   (rotate [this angle])
+  (scale [this x-scale y-scale])
   (translate [this x y]))
+
+(defprotocol IShape
+  (begin-shape [this] [this mode])
+  (end-shape [this] [this mode])
+  (vertex [this x y] [this x y z])
+  (bezier-vertex [this cx1 cy1 cx2 cy2 x y])
+  (quadratic-vertex [this cx cy x3 y3]))

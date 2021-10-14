@@ -326,6 +326,74 @@
   (p/no-fill *canvas*)
   (save-current-fill nil))
 
+;; Shapes
+
+(defn begin-shape
+  "Enables the creation of complex forms. begin-shape begins recording
+  vertices for a shape and end-shape stops recording. Use the mode
+  keyword to specify which shape create from the provided
+  vertices. With no mode specified, the shape can be any irregular
+  polygon.
+
+  The available mode keywords are :points, :lines, :triangles,
+                                  :triangle-fan, :triangle-strip,
+                                  :quads, :quad-strip.
+
+  After calling the begin-shape function, a series of vertex commands
+  must follow. To stop drawing the shape, call end-shape. The vertex
+  function with two parameters specifies a position in 2D and the
+  vertex function with three parameters specifies a position in
+  3D. Each shape will be outlined with the current stroke color and
+  filled with the fill color.
+
+  Transformations such as translate, rotate, and scale do not work
+  within begin-shape. It is also not possible to use other shapes,
+  such as ellipse or rect within begin-shape."
+  ([] (p/begin-shape *canvas*))
+  ([mode] (p/begin-shape *canvas* mode)))
+
+(defn end-shape
+  "May only be called after begin-shape. When end-shape is called,
+  all of image data defined since the previous call to begin-shape is
+  written into the image buffer. The keyword :close may be passed to
+  close the shape (to connect the beginning and the end)."
+  ([] (p/end-shape *canvas*))
+  ([mode] (p/end-shape *canvas* mode)))
+
+(defn vertex
+  "All shapes are constructed by connecting a series of
+  vertices. vertex is used to specify the vertex coordinates for
+  points, lines, triangles, quads, and polygons and is used
+  exclusively within the begin-shape and end-shape fns.
+
+  Drawing a vertex in 3D using the z parameter requires the
+  :opengl renderer to be used."
+  ([x y] (p/vertex *canvas* x y))
+  ([x y z] (p/vertex *canvas* x y z)))
+
+(defn bezier-vertex
+  "Specifies vertex coordinates for Bezier curves. Each call to
+  bezier-vertex defines the position of two control points and one
+  anchor point of a Bezier curve, adding a new segment to a line or
+  shape. The first time bezier-vertex is used within a begin-shape
+  call, it must be prefaced with a call to vertex to set the first
+  anchor point. This function must be used between begin-shape and
+  end-shape and only when there is no parameter specified to
+  begin-shape."
+  ([cx1 cy1 cx2 cy2 x y]
+   (p/bezier-vertex *canvas* cx1 cy1 cx2 cy2 x y)))
+
+(defn quadratic-vertex
+  "Specifies vertex coordinates for quadratic Bezier curves. Each call to
+  quadratic-vertex defines the position of one control points and one
+  anchor point of a Bezier curve, adding a new segment to a line or shape.
+  The first time quadratic-vertex is used within a begin-shape call, it
+  must be prefaced with a call to vertex to set the first anchor point.
+  This function must be used between begin-shape and end-shape and only
+  when there is no MODE parameter specified to begin-shape."
+  ([cx cy x3 y3]
+   (p/quadratic-vertex *canvas* cx cy x3 y3)))
+
 ;; Translation
 
 (defn push-matrix
@@ -364,6 +432,10 @@
 (defn rotate
   [angle]
   (p/rotate *canvas* angle))
+
+(defn scale
+  [x-scale y-scale]
+  (p/scale *canvas* x-scale y-scale))
 
 ;; Drawing
 

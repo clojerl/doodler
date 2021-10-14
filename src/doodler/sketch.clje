@@ -4,7 +4,7 @@
             [doodler.protocols :as p]
             [doodler.util :as u]
             [doodler.wx.gui :as gui]
-            [doodler.wx.open-gl :as wx.open-gl]
+            [doodler.wx.opengl :as wx.opengl]
             [doodler.wx.panel :as wx.panel]
             [doodler.middlewares.safe-fns :refer [safe-fns]]))
 
@@ -67,7 +67,8 @@
   [sketch f]
   (with-sketch sketch
     (wx/batch #(do (p/pre-draw core/*canvas*)
-                   (f)))))
+                   (f)
+                   (p/post-draw core/*canvas*)))))
 
 (defn on-resize
   [sketch]
@@ -100,9 +101,11 @@
         bgcolor     (let [bgcolor (:bgcolor opts [0])]
                       (apply core/color bgcolor))
 
-        canvas      (if (:open-gl opts)
-                      (wx.open-gl/make-canvas frame bgcolor)
-                      (wx.panel/make-canvas frame bgcolor))
+        renderer    (:renderer opts :panel)
+
+        canvas      (case renderer
+                      :opengl (wx.opengl/make-canvas frame bgcolor)
+                      :panel  (wx.panel/make-canvas frame bgcolor))
 
         draw-fn     (or (:draw opts) u/no-fn)
         setup-fn    (or (:setup opts) u/no-fn)
@@ -137,7 +140,7 @@
             :pid (erlang/self)
             :frame frame
             :canvas canvas
-
+            :renderer renderer
             :setup-fn setup-fn
             :draw-fn draw-fn
             :on-resize on-resize

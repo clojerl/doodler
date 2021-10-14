@@ -27,7 +27,7 @@ There's also (currently limited) for OpenGL which can be enabled by
 providing `:open-gl true` to the skecth:
 
     ;; Start the sketch with an OpenGL canvas
-    clje.user=> (c/sketch :open-gl true)
+    clje.user=> (c/sketch :renderer :opengl)
     Renderer: AMD Radeon Pro 5300M OpenGL Engine
     Version: 2.1 ATI-4.6.20
     Alpha test: 0
