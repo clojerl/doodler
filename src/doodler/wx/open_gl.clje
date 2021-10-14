@@ -104,7 +104,23 @@
   (scale [this x-scale y-scale]
     (gl/scalef x-scale y-scale 1.0))
   (translate [this x y]
-    (gl/translatef (float x) (float y) 0.0)))
+    (gl/translatef (float x) (float y) 0.0))
+
+  p/IShape
+  (begin-shape [this]
+    (doodler_gl/begin_shape))
+  (begin-shape [this mode]
+    (doodler_gl/begin_shape mode))
+  (end-shape [this]
+    (doodler_gl/end_shape))
+  (vertex [this x y]
+    (doodler_gl/vertex (float x) (float y)))
+  (vertex [this x y z]
+    (doodler_gl/vertex (float x) (float y) (float z)))
+  (bezier-vertex [this cx1 cy1 cx2 cy2 x y]
+    (throw (ex-info "Not supported" {:op :bezier-vertex})))
+  (quadratic-vertex [this cx cy x3 y3]
+    (throw (ex-info "Not supported" {:op :quadratic-vertex}))))
 
 (defn make-canvas
   "Creates an OpenGL canvas the same size as the provided canvas.

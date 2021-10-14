@@ -18,6 +18,16 @@
   (d/line 10 130 80 140)
   (d/arc 10 55 50 50 (- d/QUARTER-PI) 0.0)
 
+  (d/begin-shape)
+  (dotimes [_ 5]
+    (d/vertex (rand-int (d/width)) (rand-int (d/height)))
+    (d/bezier-vertex (rand-int (d/width)) (rand-int (d/height))
+                     (rand-int (d/width)) (rand-int (d/height))
+                     (rand-int (d/width)) (rand-int (d/height)))
+    (d/quadratic-vertex (rand-int (d/width)) (rand-int (d/height))
+                        (rand-int (d/width)) (rand-int (d/height))))
+  (d/end-shape)
+
   (d/text (str "Fill: " (d/current-fill)) 100 10)
   (d/text (str "Stroke: " (d/current-stroke)) 100 30)
   (d/text (str "Frame #: " (d/frame-count)) 100 50)

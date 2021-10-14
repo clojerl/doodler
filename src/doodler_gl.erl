@@ -16,6 +16,13 @@
         , triangle/6
         ]).
 
+-export([ begin_shape/0
+        , begin_shape/1
+        , end_shape/0
+        , vertex/2
+        , vertex/3
+        ]).
+
 -export([ background/1
         , fill/1
         , stroke/1
@@ -242,6 +249,47 @@ triangle(X1, Y1, X2, Y2, X3, Y3) ->
       gl:vertex2f(X3, Y3),
       gl:'end'()
     end.
+
+%% Shapes
+
+-type shape_mode() :: points
+                    | lines
+                    | 'line-loop'
+                    | triangles
+                    | 'triangle-fan'
+                    | 'triangle-strip'
+                    | quads
+                    | 'quad-strip'.
+
+-spec shape_mode(shape_mode()) -> integer().
+shape_mode(points) -> ?GL_POINTS;
+shape_mode(lines) -> ?GL_LINES;
+shape_mode('line-loop') -> ?GL_LINE_LOOP;
+shape_mode(triangles) -> ?GL_TRIANGLES;
+shape_mode('triangle-fan') -> ?GL_TRIANGLE_FAN;
+shape_mode('triangle-strip') -> ?GL_TRIANGLE_STRIP;
+shape_mode(quads) -> ?GL_QUADS;
+shape_mode('quad-strip') -> ?GL_QUAD_STRIP.
+
+-spec begin_shape() -> ok.
+begin_shape() ->
+  begin_shape('line-loop').
+
+-spec begin_shape(shape_mode()) -> ok.
+begin_shape(Mode) ->
+  gl:'begin'(shape_mode(Mode)).
+
+-spec end_shape() -> ok.
+end_shape() ->
+  gl:'end'().
+
+-spec vertex(float(), float()) -> ok.
+vertex(X, Y) ->
+  gl:vertex2f(X, Y).
+
+-spec vertex(float(), float(), float()) -> ok.
+vertex(X, Y, Z) ->
+  gl:vertex3f(X, Y, Z).
 
 %% Colors
 

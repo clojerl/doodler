@@ -134,13 +134,20 @@
   (begin-shape [this mode]
     (throw (ex-info "Not supported" {:op :begin-shape :args [mode]})))
   (end-shape [this]
-    (wxGraphicsPath/closeSubpath @current-shape)
     (wxGraphicsContext/drawPath @gc @current-shape)
     (vreset! current-shape nil))
+  (end-shape [this mode]
+    (when (= mode :close)
+      (wxGraphicsPath/closeSubpath @current-shape))
+    (p/end-shape this))
   (vertex [this x y]
     (wxGraphicsPath/addLineToPoint @current-shape x y))
   (vertex [this x y z]
-    (throw (ex-info "Not supported" {:op :vertex :args [x y z]}))))
+    (throw (ex-info "Not supported" {:op :vertex :args [x y z]})))
+  (bezier-vertex [this cx1 cy1 cx2 cy2 x y]
+    (wxGraphicsPath/addCurveToPoint @current-shape cx1 cy1 cx2 cy2 x y))
+  (quadratic-vertex [this cx cy x3 y3]
+    (wxGraphicsPath/addQuadCurveToPoint @current-shape cx cy x3 y3)))
 
 (defn- init-panel
   [panel]
