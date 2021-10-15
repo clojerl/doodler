@@ -98,7 +98,7 @@
                                     (or (:size opts) [500 300])
                                     features)
 
-        bgcolor     (let [bgcolor (:bgcolor opts [0])]
+        bgcolor     (let [bgcolor (:bgcolor opts [200])]
                       (apply core/color bgcolor))
 
         renderer    (:renderer opts :panel)

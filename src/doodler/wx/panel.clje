@@ -3,7 +3,7 @@
             [doodler.core :as core]
             [doodler.wx.gui :as gui]))
 
-(declare init-panel)
+(declare init-canvas)
 
 (deftype PanelCanvas [panel
                       width height
@@ -94,9 +94,7 @@
   (background [this color]
     (wxBrush/setColour bg-brush color)
     (wxDC/setBackground bitmap-dc bg-brush)
-    (wxDC/clear bitmap-dc)
-    ;; The following is maybe unnecessary
-    (wxWindow/setBackgroundColour panel color))
+    (wxDC/clear bitmap-dc))
   (background-image [this img x y]
     (wxDC/drawBitmap bitmap-dc img #erl[x y]))
 
@@ -115,9 +113,12 @@
     (wxWindow/refresh panel
                       #erl(#erl[:eraseBackground false])))
   (resize [this]
-    (wxMemoryDC/destroy bitmap-dc)
-    (wxBitmap/destroy bitmap)
-    (init-panel panel))
+    (let [bgcolor (wxBrush/getColour bg-brush)
+          _ (wxMemoryDC/destroy bitmap-dc)
+          _ (wxBitmap/destroy bitmap)
+          canvas (init-canvas panel bgcolor)]
+      (p/background canvas bgcolor)
+      canvas))
 
   p/ITransform
   (push-matrix [this]
@@ -154,8 +155,20 @@
   (quadratic-vertex [this cx cy x3 y3]
     (wxGraphicsPath/addQuadCurveToPoint @current-shape cx cy x3 y3)))
 
-(defn- init-panel
-  [panel]
+(defn- init-canvas
+  "Creates a bitmap the same size as the provided canvas.
+  Returns a PanelCanvas which contains all related information to
+  avoid having to fetch it while drawing.
+
+    width         Bitmap's width
+    height        Bitmap's height
+
+    bitmap        The bitmap
+    bitmap-dc     Device context for the bitmap
+
+    bg-brush, brush, pen
+                  bitmap-dc's elements"
+  [panel bgcolor]
   (let [[w h]         (wxWindow/getSize panel)
         bitmap        (wxBitmap/new w h)
         bitmap-dc     (wxMemoryDC/new bitmap)
@@ -165,6 +178,11 @@
         pen           (wxDC/getPen bitmap-dc)
         matrix        (process-val! [])
         current-shape (process-val! nil)]
+    ;; Keep the value for the background color in
+    ;; the background brush. The resize event will
+    ;; be triggered once on creation and its handling
+    ;; will set the background color.
+    (wxBrush/setColour bg-brush bgcolor)
     (->PanelCanvas panel
                    w h
                    bitmap bitmap-dc gc
@@ -173,23 +191,6 @@
                    current-shape)))
 
 (defn make-canvas
-  "Creates a bitmap the same size as the provided canvas.
-  Returns a PanelCanvas which contains all related information to
-  avoid having to fetch it while drawing.
-
-    bitmap        The bitmap
-    bitmap-dc     Device context for the bitmap
-
-    bg-brush, brush, pen
-                  bitmap-dc's elements
-
-    width         Bitmap's width
-    height        Bitmap's height"
+  "Creates a panel canvas"
   [frame bgcolor]
-  (let [panel        (wxPanel/new frame)
-        panel-canvas (init-panel panel)]
-    ;; Set background color before showing the frame
-    ;; (Maybe unnecessary?)
-    (when bgcolor
-      (wxWindow/setBackgroundColour panel bgcolor))
-    panel-canvas))
+  (init-canvas (wxPanel/new frame) bgcolor))
