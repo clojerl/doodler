@@ -122,10 +122,11 @@
 
   p/ITransform
   (push-matrix [this]
-    #_(vswap! matrix #(assoc % :parent %)))
+    (vswap! matrix conj (wxGraphicsContext/getTransform @gc)))
   (pop-matrix [this]
-    #_(when-let [parent (:parent @matrix)]
-      (vreset! matrix parent)))
+    (when-let [parent (first @matrix)]
+      (wxGraphicsContext/setTransform @gc parent)
+      (vswap! matrix pop)))
   (rotate [this angle]
     (wxGraphicsContext/rotate @gc angle))
   (scale [this x-scale y-scale]
@@ -176,7 +177,7 @@
         bg-brush      (wxDC/getBackground bitmap-dc)
         brush         (wxDC/getBrush bitmap-dc)
         pen           (wxDC/getPen bitmap-dc)
-        matrix        (process-val! [])
+        matrix        (process-val! ())
         current-shape (process-val! nil)]
     ;; Keep the value for the background color in
     ;; the background brush. The resize event will
