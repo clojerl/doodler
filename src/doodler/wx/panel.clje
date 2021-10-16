@@ -127,12 +127,30 @@
     (when-let [parent (first @matrix)]
       (wxGraphicsContext/setTransform @gc parent)
       (vswap! matrix pop)))
+  (apply-matrix [this a b c d tx ty]
+    (->> #erl(#erl[:a a] #erl[:b b]
+              #erl[:c c] #erl[:d d]
+              #erl[:tx tx] #erl[:yx ty])
+         (wxGraphicsContext/createMatrix @gc)
+         (wxGraphicsContext/concatTransform @gc)))
+  (reset-matrix [this]
+    (-> (wxGraphicsContext/createMatrix @gc)
+        wxGraphicsMatrix/set))
+  (print-matrix [this]
+    (let [m (wxGraphicsContext/getTransform @gc)
+          [a b c d tx ty](wxGraphicsMatrix/get m)]
+      (println "Matrix:" :a a :b b :c c :d d :tx tx :ty ty)))
   (rotate [this angle]
     (wxGraphicsContext/rotate @gc angle))
   (scale [this x-scale y-scale]
     (wxGraphicsContext/scale @gc x-scale y-scale))
+  (scale [this x-scale y-scale z-scale]
+    (throw (ex-info "Not supported"
+                    {:op :scale :args [x-scale y-scale z-scale]})))
   (translate [this x y]
     (wxGraphicsContext/translate @gc x y))
+  (translate [this x y z]
+    (throw (ex-info "Not supported" {:op :translate :args [x y z]})))
 
   p/IShape
   (begin-shape [this]

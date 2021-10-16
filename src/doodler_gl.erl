@@ -30,6 +30,8 @@
 
 -export([resize/2]).
 
+-export([current_matrix/0]).
+
 -include_lib("wx/include/gl.hrl").
 -include_lib("wx/include/wx.hrl").
 
@@ -345,6 +347,10 @@ resize(Canvas, Context, BgColor) ->
   background(BgColor),
 
   {Width, Height}.
+
+-spec current_matrix() -> [float()].
+current_matrix() ->
+  gl:getFloatv(?GL_MODELVIEW_MATRIX).
 
 %%==============================================================================
 %% Internal functions

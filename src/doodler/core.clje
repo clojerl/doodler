@@ -394,7 +394,7 @@
   ([cx cy x3 y3]
    (p/quadratic-vertex *canvas* cx cy x3 y3)))
 
-;; Translation
+;; Transformations
 
 (defn push-matrix
   []
@@ -403,6 +403,34 @@
 (defn pop-matrix
   []
   (p/pop-matrix *canvas*))
+
+(defn apply-matrix
+  "Multiplies the current matrix by the one specified through the
+  parameters. This is very slow because it will try to calculate the
+  inverse of the transform, so avoid it whenever possible. The
+  equivalent function in OpenGL is `glMultMatrix()`."
+  ([a b c d tx ty]
+   (p/apply-matrix *canvas* a b c d tx ty))
+  ([n00 n01 n02 n03
+    n10 n11 n12 n13
+    n20 n21 n22 n23
+    n30 n31 n32 n33]
+   (p/apply-matrix *canvas*
+                   n00 n01 n02 n03
+                   n10 n11 n12 n13
+                   n20 n21 n22 n23
+                   n30 n31 n32 n33)))
+
+(defn reset-matrix
+  "Replaces the current matrix with the identity matrix. The
+  equivalent function in OpenGL is `glLoadIdentity()`"
+  []
+  (p/reset-matrix *canvas*))
+
+(defn print-matrix
+  "Prints the current matrix to std out. Useful for debugging."
+  []
+  (p/print-matrix *canvas*))
 
 (defmacro with-translation
   [translation-vector & body]
