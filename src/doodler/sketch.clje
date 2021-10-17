@@ -176,9 +176,11 @@
         :on-close
         (u/stop (with-sketch sketch
                   (handler)))
+
         :focus-gained
         (u/noreply (with-sketch sketch
                      (handler)))
+
         :focus-lost
         (u/noreply (with-sketch sketch
                      (handler)))

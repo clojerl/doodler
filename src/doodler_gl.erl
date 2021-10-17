@@ -10,7 +10,9 @@
 -export([ arc/5
         , circle/3
         , line/4
+        , line/6
         , point/2
+        , point/3
         , quad/8
         , rect/4
         , triangle/6
@@ -174,6 +176,15 @@ point(X, Y) ->
       gl:'end'()
     end.
 
+-spec point(float(), float(), float()) -> ok.
+point(X, Y, Z) ->
+  setup_color(?STROKE_COLOR) andalso
+    begin
+      gl:'begin'(?GL_POINTS),
+      gl:vertex2f(X, Y, Z),
+      gl:'end'()
+    end.
+
 -spec line(float(), float(), float(), float()) -> ok.
 line(X1, Y1, X2, Y2) ->
   setup_color(?STROKE_COLOR) andalso
@@ -181,6 +192,16 @@ line(X1, Y1, X2, Y2) ->
       gl:'begin'(?GL_LINES),
       gl:vertex2f(X1, Y1),
       gl:vertex2f(X2, Y2),
+      gl:'end'()
+    end.
+
+-spec line(float(), float(), float(), float(), float(), float()) -> ok.
+line(X1, Y1, Z1, X2, Y2, Z2) ->
+  setup_color(?STROKE_COLOR) andalso
+    begin
+      gl:'begin'(?GL_LINES),
+      gl:vertex3f(X1, Y1, Z1),
+      gl:vertex3f(X2, Y2, Z2),
       gl:'end'()
     end.
 
@@ -336,10 +357,13 @@ resize(Canvas, Context, BgColor) ->
   wxGLCanvas:setCurrent(Canvas, Context),
 
   {Width, Height} = wxWindow:getSize(Canvas),
+
   gl:viewport(0, 0, Width, Height),
+
   gl:matrixMode(?GL_PROJECTION),
   gl:loadIdentity(),
   glu:ortho2D(0.0, 1.0 * Width, 1.0 * Height, 0.0),
+
   gl:matrixMode(?GL_MODELVIEW),
   gl:loadIdentity(),
 

@@ -9,12 +9,27 @@
 (def ^:dynamic *state* nil)
 
 (defn state
+  "Retrieve sketch-specific state by `key`. Must initially call
+  `set-state!` to store state. If no parameter is passed the whole
+  state map is returned.
+
+  Example:
+  ```
+  (set-state! :foo 1)
+  (state :foo) ;=> 1
+  (state) ;=> {:foo 1}
+  ```"
   ([] *state*)
   ([key] (get *state* key)))
 
 (defn set-state!
   "Set sketch-specific state. May only be called once (ideally in the
-  setup fn).  Subsequent calls have no effect."
+  setup function). Subsequent calls have no effect.
+
+  Example:
+  ```
+  (set-state! :foo 1 :bar (atom true) :baz (/ (width) 2))
+  ```"
   [& state-vals]
   (when-not *state*
     (let [state-map (apply hash-map state-vals)]
@@ -38,69 +53,114 @@
 (def RAD-TO-DEG (/ 180.0 PI))
 
 (defn cos
+  "Calculates the cosine of an angle. This function expects the values
+  of the angle parameter to be provided in radians (values from 0 to
+  Math/PI*2). Values are returned in the range -1 to 1."
   [n]
   (math/cos n))
 
 (defn sin
+  "Calculates the sine of an angle. This function expects the values
+  of the angle parameter to be provided in radians (values from 0 to
+  6.28). A `float` within the range -1 to 1 is returned."
   [n]
   (math/sin n))
 
 (defn tan
+  "Calculates the ratio of the sine and cosine of an angle. This
+  function expects the values of the angle parameter to be provided in
+  radians (values from 0 to PI*2). Values are returned in the range
+  infinity to -infinity."
   [n]
   (math/tan n))
 
 (defn acos
+  "The inverse of `cos`, returns the arc cosine of a value. This
+  function expects the values in the range of -1 to 1 and values are
+  returned in the range 0 to `Math/PI` (3.1415927)."
   [n]
   (math/acos n))
 
 (defn asin
+  "The inverse of `sin`, returns the arc sine of a value. This function
+  expects the values in the range of -1 to 1 and values are returned
+  in the range `-PI/2` to `PI/2`."
   [n]
   (math/asin n))
 
 (defn atan
+  "The inverse of `tan`, returns the arc tangent of a value. This
+  function expects the values in the range of -Infinity to
+  Infinity (exclusive) and values are returned in the range `-PI/2` to
+  `PI/2`."
   [n]
   (math/atan n))
 
 (defn atan2
+  "Calculates the angle (in radians) from a specified point to the
+  coordinate origin as measured from the positive x-axis. Values are
+  returned as a `float` in the range from `PI` to `-PI`. The `atan2` function
+  is most often used for orienting geometry to the position of the
+  cursor. Note: The `y` coordinate of the point is the first parameter
+  and the `x` coordinate is the second due to the structure of
+  calculating the tangent."
   [y x]
   (math/atan2 y x))
 
 (defn radians
+  "Converts a `degrees` measurement to its corresponding value in
+  radians. Radians and degrees are two ways of measuring the same
+  thing. There are 360 degrees in a circle and `2*PI` radians in a
+  circle. For example, `90\u00B0 = PI/2 = 1.5707964`. All
+  trigonometric methods require their parameters to be specified in
+  radians."
   [degrees]
   (* DEG-TO-RAD degrees))
 
 (defn degrees
+  "Converts a `radians` measurement to its corresponding value in
+  degrees. Radians and degrees are two ways of measuring the same
+  thing. There are 360 degrees in a circle and `2*PI` radians in a
+  circle. For example, `90\u00B0 = PI/2 = 1.5707964`. All
+  trigonometric methods in Processing require their parameters to be
+  specified in radians."
   [radians]
   (* RAD-TO-DEG radians))
 
 ;; Day & hour
 
 (defn hour
+  "Returns the current hour as a value from 0 - 23."
   []
   (let* [#erl[hour _ _] (erlang/time)]
     hour))
 
 (defn minute
+  "Returns the current minute as a value from 0 - 59"
   []
   (let* [#erl[_ minute _] (erlang/time)]
     minute))
 
 (defn seconds
+  "Returns the current second as a value from 0 - 59."
   []
   (let* [#erl[_ _ seconds] (erlang/time)]
     seconds))
 
 (defn day
+  "Get the current day of the month (1 through 31)."
   []
   (let* [#erl[_ _ day] (erlang/date)]
     day))
 
 (defn month
+  "Returns the current month as a value from 1 - 12."
   []
   (let* [#erl[_ month _] (erlang/date)]
     month))
 
 (defn year
+  "Returns the current year as an integer (2003, 2004, 2005, etc)."
   []
   (let* [#erl[year _ _] (erlang/date)]
     year))
@@ -108,42 +168,72 @@
 ;; Numbers
 
 (defn abs
+  "Calculates the absolute value (magnitude) of a number. The
+  absolute value of a number is always positive. Dynamically casts to
+  an `int` or `float` appropriately for Clojure."
   [n]
   (erlang/abs n))
 
 (defn ceil
+  "Calculates the closest `int` value that is greater than or equal to
+  the value of the parameter. For example, `(ceil 9.03)` returns the
+  value 10."
   [n]
   (erlang/ceil n))
 
 (defn exp
+  "Returns Euler's number `e` (2.71828...) raised to the power of the
+  `val` parameter."
   [n]
   (math/exp n))
 
 (defn floor
+  "Calculates the closest `int` value that is less than or equal to the
+  value of the parameter. For example, `(floor 9.03)` returns the value 9."
   [n]
   (erlang/trunc n))
 
 (defn log
+  "Calculates the natural logarithm (the base-e logarithm) of a
+  number. This function expects the values greater than 0.0."
   [n]
   (math/log n))
 
 (defn pow
+  "Facilitates exponential expressions. The `pow` function is an
+  efficient way of multiplying numbers by themselves (or their
+  reciprocal) in large quantities. For example, `(pow 3 5)` is
+  equivalent to the expression `(* 3 3 3 3 3)` and `(pow 3 -5)` is
+  equivalent to `(/ 1 (* 3 3 3 3 3))`."
   [num exponent]
   (math/pow num exponent))
 
 (defn round
+  "Calculates the integer closest to the value parameter. For example,
+  `(round 9.2)` returns the value 9."
   [n]
   (erlang/round n))
 
 (defn sq
+  "Squares a number (multiplies a number by itself). The result is
+  always a positive number, as multiplying two negative numbers always
+  yields a positive result. For example, -1 * -1 = 1."
   [n]
   (* n n))
 
 (defn sqrt
+  "Calculates the square root of a number. The square root of a number
+  is always positive, even though there may be a valid negative
+  root. The square root s of number a is such that (= a (* s s)). It
+  is the opposite of squaring."
   [n]
   (math/sqrt n))
 
 (defn map-range
+  "Re-maps a number from one range to another.
+
+  Numbers outside the range are not clamped to 0 and 1, because
+  out-of-range values are often intentional and useful."
   [val low1 high1 low2 high2]
   (+ low2
      (* (- high2 low2)
@@ -152,6 +242,16 @@
 ;; Color
 
 (defn color
+  "Creates an integer representation of a color. The parameters are
+  interpreted as RGB or HSB values depending on the current
+  `color-mode`. The default mode is RGB values from 0 to 255 and
+  therefore, the function call `(color 255 204 0)` will return a bright
+  yellow. Args are cast to floats.
+
+  * `r` - red or hue value
+  * `g` - green or saturation value
+  * `b` - blue or brightness value
+  * `a` - alpha value"
   ([gray]
    (color gray 255))
   ([gray alpha]
@@ -162,18 +262,26 @@
    #erl[r g b alpha]))
 
 (defn* red
+  "Extracts the red value from a color, scaled to match the current
+  `color-mode`."
   [#erl[red _ _ _]]
   red)
 
 (defn* green
+  "Extracts the green value from a color, scaled to match current
+  `color-mode`. This value is always returned as a `float` so be careful
+  not to assign it to an `int` value."
   [#erl[_ green _ _]]
   green)
 
 (defn* blue
+  "Extracts the blue value from a color, scaled to match current color-mode.
+  Returns a `float`."
   [#erl[_ _ blue _]]
   blue)
 
 (defn* alpha
+  "Extracts the alpha value from a color."
   [#erl[r g b alpha]]
   alpha)
 
@@ -188,6 +296,7 @@
     #erl[r g b min max delta]))
 
 (defn* hue
+  "Extracts the hue value from a color."
   [color]
   (let* [#erl[r g b min max delta] (hsb-helper color)]
     (if (zero? delta)
@@ -201,6 +310,7 @@
         (round hue)))))
 
 (defn* saturation
+  "Extracts the saturation value from a color."
   [color]
   (let* [#erl[r g b min max delta] (hsb-helper color)]
     (if (zero? delta)
@@ -210,6 +320,7 @@
             (abs (- (+ min max) 1)))))))
 
 (defn* brightness
+  "Extracts the brightness value from a color. Returns a `float`."
   [color]
   (let* [#erl[_ _ _ min max _] (hsb-helper color)]
     (/ (+ min max) 2)))
@@ -217,24 +328,52 @@
 ;; Image
 
 (defn background-image
+  "Specify an image to be used as the background for a sketch. Its
+  width and height must be the same size as the sketch window. Images
+  used as background will ignore the current `tint` setting."
   [img]
   (p/background-image *canvas* img 0 0))
 
 (defn create-image
+  "Creates a new datatype for storing images (`wxImage` for clj). This provides
+  a fresh buffer of pixels to play with. Set the size of the buffer with the
+  `width` and `height` parameters.
+
+  In clj the `format` parameter defines how the pixels are stored.
+  See the PImage reference for more information.
+  Possible formats: `:rgb`, `:argb`, `:alpha` (grayscale alpha channel)
+
+  Prefer using `create-image` over initialising new `wxImage` (or `Image`)
+  instances directly."
   [w h]
   (p/create-image *canvas* w h))
 
 ;; Stroke & fill
 
 (defn- save-current-stroke
+  "Save current stroke color vector in the internal state. It can be accessed
+  using the `current-stroke` function."
   [color]
   (u/swap-var! *sketch* assoc :current-stroke color))
 
 (defn current-stroke
+  "Return the current stroke color."
   []
   (:current-stroke *sketch*))
 
 (defmacro with-stroke
+  "Temporarily set the stroke color for the body of this macro.
+   The code outside of the `with-stroke` form will have the previous
+   stroke color set.
+
+   A stroke argument of nil disables the stroke.
+
+   Examples:
+   ```
+   (with-stroke 255 ...)
+   (with-stroke [10 80 98] ...)
+   (with-stroke nil ...)
+   ```"
   [stroke & body]
   `(let [stroke# ~stroke
          previous-stroke# (doodler.core/current-stroke)]
@@ -250,6 +389,11 @@
        return-val#)))
 
 (defn stroke
+  "Sets the color used to draw lines and borders around shapes. This
+  color is either specified in terms of the RGB or HSB color depending
+  on the current `color-mode` (the default color space is RGB, with
+  each value in the range from 0 to 255).
+  If nil is passed it removes any fill color; equivalent to `no-stroke`."
   ([gray]
    (stroke gray 255))
   ([gray alpha]
@@ -261,23 +405,44 @@
    (save-current-stroke (color r g b alpha))))
 
 (defn stroke-weight
+  "Sets the width of the stroke used for lines, points, and the border
+  around shapes. All widths are set in units of pixels. "
   [weight]
   (p/stroke-weight *canvas* weight))
 
 (defn stroke-cap
+  "Sets the style for rendering line endings. These ends are either
+  squared, extended, or rounded and specified with the corresponding
+  parameters `:square`, `:project`, and `:round`. The default cap is `:round`."
   [cap-mode]
   (p/stroke-cap *canvas* cap-mode))
 
 (defn stroke-join
+  "Sets the style of the joints which connect line
+  segments. These joints are either mitered, beveled, or rounded and
+  specified with the corresponding parameters `:miter`, `:bevel`, and
+  `:round`. The default joint is `:miter`.
+
+  This function is not available with the `:opengl` renderers."
   [join-mode]
   (p/stroke-join *canvas* join-mode))
 
 (defn no-stroke
+  "Disables drawing the stroke (outline). If both `no-stroke` and
+  `no-fill` are called, nothing will be drawn to the screen."
   []
   (p/no-stroke *canvas*)
   (save-current-stroke nil))
 
 (defn background
+  "Sets the color used for the background of the Processing
+  window. The default background is light gray. In the draw function,
+  the background color is used to clear the display window at the
+  beginning of each frame.
+
+  It is not possible to use transparency (alpha) in background colors
+  with the main drawing surface, however they will work properly with
+  `create-graphics`. Converts args to `floats`."
   ([gray]
    (background gray 255))
   ([gray alpha]
@@ -288,14 +453,28 @@
    (p/background *canvas* #erl[r g b alpha])))
 
 (defn- save-current-fill
+  "Save current fill color vector in the internal state. It can be accessed using `current-fill` function."
   [color]
   (u/swap-var! *sketch* assoc :current-fill color))
 
 (defn current-fill
+  "Return the current fill color."
   []
   (:current-fill *sketch*))
 
 (defmacro with-fill
+  "Temporarily set the fill color for the body of this macro.
+   The code outside of the `with-fill` form will have the previous
+   fill color set.
+
+   A fill argument of nil disables the fill.
+
+   Examples:
+   ```
+   (with-fill 255 ...)
+   (with-fill [10 80 98] ...)
+   (with-fill nil ...)
+   ```"
   [fill & body]
   `(let [fill# ~fill
          previous-fill# (doodler.core/current-fill)]
@@ -311,6 +490,10 @@
        return-val#)))
 
 (defn fill
+  "Sets the color used to fill shapes. For example, if you run `(fill 204 102 0)`,
+  all subsequent shapes will be filled with orange.  This function casts all
+  input as a `float`. If nil is passed it removes any fill color; equivalent to
+  calling `no-fill`."
   ([gray]
    (fill gray 255))
   ([gray alpha]
@@ -322,6 +505,8 @@
    (save-current-fill (color r g b alpha))))
 
 (defn no-fill
+  "Disables filling geometry. If both `no-stroke` and `no-fill` are called,
+  nothing will be drawn to the screen."
   []
   (p/no-fill *canvas*)
   (save-current-fill nil))
@@ -397,10 +582,25 @@
 ;; Transformations
 
 (defn push-matrix
+  "Pushes the current transformation matrix onto the matrix
+  stack. Understanding `push-matrix` and `pop-matrix` requires
+  understanding the concept of a matrix stack. The `push-matrix`
+  function saves the current coordinate system to the stack and
+  `pop-matrix` restores the prior coordinate system. `push-matrix` and
+  `pop-matrix` are used in conjunction with the other transformation
+  methods and may be embedded to control the scope of the
+  transformations."
   []
   (p/push-matrix *canvas*))
 
 (defn pop-matrix
+  "Pops the current transformation matrix off the matrix
+  stack. Understanding pushing and popping requires understanding the
+  concept of a matrix stack. The `push-matrix` function saves the current
+  coordinate system to the stack and `pop-matrix` restores the prior
+  coordinate system. `push-matrix` and `pop-matrix` are used in conjunction
+  with the other transformation methods and may be embedded to control
+  the scope of the transformations."
   []
   (p/pop-matrix *canvas*))
 
@@ -433,6 +633,8 @@
   (p/print-matrix *canvas*))
 
 (defmacro with-translation
+  "Performs body with translation, restores current transformation on
+  exit."
   [translation-vector & body]
   `(let [tr# ~translation-vector]
      (doodler.core/push-matrix)
@@ -443,11 +645,34 @@
          (doodler.core/pop-matrix)))))
 
 (defn translate
+  "Specifies an amount to displace objects within the display
+  window. The `tx` parameter specifies left/right translation, the `ty`
+  parameter specifies up/down translation, and the `tz` parameter
+  specifies translations toward/away from the screen.  Transformations
+  apply to everything that happens after and subsequent calls to the
+  function accumulates the effect. For example, calling `(translate 50
+  0)` and then `(translate 20, 0)` is the same as `(translate 70, 0)`. If
+  `translate` is called within draw, the transformation is reset when
+  the loop begins again. This function can be further controlled by
+  the `push-matrix` and `pop-matrix` functions."
   ([v] (apply translate v))
   ([tx ty] (p/translate *canvas* tx ty))
-  ([tx ty tz] (throw "Unsupported")))
+  ([tx ty tz] (p/translate *canvas* tx ty tz)))
 
 (defmacro with-rotation
+  "Performs body with rotation, restores current transformation on exit.
+  Accepts a vector `[angle]` or `[angle x y z]`.
+
+  When 4 arguments provides it produces a rotation of angle degrees
+  around the vector x y z. Check examples to better understand.
+  This rotation follows the right-hand rule, so if the vector x y z points
+  toward the user, the rotation will be counterclockwise.
+
+  Example:
+  ```
+    (with-rotation [angle]
+      (vertex 1 2))
+  ```"
   [rotation & body]
   `(let [tr# ~rotation]
      (doodler.core/push-matrix)
@@ -527,40 +752,97 @@
   (p/rotate *canvas* angle 0.0 0.0 1.0))
 
 (defn scale
-  [x-scale y-scale]
-  (p/scale *canvas* x-scale y-scale))
+  "Increases or decreases the size of a shape by expanding and
+  contracting vertices. Objects always scale from their relative
+  origin to the coordinate system. Scale values are specified as
+  decimal percentages. For example, the function call `(scale 2)`
+  increases the dimension of a shape by 200%. Transformations apply to
+  everything that happens after and subsequent calls to the function
+  multiply the effect. For example, calling `(scale 2)` and then
+  `(scale 1.5)` is the same as `(scale 3)`. If scale is called within
+  draw, the transformation is reset when the loop begins again. Using
+  this function with the `sz` parameter requires specifying `:opengl`
+  as the renderer. This function can be further controlled by
+  `push-matrix` and `pop-matrix`."
+  ([x-scale y-scale]
+   (p/scale *canvas* x-scale y-scale))
+  ([x-scale y-scale z-scale]
+   (p/scale *canvas* x-scale y-scale z-scale)))
 
 ;; Drawing
 
 (defn arc
+  "Draws an arc in the display window. Arcs are drawn along the outer
+  edge of an ellipse defined by the `x`, `y`, `width` and `height`
+  parameters. The origin or the arc's ellipse may be changed with the
+  `ellipse-mode` function. The `start` and `stop` parameters specify
+  the angles at which to draw the arc. The `mode` is either `:open`,
+  `:chord` or `:pie`."
   [x y w h start end]
   (p/arc *canvas* x y w h start end))
 
 (defn ellipse
+  "Draws an ellipse (oval) in the display window. An ellipse with an
+  equal `width` and `height` is a circle. The origin may be changed with
+  the `ellipse-mode` function."
   [x y w h]
   (p/ellipse *canvas* x y w h))
 
 (defn line
-  ([p1 p2]
-   (apply line (concat p1 p2)))
-  ([x1 y1 x2 y2]
-   (p/line *canvas* x1 y1 x2 y2)))
+  "Draws a line (a direct path between two points) to the screen. The
+  version of line with four parameters draws the line in 2D. To color
+  a line, use the `stroke` function. A line cannot be filled, therefore
+  the fill method will not affect the color of a line. 2D lines are
+  drawn with a width of one pixel by default, but this can be changed
+  with the `stroke-weight` function. The version with six parameters
+  allows the line to be placed anywhere within XYZ space."
+  ([p1 p2] (apply line (concat p1 p2)))
+  ([x1 y1 x2 y2] (p/line *canvas* x1 y1 x2 y2))
+  ([x1 y1 z1 x2 y2 z2] (p/line *canvas* x1 y1 z1 x2 y2 z2)))
 
 (defn point
-  [x y]
-  (p/point *canvas* x y))
+  "Draws a point, a coordinate in space at the dimension of one
+  pixel.
+
+  Parameters:
+  * `x` - the horizontal value for the point
+  * `y` - the vertical value for the point
+  * `z` - the depth value (optional)
+
+  Drawing this shape in 3D using the `z` parameter requires the `:opengl`
+  renderer to be used."
+  ([x y] (p/point *canvas* x y))
+  ([x y z] (p/point *canvas* x y z)))
 
 (defn quad
+  "A quad is a quadrilateral, a four sided polygon. It is similar to a
+  rectangle, but the angles between its edges are not constrained to
+  be ninety degrees. The first pair of parameters `(x1,y1)` sets the
+  first vertex and the subsequent pairs should proceed clockwise or
+  counter-clockwise around the defined shape."
   [x1 y1 x2 y2 x3 y3 x4 y4]
   (p/quad *canvas* x1 y1 x2 y2 x3 y3 x4 y4))
 
 (defn rect
+  "Draws a rectangle to the screen. A rectangle is a four-sided shape
+  with every angle at ninety degrees. By default, the first two
+  parameters set the location of the upper-left corner, the third
+  sets the width, and the fourth sets the height. These parameters
+  may be changed with `rect-mode`.
+
+  To draw a rounded rectangle, add a fifth parameter, which is used as
+  the radius value for all four corners. To use a different radius value
+  for each corner, include eight parameters."
   ([x y w h]
    (p/rect *canvas* x y w h))
   ([x y w h r]
    (p/rect *canvas* x y w h r)))
 
 (defn triangle
+  "A triangle is a plane created by connecting three points. The first
+  two arguments specify the first point, the middle two arguments
+  specify the second point, and the last two arguments specify the
+  third point."
   [x1 y1 x2 y2 x3 y3]
   (p/triangle *canvas* x1 y1 x2 y2 x3 y3))
 
@@ -576,20 +858,42 @@
 ;; Text
 
 (defn text
+  "Draws text to the screen in the position specified by the `x` and `y`
+  parameters (and the optional `z` parameter in `:opengl`). A default font
+  will be used unless a font is set with the `text-font`
+  function. Change the color of the text with the `fill`
+  function. The text displays in relation to the
+  `text-align` function, which gives the option to draw to the left,
+  right, and center of the coordinates.
+
+  The `x1`, `y1`, `x2` and `y2` parameters define a rectangular area
+  to display within and may only be used with string data. For text
+  drawn inside a rectangle, the coordinates are interpreted based on
+  the current `rect-mode` setting."
   [s x y]
   (p/text *canvas* s x y))
 
 ;; Dimension
 
 (defn width
+  "Width of the display window. The value of width is zero until size is
+  called."
   []
   (p/width *canvas*))
 
 (defn height
+  "Height of the display window. The value of height is zero until
+  size is called."
   []
   (p/height *canvas*))
 
 (defn frame-rate
+  "Specifies a new target framerate (number of frames to be displayed every
+  second). If the processor is not fast enough to maintain the
+  specified rate, it will not be achieved. For example, the function
+  call `(frame-rate 30)` will attempt to refresh 30 times a second. It
+  is recommended to set the frame rate within setup. The default rate
+  is 60 frames per second."
   [new-rate]
   (let [frame-period (u/frame-period new-rate)]
     (set! *sketch*
@@ -600,30 +904,57 @@
                  :current-frame-rate new-rate))))
 
 (defn frame-count
+  "The system variable frameCount contains the number of frames
+  displayed since the program started. Inside setup() the value is 0
+  and after the first iteration of draw it is 1, etc."
   []
   (*sketch* :frame-count))
 
 (defn target-frame-rate
+  "Returns the target framerate specified with the function `frame-rate`"
   []
   (*sketch* :frame-rate))
 
 (defn current-frame-rate
+  "Returns the current framerate"
   []
   (*sketch* :current-frame-rate))
 
 (defn millis
+  "Returns the number of milliseconds (thousandths of a second) since
+  starting the sketch. This information is often used for timing
+  animation sequences."
   []
   (- (u/time-mark) (*sketch* :epoch)))
 
 (defn no-loop
+  "Stops Processing from continuously executing the code within
+  `draw`. If `start-loop` is called, the code in `draw` will begin to run
+  continuously again. If using `no-loop` in setup, it should be the last
+  line inside the block.
+
+  When `no-loop` is used, it's not possible to manipulate or access the
+  screen inside event handling functions such as `mouse-pressed?` or
+  `key-pressed?`. Instead, use those functions to call `redraw` or
+  loop which will run `draw`, which can update the screen
+  properly. This means that when `no-loop` has been called, no drawing
+  can happen, and functions like `save-frame` may not be used.
+
+  Note that if the sketch is resized, `redraw` will be called to
+  update the sketch, even after `no-loop` has been
+  specified. Otherwise, the sketch would enter an odd state until
+  loop was called."
   []
   (u/swap-var! *sketch* assoc :looping? false))
 
 (defn looping?
+  "Returns whether the sketch is looping."
   []
   (*sketch* :looping?))
 
 (defn start-loop
+  "Causes Processing to continuously execute the code within
+  draw. If `no-loop` is called, the code in draw stops executing."
   []
   (u/swap-var! *sketch* assoc :looping? true)
   (u/send-message (:pid *sketch*) :refresh))
@@ -631,16 +962,91 @@
 ;; Utils
 
 (defn random
+  "Generates random numbers. Each time the random function is called,
+  it returns an unexpected value within the specified range. If one
+  parameter is passed to the function it will return a `float` between
+  zero and the value of the high parameter. The function call `(random
+  5)` returns values between 0 and 5 (starting at zero, up to but not
+  including 5). If two parameters are passed, it will return a `float`
+  with a value between the parameters. The function call
+  `(random -5 10.2)` returns values starting at -5 up to (but not
+  including) 10.2."
   ([max]
    (dec (rand/uniform max)))
   ([min max]
    (+ min (dec (rand/uniform max)))))
 
 (defn exit
+  "Quits/stops/exits the program. Rather than terminating
+  immediately, `exit` will cause the sketch to exit after `draw` has
+  completed (or after `setup` completes if called during the `setup`
+  method). "
   []
   (erlang/halt 0))
 
 (defmacro defsketch
+  "Define and start a sketch and bind it to a var with the symbol
+  `app-name`. If any of the options to the various callbacks are
+  symbols, it wraps them in a call to var to ensure they aren't
+  inlined and that redefinitions to the original functions are reflected in
+  the visualisation.
+
+  * `:size`           - A vector of width and height for the sketch or
+                        `:fullscreen`. Defaults to `[500 300]`. If you're using
+                        `:fullscreen` you may  want to enable present mode using
+                        `:features [:present]`.
+  * `:renderer`       - Specifies the renderer type. One of `:panel`,
+                        `:opengl`). Defaults to `:panel`.
+  * `:title`          - A string which will be displayed at the top of
+                        the sketch window.
+  * `:features`       - A vector of keywords customizing sketch behaviour.
+                        Supported features:
+    - `:keep-on-top`   - Sketch window will always be above other windows.
+                         Note: some platforms might not support always-on-top
+                         windows. Not supported in clojurescript.
+    - `:exit-on-close` - Shutdown JVM  when sketch is closed.
+    - `:resizable`     - Makes sketch resizable.
+    - `:no-safe-fns`   - Do not catch and print exceptions thrown inside
+                         functions provided to sketch (like draw,
+                         [[mouse-pressed?]], [[key-pressed?]] and others). By
+                         default all exceptions thrown inside these functions
+                         are caught. This prevents the sketch from breaking when
+                         a bad function is provided and allows you to fix it and
+                         reload it on the fly. You can disable this behaviour by
+                         enabling the `:no-safe-fns` feature.
+  * `:bgcolor`        - Sets background color for unused space in present mode.
+                        Color is specified in hex format for example
+                        `:bgcolor \"#00FFFF\"` (cyan background)
+  * `:setup`          - A function to be called once when setting the sketch up.
+  * `:draw`           - A function to be repeatedly called at most n times per
+                        second where n is the target [[frame-rate]] set for
+                        the visualisation.
+  * `:focus-gained`   - Called when the sketch gains focus.
+  * `:focus-lost`     - Called when the sketch loses focus.
+  * `:mouse-entered`  - Called when the mouse enters the sketch window.
+  * `:mouse-exited`   - Called when the mouse leaves the sketch window
+  * `:mouse-pressed`  - Called every time a mouse button is pressed.
+  * `:mouse-released` - Called every time a mouse button is released.
+  * `:mouse-clicked`  - Called once after a mouse button has been pressed
+                        and then released.
+  * `:mouse-moved`    - Called every time the mouse moves and a button is
+                        not pressed.
+  * `:mouse-dragged`  - Called every time the mouse moves and a button is
+                        pressed.
+  * `:mouse-wheel`    - Called every time mouse wheel is rotated.
+                        Takes 1 argument - wheel rotation, an `int`.
+                        Negative values if the mouse wheel was rotated
+                        up/away from the user, and positive values
+                        if the mouse wheel was rotated down/towards the user.
+  * `:key-pressed`    - Called every time any key is pressed.
+  * `:key-released`   - Called every time any key is released.
+  * `:key-typed`      - Called once every time non-modifier keys are
+                        pressed.
+  * `:on-close`       - Called once, when sketch is closed.
+  * `:middleware`     - Vector of middleware to be applied to the sketch.
+                        Middleware will be applied in the same order as in
+                        `comp` function: `[f g]` will be applied as
+                        `(f (g options))`."
   [name & opts]
   (let [opts (apply hash-map opts)]
     `(defn ~name [& opts#]

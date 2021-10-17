@@ -42,8 +42,12 @@
       (wxGraphicsContext/drawPath @gc path)))
   (line [this x1 y1 x2 y2]
     (wxGraphicsContext/strokeLine @gc x1 y1 x2 y2))
+  (line [this x1 y1 z1 x2 y2 z2]
+    (throw (ex-info "Not supported" {:op :line :args [x1 y1 z1 x2 y2 z2]})))
   (point [this x y]
     (wxGraphicsContext/drawRectangle @gc x y 1 1))
+  (point [this x y z]
+    (throw (ex-info "Not supported" {:op :point :args [x y z]})))
   (quad [this x1 y1 x2 y2 x3 y3 x4 y4]
     (wxGraphicsContext/drawLines @gc
                                  #erl(#erl[x1 y1]
