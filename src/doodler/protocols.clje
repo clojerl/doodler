@@ -54,7 +54,7 @@
            n30 n31 n32 n33]])
   (reset-matrix [this])
   (print-matrix [this])
-  (rotate [this angle] [this angle x y z])
+  (rotate [this angle] [this angle vx vy vz])
   (scale [this x-scale y-scale] [this x-scale y-scale z-scale])
   (translate [this x y] [this x y z]))
 

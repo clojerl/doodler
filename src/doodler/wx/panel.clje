@@ -142,6 +142,9 @@
       (println "Matrix:" :a a :b b :c c :d d :tx tx :ty ty)))
   (rotate [this angle]
     (wxGraphicsContext/rotate @gc angle))
+  (rotate [this angle vx vy vz]
+    (throw (ex-info "Not supported"
+                    {:op :rotate :args [angle vx vy vz]})))
   (scale [this x-scale y-scale]
     (wxGraphicsContext/scale @gc x-scale y-scale))
   (scale [this x-scale y-scale z-scale]
