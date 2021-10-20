@@ -14,6 +14,7 @@
         , point/2
         , point/3
         , quad/8
+        , quad/12
         , rect/4
         , triangle/6
         ]).
@@ -181,7 +182,7 @@ point(X, Y, Z) ->
   setup_color(?STROKE_COLOR) andalso
     begin
       gl:'begin'(?GL_POINTS),
-      gl:vertex2f(X, Y, Z),
+      gl:vertex3f(X, Y, Z),
       gl:'end'()
     end.
 
@@ -228,6 +229,32 @@ quad(X1, Y1, X2, Y2, X3, Y3, X4, Y4) ->
       gl:vertex2f(X2, Y2),
       gl:vertex2f(X3, Y3),
       gl:vertex2f(X4, Y4),
+      gl:'end'()
+    end.
+
+-spec quad( float(), float(), float()
+          , float(), float(), float()
+          , float(), float(), float()
+          , float(), float(), float()
+          ) -> ok.
+quad(X1, Y1, Z1, X2, Y2, Z2, X3, Y3, Z3, X4, Y4, Z4) ->
+  setup_color(?STROKE_COLOR) andalso
+    begin
+      gl:'begin'(?GL_LINE_LOOP),
+      gl:vertex3f(X1, Y1, Z1),
+      gl:vertex3f(X2, Y2, Z2),
+      gl:vertex3f(X3, Y3, Z3),
+      gl:vertex3f(X4, Y4, Z4),
+      gl:'end'()
+    end,
+
+  setup_color(?FILL_COLOR) andalso
+    begin
+      gl:'begin'(?GL_QUADS),
+      gl:vertex3f(X1, Y1, Z1),
+      gl:vertex3f(X2, Y2, Z2),
+      gl:vertex3f(X3, Y3, Z3),
+      gl:vertex3f(X4, Y4, Z4),
       gl:'end'()
     end.
 
@@ -402,8 +429,9 @@ setup_gl(Canvas, Context, BgColor) ->
   %% showing up (i.e. in the mandelbrot example).
   gl:enable(?GL_MULTISAMPLE),
 
-  %% Until 3D is included, disable this
-  gl:disable(?GL_DEPTH_TEST),
+  %% Support drawing 3D surfaces
+  gl:enable(?GL_DEPTH_TEST),
+  gl:depthFunc(?GL_LESS),
 
   %% Enable alpha blending, otherwise alpha component is ignored
   gl:enable(?GL_BLEND),

@@ -855,6 +855,13 @@
   [x1 y1 cx1 cy1 cx2 cy2 x2 y2]
   (p/bezier *canvas* x1 y1 cx1 cy1 cx2 cy2 x2 y2))
 
+;; Drawing 3D
+
+(defn box
+  "Creates an extruded rectangle."
+  ([size] (p/box *canvas* size))
+  ([width height depth] (p/box *canvas* width height depth)))
+
 ;; Text
 
 (defn text

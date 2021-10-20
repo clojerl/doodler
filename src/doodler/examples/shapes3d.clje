@@ -1,0 +1,23 @@
+(ns doodler.examples.shapes3d
+  (:require [doodler.core :as d]))
+
+(defn setup
+  []
+  (d/frame-rate 10))
+
+(defn draw []
+  ;; (d/background 200)
+  (d/stroke 255 0 0)
+  (d/fill 0 0 255)
+  (d/with-translation [250 250 0]
+    (d/with-rotation [d/HALF-PI 1.0 1.0 1.0]
+      (d/box 50.0))))
+
+(d/defsketch sketch
+  :title "3D Shapes"
+  :size [500 500]
+  :setup setup
+  :draw draw
+  :features [:resizable :keep-on-top]
+  :bgcolor [200]
+  :renderer :opengl)
