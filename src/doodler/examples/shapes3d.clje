@@ -3,15 +3,17 @@
 
 (defn setup
   []
-  (d/frame-rate 10))
+  (d/frame-rate 60))
 
 (defn draw []
-  ;; (d/background 200)
-  (d/stroke 255 0 0)
-  (d/fill 0 0 255)
+  (d/background 200)
+  ;; (d/no-stroke)
+  (d/stroke 0 0 0)
+  (d/fill 0 0 255 100)
   (d/with-translation [250 250 0]
-    (d/with-rotation [d/HALF-PI 1.0 1.0 1.0]
-      (d/box 50.0))))
+    (d/with-rotation [(/ (d/frame-count) 100) 1.0 1.0 1.0]
+      (d/box 75.0)))
+  (d/rect 250 250 100 100))
 
 (d/defsketch sketch
   :title "3D Shapes"
