@@ -130,6 +130,8 @@
     (wxGLCanvas/setCurrent canvas context))
   (post-draw [this])
   (paint [this]
+    ;; Setting the context is necessary because the painting
+    ;; happens in a different process than the drawing.
     (wxGLCanvas/setCurrent canvas context)
     (wxGLCanvas/swapBuffers canvas))
   (refresh [this]
