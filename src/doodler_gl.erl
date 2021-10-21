@@ -348,7 +348,7 @@ background(Color) ->
   erlang:put(?BACKGROUND_COLOR, Color),
   {R, G, B, A} = colorf(Color),
   gl:clearColor(R, G, B, A),
-  gl:clear(?GL_COLOR_BUFFER_BIT).
+  gl:clear(?GL_COLOR_BUFFER_BIT bor ?GL_DEPTH_BUFFER_BIT).
 
 -spec fill(color()) -> ok.
 fill(Color) ->
