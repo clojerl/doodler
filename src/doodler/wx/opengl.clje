@@ -91,6 +91,8 @@
                        x1 y2 z2
                        x2 y2 z2
                        x2 y2 z1)))
+  (sphere [this radius slices stacks]
+    (doodler_gl/sphere (float radius) slices stacks))
 
   p/IText
   (text [this s x y]

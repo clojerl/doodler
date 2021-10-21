@@ -16,6 +16,7 @@
         , quad/8
         , quad/12
         , rect/4
+        , sphere/3
         , triangle/6
         ]).
 
@@ -279,6 +280,16 @@ rect(X, Y, W, H) ->
       gl:vertex2f(X, Y + H),
       gl:'end'()
     end.
+
+-spec sphere(float(), integer(), integer()) -> ok.
+sphere(Radius, Slices, Stacks) ->
+  setup_color(?FILL_COLOR) andalso
+    begin
+      Quad = glu:newQuadric(),
+      glu:sphere(Quad, Radius, Slices, Stacks),
+      glu:deleteQuadric(Quad)
+    end,
+  ok.
 
 -spec triangle(float(), float(), float(), float(), float(), float()) -> ok.
 triangle(X1, Y1, X2, Y2, X3, Y3) ->

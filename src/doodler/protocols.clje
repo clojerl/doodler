@@ -32,7 +32,7 @@
     [this radius-x radius-y radius-z detail-x]
     [this radius-x radius-y radius-z detail-x detail-y])
   (plane [this width height])
-  (sphere [this radius])
+  (sphere [this radius slices stacks])
   (torus
     [this radius tube-radius]
     [this radius tube-radius detail-x]
