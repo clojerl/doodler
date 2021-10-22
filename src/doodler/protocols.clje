@@ -20,23 +20,12 @@
 
 (defprotocol IPrimitives3D
   (box [this size] [this width height depth])
-  (cone
-    [this radius height]
-    [this radius height detail-x detail-y]
-    [this radius height detail-x detail-y cap])
-  (cylinder
-    [this radius height]
-    [this radius height detail-x detail-y bottom-cap top-cap])
-  (ellipsoid
-    [this radius-x radius-y radius-z]
-    [this radius-x radius-y radius-z detail-x]
-    [this radius-x radius-y radius-z detail-x detail-y])
+  (cone [this radius height detail-x detail-y cap])
+  (cylinder [this radius height detail-x detail-y bottom-cap top-cap])
+  (ellipsoid [this radius-x radius-y radius-z detail-x detail-y])
   (plane [this width height])
   (sphere [this radius slices stacks])
-  (torus
-    [this radius tube-radius]
-    [this radius tube-radius detail-x]
-    [this radius tube-radius detail-x detail-y]))
+  (torus [this radius tube-radius detail-x detail-y]))
 
 (defprotocol IText
   (text [this s x y]))

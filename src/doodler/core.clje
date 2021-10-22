@@ -781,6 +781,22 @@
   [x y w h start end]
   (p/arc *canvas* x y w h start end))
 
+(defn cone
+  "Draw a cone with given `radius` and `height`.
+
+   Optional parameters:
+     * `detail-x` - number of segments, the more segments the smoother geometry default is 24
+     * `detail-y` - number of segments, the more segments the smoother geometry default is 24
+     * `cap`      - whether to draw the base of the cone"
+  ([radius height]
+   (cone radius height 24))
+  ([radius height detail-x]
+   (cone radius height detail-x 24))
+  ([radius height detail-x detail-y]
+   (cone radius height detail-x detail-y true))
+  ([radius height detail-x detail-y cap]
+   (p/cone *canvas* radius height detail-x detail-y cap)))
+
 (defn ellipse
   "Draws an ellipse (oval) in the display window. An ellipse with an
   equal `width` and `height` is a circle. The origin may be changed with

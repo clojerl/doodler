@@ -91,6 +91,8 @@
                        x1 y2 z2
                        x2 y2 z2
                        x2 y2 z1)))
+  (cone [this radius height- detail-x detail-y cap]
+    (doodler_gl/cone (float radius) (float height-) detail-x detail-y cap))
   (sphere [this radius slices stacks]
     (doodler_gl/sphere (float radius) slices stacks))
 

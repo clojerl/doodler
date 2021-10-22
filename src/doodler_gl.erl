@@ -9,6 +9,7 @@
 
 -export([ arc/5
         , circle/3
+        , cone/5
         , line/4
         , line/6
         , point/2
@@ -37,6 +38,7 @@
 -export([current_matrix/0]).
 
 -include_lib("wx/include/gl.hrl").
+-include_lib("wx/include/glu.hrl").
 -include_lib("wx/include/wx.hrl").
 
 -define(WINDOW_TITLE_HEIGHT, 20).
@@ -169,6 +171,25 @@ circle(CX, CY, R, NumSegments) ->
       gl:'end'()
     end.
 
+-spec cone(float(), float(), integer(), integer(), boolean()) -> ok.
+cone(Radius, Height, DetailX, DetailY, Cap) ->
+  Quad = glu:newQuadric(),
+  setup_color(?STROKE_COLOR) andalso
+    begin
+      glu:quadricDrawStyle(Quad, ?GLU_SILHOUETTE),
+      glu:cylinder(Quad, Radius, 0.0, Height, DetailX, DetailY),
+      Cap andalso glu:disk(Quad, 0.0, Radius, 30, 1)
+    end,
+
+  setup_color(?FILL_COLOR) andalso
+    begin
+      glu:quadricDrawStyle(Quad, ?GLU_FILL),
+      glu:cylinder(Quad, Radius, 0.0, Height, DetailX, DetailY),
+      Cap andalso glu:disk(Quad, 0.0, Radius, 30, 1)
+    end,
+  glu:deleteQuadric(Quad),
+  ok.
+
 -spec point(float(), float()) -> ok.
 point(X, Y) ->
   setup_color(?STROKE_COLOR) andalso
@@ -283,12 +304,18 @@ rect(X, Y, W, H) ->
 
 -spec sphere(float(), integer(), integer()) -> ok.
 sphere(Radius, Slices, Stacks) ->
+  Quad = glu:newQuadric(),
+  setup_color(?STROKE_COLOR) andalso
+    begin
+      glu:quadricDrawStyle(Quad, ?GLU_SILHOUETTE),
+      glu:sphere(Quad, Radius, Slices, Stacks)
+    end,
   setup_color(?FILL_COLOR) andalso
     begin
-      Quad = glu:newQuadric(),
-      glu:sphere(Quad, Radius, Slices, Stacks),
-      glu:deleteQuadric(Quad)
+      glu:quadricDrawStyle(Quad, ?GLU_FILL),
+      glu:sphere(Quad, Radius, Slices, Stacks)
     end,
+  glu:deleteQuadric(Quad),
   ok.
 
 -spec triangle(float(), float(), float(), float(), float(), float()) -> ok.
