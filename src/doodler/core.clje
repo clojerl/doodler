@@ -781,22 +781,6 @@
   [x y w h start end]
   (p/arc *canvas* x y w h start end))
 
-(defn cone
-  "Draw a cone with given `radius` and `height`.
-
-   Optional parameters:
-     * `detail-x` - number of segments, the more segments the smoother geometry default is 24
-     * `detail-y` - number of segments, the more segments the smoother geometry default is 24
-     * `cap`      - whether to draw the base of the cone"
-  ([radius height]
-   (cone radius height 24))
-  ([radius height detail-x]
-   (cone radius height detail-x 24))
-  ([radius height detail-x detail-y]
-   (cone radius height detail-x detail-y true))
-  ([radius height detail-x detail-y cap]
-   (p/cone *canvas* radius height detail-x detail-y cap)))
-
 (defn ellipse
   "Draws an ellipse (oval) in the display window. An ellipse with an
   equal `width` and `height` is a circle. The origin may be changed with
@@ -854,28 +838,6 @@
   ([x y w h r]
    (p/rect *canvas* x y w h r)))
 
-(defn sphere
-  "Generates a hollow ball made from tessellated triangles."
-  [radius]
-  (let [[ures vres] (:sphere-detail *sketch* [30 30])]
-    (p/sphere *canvas* radius ures vres)))
-
-(defn sphere-detail
-  "Controls the detail used to render a sphere by adjusting the number
-  of vertices of the sphere mesh. The default resolution is 30, which
-  creates a fairly detailed sphere definition with vertices every
-  360/30 = 12 degrees. If you're going to render a great number of
-  spheres per frame, it is advised to reduce the level of detail using
-  this function. The setting stays active until `sphere-detail` is
-  called again with a new parameter and so should not be called prior
-  to every `sphere` statement, unless you wish to render spheres with
-  different settings, e.g. using less detail for smaller spheres or
-  ones further away from the camera. To control the detail of the
-  horizontal and vertical resolution independently, use the version of
-  the functions with two parameters."
-  ([res] (u/swap-var! *sketch* assoc :sphere-detail [res res]))
-  ([ures vres] (u/swap-var! *sketch* assoc :sphere-detail [ures vres])))
-
 (defn triangle
   "A triangle is a plane created by connecting three points. The first
   two arguments specify the first point, the middle two arguments
@@ -899,6 +861,44 @@
   "Creates an extruded rectangle."
   ([size] (p/box *canvas* size))
   ([width height depth] (p/box *canvas* width height depth)))
+
+(defn cone
+  "Draw a cone with given `radius` and `height`.
+
+   Optional parameters:
+     * `detail-x` - number of segments, the more segments the smoother geometry default is 24
+     * `detail-y` - number of segments, the more segments the smoother geometry default is 24
+     * `cap`      - whether to draw the base of the cone"
+  ([radius height]
+   (cone radius height 24))
+  ([radius height detail-x]
+   (cone radius height detail-x 24))
+  ([radius height detail-x detail-y]
+   (cone radius height detail-x detail-y true))
+  ([radius height detail-x detail-y cap]
+   (p/cone *canvas* radius height detail-x detail-y cap)))
+
+(defn sphere
+  "Generates a hollow ball made from tessellated triangles."
+  [radius]
+  (let [[ures vres] (:sphere-detail *sketch* [30 30])]
+    (p/sphere *canvas* radius ures vres)))
+
+(defn sphere-detail
+  "Controls the detail used to render a sphere by adjusting the number
+  of vertices of the sphere mesh. The default resolution is 30, which
+  creates a fairly detailed sphere definition with vertices every
+  360/30 = 12 degrees. If you're going to render a great number of
+  spheres per frame, it is advised to reduce the level of detail using
+  this function. The setting stays active until `sphere-detail` is
+  called again with a new parameter and so should not be called prior
+  to every `sphere` statement, unless you wish to render spheres with
+  different settings, e.g. using less detail for smaller spheres or
+  ones further away from the camera. To control the detail of the
+  horizontal and vertical resolution independently, use the version of
+  the functions with two parameters."
+  ([res] (u/swap-var! *sketch* assoc :sphere-detail [res res]))
+  ([ures vres] (u/swap-var! *sketch* assoc :sphere-detail [ures vres])))
 
 ;; Text
 
