@@ -8,6 +8,8 @@
 
 (def ^:dynamic *state* nil)
 
+;; State
+
 (defn state
   "Retrieve sketch-specific state by `key`. Must initially call
   `set-state!` to store state. If no parameter is passed the whole
@@ -40,6 +42,20 @@
   setup fn).  Subsequent calls have no effect."
   [f & args]
   (set! *state* (apply f *state* args)))
+
+;; Dimension
+
+(defn width
+  "Width of the display window. The value of width is zero until size is
+  called."
+  []
+  (p/width *canvas*))
+
+(defn height
+  "Height of the display window. The value of height is zero until
+  size is called."
+  []
+  (p/height *canvas*))
 
 ;; Trigonometry
 
@@ -900,6 +916,8 @@
   ([res] (u/swap-var! *sketch* assoc :sphere-detail [res res]))
   ([ures vres] (u/swap-var! *sketch* assoc :sphere-detail [ures vres])))
 
+(def TAN-PI-SIXTH (tan (/ PI 6)))
+
 (defn camera
   "Sets the position of the camera through setting the eye position,
   the center of the scene, and which axis is facing upward. Moving the
@@ -909,11 +927,11 @@
   position, pointing to the center of the display window with the Y
   axis as up. The default values are:
 
-  * `eyeX`    - `(/ (width) 2.0)`
-  * `eyeY`    - `(/ (height) 2.0)`
-  * `eyeZ`    - `(/ (/ (height) 2.0) (tan (/ (* Math/PI 60.0) 360.0)))`
-  * `centerX` - `(/ (width) 2.0)`
-  * `centerY` - `(/ (height) 2.0)`
+  * `eyeX`    - `0`
+  * `eyeY`    - `0`
+  * `eyeZ`    - `(/ (height) 2.0 (tan (/ Math/PI 6.0)))`
+  * `centerX` - `0`
+  * `centerY` - `0`
   * `centerZ` - `0`
   * `upX`     - `0`
   * `upY`     - `1`
@@ -922,16 +940,34 @@
   Similar to `gluLookAt()` in OpenGL, but it first clears the
   current camera settings."
   ([]
-   (camera (/ (width) 2.0)
-           (/ (height) 2.0)
-           (/ (/ (height) 2.0) (tan (/ (* PI 60.0) 360.0)))
-           (/ (width) 2.0) (/ (height) 2.0) 0
+   (camera 0 0 (/ (height) 2 TAN-PI-SIXTH)
+           0 0 0
            0 1 0))
   ([eyeX eyeY eyeZ centerX centerY centerZ upX upY upZ]
    (p/camera *canvas*
              eyeX eyeY eyeZ
              centerX centerY centerZ
              upX upY upZ)))
+
+(defn perspective
+  "Sets a perspective projection applying foreshortening, making
+  distant objects appear smaller than closer ones. The parameters
+  define a viewing volume with the shape of truncated pyramid. Objects
+  near to the front of the volume appear their actual size, while
+  farther objects appear smaller. This projection simulates the
+  perspective of the world more accurately than orthographic
+  projection. The version of perspective without parameters sets the
+  default perspective and the version with four parameters allows the
+  programmer to set the area precisely. The default values are:
+  `perspective(PI/3.0, width/height, cameraZ/10.0, cameraZ*10.0)` where
+  `cameraZ` is `((height/2.0) / tan(PI*60.0/360.0))`"
+  ([]
+   (let [w (width)
+         h (height)
+         camera-z (/ h 2 TAN-PI-SIXTH)]
+     (perspective THIRD-PI (/ w h)  (/ camera-z 10.0) (* camera-z 10.0))))
+  ([fovy aspect z-near z-far]
+   (p/perspective *canvas* fovy aspect z-near z-far)))
 
 ;; Text
 
@@ -950,20 +986,6 @@
   the current `rect-mode` setting."
   [s x y]
   (p/text *canvas* s x y))
-
-;; Dimension
-
-(defn width
-  "Width of the display window. The value of width is zero until size is
-  called."
-  []
-  (p/width *canvas*))
-
-(defn height
-  "Height of the display window. The value of height is zero until
-  size is called."
-  []
-  (p/height *canvas*))
 
 (defn frame-rate
   "Specifies a new target framerate (number of frames to be displayed every

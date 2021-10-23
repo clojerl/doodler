@@ -5,20 +5,35 @@
   []
   (d/frame-rate 60))
 
+(defn draw-axis []
+  ;; X (red)
+  (d/stroke 255 0 0)
+  (d/line 0 0 0 100 0 0)
+  ;; Y (green)
+  (d/stroke 0 255 0)
+  (d/line 0 0 0 0 100 0)
+  ;; Z (blue)
+  (d/stroke 0 0 255)
+  (d/line 0 0 0 0 0 100))
+
 (defn draw []
   (d/background 255)
 
-  (d/camera 100 200 200 0 0 0 0 0 -1)
+  (draw-axis)
 
   (d/stroke 0 0 0)
   (d/fill 100 100 255 150)
   (d/ellipse -50 -50 20 20)
 
   (d/with-translation [0 0 0]
-    (d/with-rotation [(/ (d/frame-count) 100) 1.0 1.0 1.0]
+    (d/with-rotation [(/ (d/frame-count) 50) 1.0 1.0 1.0]
       (d/fill 255 100 100 200)
       (d/sphere-detail 30)
-      (d/sphere 50.0)
+      (d/sphere (-> (d/frame-count)
+                    (/ 10)
+                    d/sin
+                    (* 5)
+                    (+ 40.0)))
       (d/fill 100 100 255 150)
       (d/box 75.0)))
 

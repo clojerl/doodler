@@ -61,6 +61,15 @@
     (glu/lookAt (float eyeX) (float eyeY) (float eyeZ)
                 (float centerX) (float centerY) (float centerZ)
                 (float upX) (float upY) (float upZ)))
+  (perspective [this fovy aspect z-near z-far]
+    (doodler_gl/matrix_mode :projection)
+    (gl/loadIdentity)
+    (glu/perspective (core/degrees (float fovy))
+                     (float aspect)
+                     (float z-near)
+                     (float z-far))
+    (doodler_gl/matrix_mode :modelview))
+
   (box [this size]
     (p/box this size size size))
   (box [this w h d]

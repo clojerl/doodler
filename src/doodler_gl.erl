@@ -433,14 +433,23 @@ resize(Canvas, Context, BgColor) ->
 
   gl:matrixMode(?GL_PROJECTION),
   gl:loadIdentity(),
-  %% The origin (0,0) is in the center and
-  %% the y coordinate increases downwards.
-  HalfWidth = Width / 2.0,
-  HalfHeight = Height / 2.0,
-  gl:ortho(- HalfWidth, HalfWidth, HalfHeight, - HalfHeight, -500.0, 500.0),
+
+  %% Use the same default values as Processing
+  TanSixthPI = 0.5773502691896256, %% math:tan(PI / 6)
+  CameraZ = (Height / 2.0) / TanSixthPI,
+  ZNear = CameraZ / 10.0,
+  ZFar = CameraZ * 10.0,
+  glu:perspective(60.0, Width / Height, ZNear, ZFar),
 
   gl:matrixMode(?GL_MODELVIEW),
   gl:loadIdentity(),
+  %% Use the same default values as p5js (JS Processing)
+  %% which make more sense than the ones from Processing
+  HalfHeight = Height / 2.0,
+  glu:lookAt( 0.0, 0.0, HalfHeight / TanSixthPI
+            , 0.0, 0.0, 0.0
+            , 0.0, 1.0, 0.0
+            ),
 
   %% Background color
   background(BgColor),
