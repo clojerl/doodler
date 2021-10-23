@@ -427,7 +427,11 @@ resize(Canvas, Context, BgColor) ->
 
   gl:matrixMode(?GL_PROJECTION),
   gl:loadIdentity(),
-  glu:ortho2D(0.0, 1.0 * Width, 1.0 * Height, 0.0),
+  %% The origin (0,0) is in the center and
+  %% the y coordinate increases downwards.
+  HalfWidth = Width / 2.0,
+  HalfHeight = Height / 2.0,
+  gl:ortho(- HalfWidth, HalfWidth, HalfHeight, - HalfHeight, -500.0, 500.0),
 
   gl:matrixMode(?GL_MODELVIEW),
   gl:loadIdentity(),
