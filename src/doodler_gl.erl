@@ -89,11 +89,13 @@ canvas(Frame, BgColor) ->
 -spec info() -> binary().
 info() ->
   io_lib:format( "Renderer: ~s~n"
-                 "Version: ~s~n"
+                 "GL Version: ~s~n"
+                 "GLU Version: ~s~n"
                  "Alpha test: ~p~n"
                  "Point size: ~p~n"
                , [ renderer()
                  , version()
+                 , glu:getString(?GLU_VERSION)
                  , gl:isEnabled(?GL_ALPHA_TEST)
                  , gl:getIntegerv(?GL_PROGRAM_POINT_SIZE)
                  ]).
