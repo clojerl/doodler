@@ -55,6 +55,12 @@
                          (float x3) (float y3)))
 
   p/IPrimitives3D
+  (camera [this eyeX eyeY eyeZ centerX centerY centerZ upX upY upZ]
+    (doodler_gl/matrix_mode :modelview)
+    (gl/loadIdentity)
+    (glu/lookAt (float eyeX) (float eyeY) (float eyeZ)
+                (float centerX) (float centerY) (float centerZ)
+                (float upX) (float upY) (float upZ)))
   (box [this size]
     (p/box this size size size))
   (box [this w h d]

@@ -35,7 +35,11 @@
 
 -export([resize/2]).
 
--export([current_matrix/0]).
+-export([ current_matrix/0
+        , current_matrix/1
+        , matrix_mode/0
+        , matrix_mode/1
+        ]).
 
 -include_lib("wx/include/gl.hrl").
 -include_lib("wx/include/glu.hrl").
@@ -441,9 +445,27 @@ resize(Canvas, Context, BgColor) ->
 
   {Width, Height}.
 
+-type matrix_mode() :: modelview | projection.
+
 -spec current_matrix() -> [float()].
 current_matrix() ->
-  gl:getFloatv(?GL_MODELVIEW_MATRIX).
+  current_matrix(modelview).
+
+-spec current_matrix(matrix_mode()) -> [float()].
+current_matrix(modelview) ->
+  gl:getFloatv(?GL_MODELVIEW_MATRIX);
+current_matrix(projection) ->
+  gl:getFloatv(?GL_PROJECTION_MATRIX).
+
+-spec matrix_mode() -> ok.
+matrix_mode() ->
+  matrix_mode(modelview).
+
+-spec matrix_mode(matrix_mode()) -> ok.
+matrix_mode(modelview) ->
+  gl:matrixMode(?GL_MODELVIEW);
+matrix_mode(projection) ->
+  gl:matrixMode(?GL_PROJECTION).
 
 %%==============================================================================
 %% Internal functions

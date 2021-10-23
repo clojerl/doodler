@@ -7,6 +7,9 @@
 
 (defn draw []
   (d/background 255)
+
+  (d/camera 100 200 200 0 0 0 0 0 -1)
+
   (d/stroke 0 0 0)
   (d/fill 100 100 255 150)
   (d/ellipse -50 -50 20 20)

@@ -900,6 +900,39 @@
   ([res] (u/swap-var! *sketch* assoc :sphere-detail [res res]))
   ([ures vres] (u/swap-var! *sketch* assoc :sphere-detail [ures vres])))
 
+(defn camera
+  "Sets the position of the camera through setting the eye position,
+  the center of the scene, and which axis is facing upward. Moving the
+  eye position and the direction it is pointing (the center of the
+  scene) allows the images to be seen from different angles. The
+  version without any parameters sets the camera to the default
+  position, pointing to the center of the display window with the Y
+  axis as up. The default values are:
+
+  * `eyeX`    - `(/ (width) 2.0)`
+  * `eyeY`    - `(/ (height) 2.0)`
+  * `eyeZ`    - `(/ (/ (height) 2.0) (tan (/ (* Math/PI 60.0) 360.0)))`
+  * `centerX` - `(/ (width) 2.0)`
+  * `centerY` - `(/ (height) 2.0)`
+  * `centerZ` - `0`
+  * `upX`     - `0`
+  * `upY`     - `1`
+  * `upZ`     - `0`
+
+  Similar to `gluLookAt()` in OpenGL, but it first clears the
+  current camera settings."
+  ([]
+   (camera (/ (width) 2.0)
+           (/ (height) 2.0)
+           (/ (/ (height) 2.0) (tan (/ (* PI 60.0) 360.0)))
+           (/ (width) 2.0) (/ (height) 2.0) 0
+           0 1 0))
+  ([eyeX eyeY eyeZ centerX centerY centerZ upX upY upZ]
+   (p/camera *canvas*
+             eyeX eyeY eyeZ
+             centerX centerY centerZ
+             upX upY upZ)))
+
 ;; Text
 
 (defn text
