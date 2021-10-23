@@ -6,20 +6,26 @@
   (d/frame-rate 60))
 
 (defn draw-axis []
-  ;; X (red)
-  (d/stroke 255 0 0)
-  (d/line 0 0 0 100 0 0)
-  ;; Y (green)
-  (d/stroke 0 255 0)
-  (d/line 0 0 0 0 100 0)
-  ;; Z (blue)
-  (d/stroke 0 0 255)
-  (d/line 0 0 0 0 0 100))
+  (d/with-translation [-100 -100 0]
+    ;; X (red)
+    (d/stroke 255 0 0)
+    (d/line 0 0 0 100 0 0)
+    ;; Y (green)
+    (d/stroke 0 255 0)
+    (d/line 0 0 0 0 100 0)
+    ;; Z (blue)
+    (d/stroke 0 0 255)
+    (d/line 0 0 0 0 0 100)))
 
 (defn draw []
   (d/background 255)
 
   (draw-axis)
+
+  ;; Choose one or the other to
+  ;; see what is the effect
+  ;; (d/ortho)
+  ;; (d/perspective)
 
   (d/stroke 0 0 0)
   (d/fill 100 100 255 150)
@@ -41,7 +47,7 @@
     (d/with-rotation [(/ (d/frame-count) 100) 1.0 1.0 0.0]
       (d/cone 20 50)))
 
-  (d/with-translation [100 0 0]
+  (d/with-translation [100 0 100]
     (d/with-rotation [(/ (d/frame-count) 100) 1.0 1.0 0.0]
       (d/fill 150 255 150)
       (d/sphere-detail 15)
