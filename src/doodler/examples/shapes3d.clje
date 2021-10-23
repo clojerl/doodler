@@ -13,10 +13,11 @@
 
   (d/with-translation [0 0 0]
     (d/with-rotation [(/ (d/frame-count) 100) 1.0 1.0 1.0]
-      (d/box 75.0)
       (d/fill 255 100 100 200)
       (d/sphere-detail 30)
-      (d/sphere 50.0)))
+      (d/sphere 50.0)
+      (d/fill 100 100 255 150)
+      (d/box 75.0)))
 
   (d/with-translation [100 100 0]
     (d/with-rotation [(/ (d/frame-count) 100) 1.0 1.0 0.0]
