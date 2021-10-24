@@ -17,21 +17,19 @@
   (d/rect 10 85 20 20 5)
   (d/line 10 130 80 140)
   (d/arc 10 55 50 50 (- d/QUARTER-PI) 0.0)
-  (when-not (= :opengl (:renderer d/*sketch*))
-    (d/bezier 50 250
-              (rand-int (d/width)) (rand-int (d/height))
-              (rand-int (d/width)) (rand-int (d/height))
-              250 250))
+  (d/bezier 50 250
+            (rand-int (d/width)) (rand-int (d/height))
+            (rand-int (d/width)) (rand-int (d/height))
+            250 250)
 
   (d/begin-shape)
   (dotimes [_ 5]
     (d/vertex (rand-int (d/width)) (rand-int (d/height)))
-    (when-not (= :opengl (:renderer d/*sketch*))
-      (d/bezier-vertex (rand-int (d/width)) (rand-int (d/height))
-                       (rand-int (d/width)) (rand-int (d/height))
-                       (rand-int (d/width)) (rand-int (d/height)))
-      (d/quadratic-vertex (rand-int (d/width)) (rand-int (d/height))
-                          (rand-int (d/width)) (rand-int (d/height)))))
+    (d/bezier-vertex (rand-int (d/width)) (rand-int (d/height))
+                     (rand-int (d/width)) (rand-int (d/height))
+                     (rand-int (d/width)) (rand-int (d/height)))
+    (d/quadratic-vertex (rand-int (d/width)) (rand-int (d/height))
+                        (rand-int (d/width)) (rand-int (d/height))))
   (d/end-shape)
 
   (d/text (str "Fill: " (d/current-fill)) 100 10)
