@@ -506,9 +506,22 @@ resize(Canvas, Context, BgColor) ->
 
 -type matrix_mode() :: modelview | projection.
 
+-spec matrix_mode() -> matrix_mode().
+matrix_mode() ->
+  case gl:getIntegerv(?GL_MATRIX_MODE) of
+    [?GL_MODELVIEW  | _] -> modelview;
+    [?GL_PROJECTION | _] -> projection
+  end.
+
+-spec matrix_mode(matrix_mode()) -> ok.
+matrix_mode(modelview) ->
+  gl:matrixMode(?GL_MODELVIEW);
+matrix_mode(projection) ->
+  gl:matrixMode(?GL_PROJECTION).
+
 -spec current_matrix() -> [float()].
 current_matrix() ->
-  current_matrix(modelview).
+  current_matrix(matrix_mode()).
 
 -spec current_matrix(matrix_mode()) -> [float()].
 current_matrix(modelview) ->
@@ -516,15 +529,6 @@ current_matrix(modelview) ->
 current_matrix(projection) ->
   gl:getFloatv(?GL_PROJECTION_MATRIX).
 
--spec matrix_mode() -> ok.
-matrix_mode() ->
-  matrix_mode(modelview).
-
--spec matrix_mode(matrix_mode()) -> ok.
-matrix_mode(modelview) ->
-  gl:matrixMode(?GL_MODELVIEW);
-matrix_mode(projection) ->
-  gl:matrixMode(?GL_PROJECTION).
 
 %%==============================================================================
 %% Internal functions
