@@ -255,6 +255,11 @@
      (* (- high2 low2)
         (/ (- val low1) (- high1 low1)))))
 
+(defn norm
+  "Normalize a value to exist between 0 and 1 (inclusive)."
+  [val start stop]
+  (/ (- val start) (- stop start)))
+
 ;; Color
 
 (defn color
