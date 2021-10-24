@@ -30,6 +30,7 @@
   (d/stroke 0 0 0)
   (d/fill 100 100 255 150)
   (d/ellipse -50 -50 20 20)
+  (d/arc -50 50 20 20 0 d/HALF-PI)
 
   (d/with-translation [0 0 0]
     (d/with-rotation [(/ (d/frame-count) 50) 1.0 1.0 1.0]

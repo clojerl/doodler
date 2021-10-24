@@ -103,79 +103,127 @@ info() ->
 %% Shapes
 
 -spec arc(float(), float(), float(), float(), float()) -> ok.
-arc(CX, CY, R, StartAngle, ArcAngle) ->
-  NumSegments = 30 * math:sqrt(R),
+arc(CX, CY, Radius, StartAngle, ArcAngle) ->
+  %% Push the current matrix mode
+  gl:pushAttrib(?GL_TRANSFORM_BIT),
+  gl:matrixMode(?GL_MODELVIEW),
+  gl:pushMatrix(),
+  try
+    Quad = glu:newQuadric(),
+    gl:translatef(CX, CY, 0.0),
+    %% We need to specify a smaller inner radius so that
+    %% something is drawn of the disk.
+    %% TODO: the stroke weight should be used.
+    setup_color(?STROKE_COLOR) andalso
+      glu:partialDisk(Quad, Radius - 1.0, Radius, 30, 1, StartAngle, ArcAngle),
+    setup_color(?FILL_COLOR) andalso
+      glu:partialDisk(Quad, 0.0, Radius, 30, 1, StartAngle, ArcAngle),
+    glu:deleteQuadric(Quad)
+  after
+    gl:popMatrix(),
+    %% Pop the previous matrix mode
+    gl:popAttrib()
+  end,
+  ok.
 
-  Theta = ArcAngle / (NumSegments - 1),
+%% -spec arc(float(), float(), float(), float(), float()) -> ok.
+%% arc(CX, CY, R, StartAngle, ArcAngle) ->
+%%   NumSegments = 30 * math:sqrt(R),
 
-  TanFactor = math:tan(Theta),
-  RadialFactor = math:cos(Theta),
+%%   Theta = ArcAngle / (NumSegments - 1),
 
-  X = R * math:cos(StartAngle),
-  Y = R * math:sin(StartAngle),
+%%   TanFactor = math:tan(Theta),
+%%   RadialFactor = math:cos(Theta),
 
-  Fun = fun(_, {X0, Y0}) ->
-            gl:vertex2f(X0 + CX, Y0 + CY), %% output vertex
-            TX = -Y0,
-            TY = X0,
+%%   X = R * math:cos(StartAngle),
+%%   Y = R * math:sin(StartAngle),
 
-            X1 = X0 + TX * TanFactor,
-            Y1 = Y0 + TY * TanFactor,
+%%   Fun = fun(_, {X0, Y0}) ->
+%%             gl:vertex2f(X0 + CX, Y0 + CY), %% output vertex
+%%             TX = -Y0,
+%%             TY = X0,
 
-            X2 = X1 * RadialFactor,
-            Y2 = Y1 * RadialFactor,
+%%             X1 = X0 + TX * TanFactor,
+%%             Y1 = Y0 + TY * TanFactor,
 
-            {X2, Y2}
-        end,
+%%             X2 = X1 * RadialFactor,
+%%             Y2 = Y1 * RadialFactor,
 
-  gl:'begin'(?GL_LINE_STRIP),
-  lists:foldl(Fun, {X, Y}, lists:seq(0, erlang:trunc(NumSegments))),
-  gl:'end'().
+%%             {X2, Y2}
+%%         end,
+
+%%   gl:'begin'(?GL_LINE_STRIP),
+%%   lists:foldl(Fun, {X, Y}, lists:seq(0, erlang:trunc(NumSegments))),
+%%   gl:'end'().
 
 -spec circle(float(), float(), float()) -> ok.
-circle(CX, CY, R) ->
-  NumSegments = 30 * math:sqrt(R),
-  circle(CX, CY, R, NumSegments).
+circle(CX, CY, Radius) ->
+  %% Push the current matrix mode
+  gl:pushAttrib(?GL_TRANSFORM_BIT),
+  gl:matrixMode(?GL_MODELVIEW),
+  gl:pushMatrix(),
+  try
+    Quad = glu:newQuadric(),
+    gl:translatef(CX, CY, 0.0),
+    %% We need to specify a smaller inner radius so that
+    %% something is drawn of the disk.
+    %% TODO: the stroke weight should be used.
+    setup_color(?STROKE_COLOR) andalso
+      glu:disk(Quad, Radius - 1.0, Radius, 30, 1),
+    setup_color(?FILL_COLOR) andalso
+      glu:disk(Quad, 0.0, Radius, 30, 1),
+    glu:deleteQuadric(Quad)
+  after
+    gl:popMatrix(),
+    %% Pop the previous matrix mode
+    gl:popAttrib()
+  end,
+  ok.
 
--spec circle(float(), float(), float(), float()) -> ok.
-circle(_CX, _CY, _R, NumSegments) when NumSegments < 0.1 ->
-  ok;
-circle(CX, CY, R, NumSegments) ->
-  Theta = 2 * 3.1415926 / NumSegments,
+%% -spec circle(float(), float(), float()) -> ok.
+%% circle(CX, CY, R) ->
+%%   NumSegments = 30 * math:sqrt(R),
+%%   circle(CX, CY, R, NumSegments).
 
-  Cos = math:cos(Theta),
-  Sin = math:sin(Theta),
-  X = R, %% we start at angle = 0
-  Y = 0,
+%% -spec circle(float(), float(), float(), float()) -> ok.
+%% circle(_CX, _CY, _R, NumSegments) when NumSegments < 0.1 ->
+%%   ok;
+%% circle(CX, CY, R, NumSegments) ->
+%%   Theta = 2 * 3.1415926 / NumSegments,
 
-  IsFill = setup_color(?FILL_COLOR),
-  IsStroke = is_color(?STROKE_COLOR),
-  Fun = fun(_, {X0, Y0, PointsAcc}) ->
-            %% output vertex is there is a fill color
-            PointX = X0 + CX,
-            PointY = Y0 + CY,
-            IsFill andalso gl:vertex2f(PointX, PointY),
-            X1 = Cos * X0 - Sin * Y0,
-            Y1 = Sin * X0 + Cos * Y0,
-            {X1, Y1, [{PointX, PointY} | PointsAcc]}
-        end,
+%%   Cos = math:cos(Theta),
+%%   Sin = math:sin(Theta),
+%%   X = R, %% we start at angle = 0
+%%   Y = 0,
 
-  %% Only calculate points if there is a stroke or a fill color
-  Points = (IsStroke orelse IsFill) andalso
-    begin
-      Seq = lists:seq(0, erlang:trunc(NumSegments)),
-      gl:'begin'(?GL_POLYGON),
-      {_, _, Result} = lists:foldl(Fun, {X, Y, []}, Seq),
-      gl:'end'(),
-      Result
-    end,
+%%   IsFill = setup_color(?FILL_COLOR),
+%%   IsStroke = is_color(?STROKE_COLOR),
+%%   Fun = fun(_, {X0, Y0, PointsAcc}) ->
+%%             %% output vertex is there is a fill color
+%%             PointX = X0 + CX,
+%%             PointY = Y0 + CY,
+%%             IsFill andalso gl:vertex2f(PointX, PointY),
+%%             X1 = Cos * X0 - Sin * Y0,
+%%             Y1 = Sin * X0 + Cos * Y0,
+%%             {X1, Y1, [{PointX, PointY} | PointsAcc]}
+%%         end,
 
-  setup_color(?STROKE_COLOR) andalso
-    begin
-      gl:'begin'(?GL_LINE_LOOP),
-      [gl:vertex2f(StrokeX, StrokeY) || {StrokeX, StrokeY} <- Points],
-      gl:'end'()
-    end.
+%%   %% Only calculate points if there is a stroke or a fill color
+%%   Points = (IsStroke orelse IsFill) andalso
+%%     begin
+%%       Seq = lists:seq(0, erlang:trunc(NumSegments)),
+%%       gl:'begin'(?GL_POLYGON),
+%%       {_, _, Result} = lists:foldl(Fun, {X, Y, []}, Seq),
+%%       gl:'end'(),
+%%       Result
+%%     end,
+
+%%   setup_color(?STROKE_COLOR) andalso
+%%     begin
+%%       gl:'begin'(?GL_LINE_LOOP),
+%%       [gl:vertex2f(StrokeX, StrokeY) || {StrokeX, StrokeY} <- Points],
+%%       gl:'end'()
+%%     end.
 
 -spec cone(float(), float(), integer(), integer(), boolean()) -> ok.
 cone(Radius, Height, DetailX, DetailY, Cap) ->
@@ -411,9 +459,9 @@ setup_color(FillOrStroke) ->
       true
   end.
 
--spec is_color(?FILL_COLOR | ?STROKE_COLOR) -> boolean().
-is_color(FillOrStroke) ->
-  erlang:get(FillOrStroke) =/= undefined.
+%% -spec is_color(?FILL_COLOR | ?STROKE_COLOR) -> boolean().
+%% is_color(FillOrStroke) ->
+%%   erlang:get(FillOrStroke) =/= undefined.
 
 %% Events
 
