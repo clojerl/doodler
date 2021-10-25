@@ -20,6 +20,7 @@
 
 (defprotocol IPrimitives3D
   (camera [this eyeX eyeY eyeZ centerX centerY centerZ upX upY upZ])
+  (frustum [this left right bottom top near far])
   (ortho [this left right bottom top near far])
   (perspective [this fovy aspect z-near z-far])
   (box [this size] [this width height depth])

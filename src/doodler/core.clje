@@ -965,6 +965,14 @@
              centerX centerY centerZ
              upX upY upZ)))
 
+(defn frustum
+  "Sets a perspective matrix defined through the parameters. Works
+  like glFrustum, except it wipes out the current perspective matrix
+  rather than multiplying itself with it.
+  https://en.wikipedia.org/wiki/Frustum"
+  [left right bottom top near far]
+  (p/frustum *canvas* left right bottom top near far))
+
 (defn ortho
   "Sets an orthographic projection and defines a parallel clipping
   volume. All objects with the same dimension appear the same size,

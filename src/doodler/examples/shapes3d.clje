@@ -22,10 +22,14 @@
 
   (draw-axis)
 
-  ;; Choose one or the other to
+  ;; Uncomment one of the following to
   ;; see what is the effect
   ;; (d/ortho)
   ;; (d/perspective)
+  ;; (d/frustum (/ (d/width) -2) (/ (d/width) 2)
+  ;;            (/ (d/height) -2) (/ (d/height) 2)
+  ;;            300
+  ;;            500)
 
   (d/stroke 0 0 0)
   (d/fill 100 100 255 150)
