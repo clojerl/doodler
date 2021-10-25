@@ -1156,6 +1156,24 @@
   ([min max]
    (+ min (dec (rand/uniform max)))))
 
+(defn random-2d
+  "Returns a new 2D unit vector with a random direction"
+  []
+  (let [theta (rand TWO-PI)]
+    [(math/cos theta) (math/sin theta)]))
+
+(defn random-3d
+  "Returns a new 3D unit vector with a random direction"
+  []
+  ; Algorithm: http://mathworld.wolfram.com/SpherePointPicking.html
+  (let [theta (rand TWO-PI)
+        u (- (rand 2) 1)
+        xy (math/sqrt (- 1 (* u u)))
+        vx (* xy (math/cos theta))
+        vy (* xy (math/sin theta))
+        vz u]
+    [vx vy vz]))
+
 (defn exit
   "Quits/stops/exits the program. Rather than terminating
   immediately, `exit` will cause the sketch to exit after `draw` has
