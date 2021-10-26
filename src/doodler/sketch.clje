@@ -174,16 +174,19 @@
       (u/noreply sketch)
       (case* event-key
         :on-close
-        (u/stop (with-sketch sketch
-                  (handler)))
+        (u/stop
+         (with-sketch sketch
+           (handler)))
 
         :focus-gained
-        (u/noreply (with-sketch sketch
-                     (handler)))
+        (u/noreply
+         (with-sketch sketch
+           (handler)))
 
         :focus-lost
-        (u/noreply (with-sketch sketch
-                     (handler)))
+        (u/noreply
+         (with-sketch sketch
+           (handler)))
 
         :on-resize
         (u/noreply (handler sketch))
@@ -192,6 +195,29 @@
         (u/noreply
          (with-sketch sketch
            (handler (:wheel-rotation event))))
+
+        :mouse-pressed
+        (u/noreply
+         (with-sketch (assoc sketch
+                             :mouse-button (:button event)
+                             :mouse-pressed? true)
+           (handler event)))
+
+        :mouse-released
+        (u/noreply
+         (with-sketch (assoc sketch
+                             :mouse-button nil
+                             :mouse-pressed? false)
+           (handler event)))
+
+        :mouse-moved
+        (u/noreply
+         (with-sketch (assoc sketch
+                             :mouse-x (:x event)
+                             :mouse-y (:y event)
+                             :pmouse-x (:mouse-x sketch)
+                             :pmouse-y (:mouse-y sketch))
+           (handler event)))
 
         _
         (u/noreply

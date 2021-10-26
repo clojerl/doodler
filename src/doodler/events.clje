@@ -74,6 +74,7 @@
    #erl{:event (event-type->mouse-event type)
         :clicks (event-type->mouse-clicks type)
         :x x :y y
+        :button (cond left :left middle :middle right :right :else nil)
         :left left :middle middle :right right
         :control control :shift shift :alt alt :meta meta
         :wheel-rotation wheel-rotation :wheel-delta wheel-delta

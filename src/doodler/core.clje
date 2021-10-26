@@ -1174,6 +1174,41 @@
         vz u]
     [vx vy vz]))
 
+;; Mouse
+
+(defn mouse-button
+  "The value of the system variable mouseButton is either `:left`, `:right`,
+  or `:center` depending on which button is pressed. `nil` if no button pressed"
+  []
+  (:mouse-button *sketch*))
+
+(defn mouse-pressed?
+  "true if a mouse button is pressed, false otherwise."
+  []
+  (:mouse-pressed? *sketch*))
+
+(defn mouse-x
+  "Current horizontal coordinate of the mouse."
+  []
+  (:mouse-x *sketch*))
+
+(defn mouse-y
+  "Current vertical coordinate of the mouse."
+  []
+  (:mouse-y *sketch*))
+
+(defn pmouse-x
+  "Horizontal coordinate of the mouse in the previous frame"
+  []
+  (:pmouse-x *sketch*))
+
+(defn pmouse-y
+  "Vertical coordinate of the mouse in the previous frame"
+  []
+  (:pmouse-y *sketch*))
+
+;; General
+
 (defn exit
   "Quits/stops/exits the program. Rather than terminating
   immediately, `exit` will cause the sketch to exit after `draw` has
