@@ -1217,8 +1217,17 @@
   []
   (erlang/halt 0))
 
+(defn sketch
+  "Create and start a new visualisation applet. Can be used to create
+  new sketches programmatically. See documentation for `defsketch` for
+  list of available options."
+  [& opts]
+  (wx_object/start_link :doodler.sketch
+                        (merge opts (apply hash-map opts))
+                        #erl()))
+
 (defmacro defsketch
-  "Define and start a sketch and bind it to a var with the symbol
+  "Define a sketch and bind it to a var with the symbol
   `app-name`. If any of the options to the various callbacks are
   symbols, it wraps them in a call to var to ensure they aren't
   inlined and that redefinitions to the original functions are reflected in
@@ -1280,9 +1289,9 @@
                         Middleware will be applied in the same order as in
                         `comp` function: `[f g]` will be applied as
                         `(f (g options))`."
-  [name & opts]
+  [app-name & opts]
   (let [opts (apply hash-map opts)]
-    `(defn ~name [& opts#]
+    `(defn ~app-name [& opts#]
        (wx_object/start_link :doodler.sketch
                              (merge ~opts (apply hash-map opts#))
                              #erl()))))
