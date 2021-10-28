@@ -1,9 +1,18 @@
 (ns doodler.examples.shapes3d
-  (:require [doodler.core :as d]))
+  (:require [doodler.core :as d]
+            [doodler.middlewares.state-mode :as state-mode]))
 
 (defn setup
   []
-  (d/frame-rate 60))
+  (d/frame-rate 60)
+  {:x 0 :y 0 :z 300})
+
+(defn zoom
+  [{:keys [z] :as state} evt]
+  (if (or (and (neg? evt) (pos? z))
+          (pos? evt))
+    (update-in state [:z] + evt)
+    state))
 
 (defn draw-axis []
   (d/with-translation [-100 -100 0]
@@ -17,10 +26,12 @@
     (d/stroke 0 0 255)
     (d/line 0 0 0 0 0 100)))
 
-(defn draw []
+(defn draw [{:keys [x y z] :as state}]
   (d/background 255)
 
   (draw-axis)
+
+  (d/camera x y z 0 0 0 0 1 0)
 
   ;; Uncomment one of the following to
   ;; see what is the effect
@@ -65,4 +76,8 @@
   :draw draw
   :features [:resizable :keep-on-top]
   :bgcolor [200]
-  :renderer :opengl)
+  :renderer :opengl
+  ;; Use state-mode
+  :middleware [state-mode/state-mode]
+  ;; Events
+  :mouse-wheel zoom)
