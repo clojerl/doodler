@@ -9,9 +9,20 @@
 
 (defn zoom
   [{:keys [z] :as state} evt]
-  (if (or (and (neg? evt) (pos? z))
-          (pos? evt))
-    (update-in state [:z] + evt)
+  (let [evt (- evt)]
+    (if (or (and (neg? evt) (pos? z))
+            (pos? evt))
+      (update-in state [:z] + evt)
+      state)))
+
+(defn move
+  [{:keys [x y] :as state}
+   {:keys [key-code] :as evt}]
+  (case (char key-code)
+    "A" (update-in state [:x] - 5)
+    "D" (update-in state [:x] + 5)
+    "S" (update-in state [:y] - 5)
+    "W" (update-in state [:y] + 5)
     state))
 
 (defn draw-axis []
@@ -80,4 +91,5 @@
   ;; Use state-mode
   :middleware [state-mode/state-mode]
   ;; Events
-  :mouse-wheel zoom)
+  :mouse-wheel zoom
+  :key-pressed move)
