@@ -955,6 +955,11 @@
   ([radius height detail-x detail-y bottom-cap top-cap]
    (p/cylinder *canvas* radius height detail-x detail-y bottom-cap top-cap)))
 
+(defn plane
+  "Draw a plane with given `width` and `height`."
+  [width height]
+  (rect (/ width -2) (/ height -2) width height))
+
 (defn sphere
   "Generates a hollow ball made from tessellated triangles."
   [radius]

@@ -78,6 +78,10 @@
     (d/with-rotation [(/ (d/frame-count) 100) 1.0 1.0 0.0]
       (d/cylinder 20 50)))
 
+  (d/with-translation [-75 75 0]
+    (d/with-rotation [(/ (d/frame-count) 100) 1.0 1.0 0.0]
+      (d/plane 20 50)))
+
   (d/with-translation [100 0 100]
     (d/with-rotation [(/ (d/frame-count) 100) 1.0 1.0 0.0]
       (d/fill 150 255 150)
