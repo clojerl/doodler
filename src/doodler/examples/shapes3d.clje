@@ -26,7 +26,7 @@
     state))
 
 (defn draw-axis []
-  (d/with-translation [-100 -100 0]
+  (d/with-translation [0 0 0]
     ;; X (red)
     (d/stroke 255 0 0)
     (d/line 0 0 0 100 0 0)
@@ -58,7 +58,7 @@
   (d/ellipse -50 -50 20 20)
   (d/arc -50 50 20 20 0 d/HALF-PI)
 
-  (d/with-translation [0 0 0]
+  (d/with-translation [-100 -100 0]
     (d/with-rotation [(/ (d/frame-count) 50) 1.0 1.0 1.0]
       (d/fill 255 100 100 200)
       (d/sphere-detail 30)
@@ -73,6 +73,10 @@
   (d/with-translation [100 100 0]
     (d/with-rotation [(/ (d/frame-count) 100) 1.0 1.0 0.0]
       (d/cone 20 50)))
+
+  (d/with-translation [100 -100 0]
+    (d/with-rotation [(/ (d/frame-count) 100) 1.0 1.0 0.0]
+      (d/cylinder 20 50)))
 
   (d/with-translation [100 0 100]
     (d/with-rotation [(/ (d/frame-count) 100) 1.0 1.0 0.0]

@@ -948,6 +948,13 @@
   ([radius height detail-x detail-y cap]
    (p/cone *canvas* radius height detail-x detail-y cap)))
 
+(defn cylinder
+  "Draw a cylinder with given `radius` and `height`."
+  ([radius height]
+   (cylinder radius height 24 24 true true))
+  ([radius height detail-x detail-y bottom-cap top-cap]
+   (p/cylinder *canvas* radius height detail-x detail-y bottom-cap top-cap)))
+
 (defn sphere
   "Generates a hollow ball made from tessellated triangles."
   [radius]

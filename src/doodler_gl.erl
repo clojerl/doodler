@@ -10,6 +10,7 @@
 -export([ arc/5
         , circle/3
         , cone/5
+        , cylinder/6
         , line/4
         , line/6
         , point/2
@@ -240,6 +241,34 @@ cone(Radius, Height, DetailX, DetailY, Cap) ->
       glu:quadricDrawStyle(Quad, ?GLU_FILL),
       glu:cylinder(Quad, Radius, 0.0, Height, DetailX, DetailY),
       Cap andalso glu:disk(Quad, 0.0, Radius, 30, 1)
+    end,
+  glu:deleteQuadric(Quad),
+  ok.
+
+-spec cylinder(float(), float(), integer(), integer(), boolean(), boolean()) ->
+  ok.
+cylinder(Radius, Height, DetailX, DetailY, BottomCap, TopCap) ->
+  Quad = glu:newQuadric(),
+  setup_color(?STROKE_COLOR) andalso
+    begin
+      glu:quadricDrawStyle(Quad, ?GLU_SILHOUETTE),
+      glu:cylinder(Quad, Radius, Radius, Height, DetailX, DetailY),
+      BottomCap andalso glu:disk(Quad, 0.0, Radius, 30, 1),
+      gl:pushMatrix(),
+      gl:translatef(0.0, 0.0, Height),
+      TopCap andalso glu:disk(Quad, 0.0, Radius, 30, 1),
+      gl:popMatrix()
+    end,
+
+  setup_color(?FILL_COLOR) andalso
+    begin
+      glu:quadricDrawStyle(Quad, ?GLU_FILL),
+      glu:cylinder(Quad, Radius, Radius, Height, DetailX, DetailY),
+      BottomCap andalso glu:disk(Quad, 0.0, Radius, 30, 1),
+      gl:pushMatrix(),
+      gl:translatef(0.0, 0.0, Height),
+      TopCap andalso glu:disk(Quad, 0.0, Radius, 30, 1),
+      gl:popMatrix()
     end,
   glu:deleteQuadric(Quad),
   ok.
