@@ -1,0 +1,103 @@
+(ns doodler.examples.shapes3d
+  (:require [doodler.core :as d]
+            [doodler.middlewares.state-mode :as state-mode]))
+
+(defn setup
+  []
+  (d/frame-rate 60)
+  {:x 0 :y 0 :z 300})
+
+(defn zoom
+  [{:keys [z] :as state} evt]
+  (let [evt (- evt)]
+    (if (or (and (neg? evt) (pos? z))
+            (pos? evt))
+      (update-in state [:z] + evt)
+      state)))
+
+(defn move
+  [{:keys [x y] :as state}
+   {:keys [key-code] :as evt}]
+  (case (char key-code)
+    "A" (update-in state [:x] - 5)
+    "D" (update-in state [:x] + 5)
+    "S" (update-in state [:y] - 5)
+    "W" (update-in state [:y] + 5)
+    state))
+
+(defn draw-axis []
+  (d/with-translation [0 0 0]
+    ;; X (red)
+    (d/stroke 255 0 0)
+    (d/line 0 0 0 100 0 0)
+    ;; Y (green)
+    (d/stroke 0 255 0)
+    (d/line 0 0 0 0 100 0)
+    ;; Z (blue)
+    (d/stroke 0 0 255)
+    (d/line 0 0 0 0 0 100)))
+
+(defn draw [{:keys [x y z] :as state}]
+  (d/background 255)
+
+  (draw-axis)
+
+  (d/camera x y z 0 0 0 0 1 0)
+
+  ;; Uncomment one of the following to
+  ;; see what is the effect
+  ;; (d/ortho)
+  ;; (d/perspective)
+  ;; (d/frustum (/ (d/width) -2) (/ (d/width) 2)
+  ;;            (/ (d/height) -2) (/ (d/height) 2)
+  ;;            300
+  ;;            500)
+
+  (d/stroke 0 0 0)
+  (d/fill 100 100 255 150)
+  (d/ellipse -50 -50 20 20)
+  (d/arc -50 50 20 20 0 d/HALF-PI)
+
+  (d/with-translation [-100 -100 0]
+    (d/with-rotation [(/ (d/frame-count) 50) 1.0 1.0 1.0]
+      (d/fill 255 100 100 200)
+      (d/sphere-detail 30)
+      (d/sphere (-> (d/frame-count)
+                    (/ 10)
+                    d/sin
+                    (* 5)
+                    (+ 40.0)))
+      (d/fill 100 100 255 150)
+      (d/box 75.0)))
+
+  (d/with-translation [100 100 0]
+    (d/with-rotation [(/ (d/frame-count) 100) 1.0 1.0 0.0]
+      (d/cone 20 50)))
+
+  (d/with-translation [100 -100 0]
+    (d/with-rotation [(/ (d/frame-count) 100) 1.0 1.0 0.0]
+      (d/cylinder 20 50)))
+
+  (d/with-translation [-75 75 0]
+    (d/with-rotation [(/ (d/frame-count) 100) 1.0 1.0 0.0]
+      (d/plane 20 50)))
+
+  (d/with-translation [100 0 100]
+    (d/with-rotation [(/ (d/frame-count) 100) 1.0 1.0 0.0]
+      (d/fill 150 255 150)
+      (d/sphere-detail 15)
+      (d/sphere 15.0))))
+
+(d/defsketch sketch
+  :title "3D Shapes"
+  :size [500 500]
+  :setup setup
+  :draw draw
+  :features [:resizable :keep-on-top]
+  :bgcolor [200]
+  :renderer :opengl
+  ;; Use state-mode
+  :middleware [state-mode/state-mode]
+  ;; Events
+  :mouse-wheel zoom
+  :key-pressed move)

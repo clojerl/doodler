@@ -42,8 +42,20 @@ References
 - [Introduction to OpenGL][opengl-intro]
 - [An Efficient Way to Draw Approximate Circles in OpenGL][opengl-circle]
 - [Scenic][scenic]
+- [Learn OpenGL][learn-opengl]
+- [OpengGl Tutorials][opengl-tutorials]
+- [Introduction to OpenGL Graphics Programming][into-to-opengl]
+- [Game Development StackExchange][gamedev-stackexchange]
+- [Modern OpenGL][modern-opengl]
+- [p5js.org Online Editor][p5js-online-editor]
 
 [opengl-elixir]: https://wtfleming.github.io/2016/01/06/getting-started-opengl-elixir/
 [opengl-intro]: https://www3.ntu.edu.sg/home/ehchua/programming/opengl/cg_introduction.html
 [opengl-circle]: http://slabode.exofire.net/circle_draw.shtml
 [scenic]: https://github.com/boydm/scenic
+[opengl-tutorials]: http://www.opengl-tutorial.org/
+[intro-to-opengl]: https://lazyfoo.net/tutorials/OpenGL/index.php
+[gamedev-stackexchange]: https://gamedev.stackexchange.com/
+[modern-opengl]: https://www.tomdalling.com/blog/category/modern-opengl/
+[learn-opengl]: https://learnopengl.com/
+[p5js-online-editor]: https://editor.p5js.org/

@@ -18,6 +18,19 @@
   (rect [this x y w h] [this x y w h r])
   (triangle [this x1 y1 x2 y2 x3 y3]))
 
+(defprotocol IPrimitives3D
+  (camera [this eyeX eyeY eyeZ centerX centerY centerZ upX upY upZ])
+  (frustum [this left right bottom top near far])
+  (ortho [this left right bottom top near far])
+  (perspective [this fovy aspect z-near z-far])
+  (box [this size] [this width height depth])
+  (cone [this radius height detail-x detail-y cap])
+  (cylinder [this radius height detail-x detail-y bottom-cap top-cap])
+  (ellipsoid [this radius-x radius-y radius-z detail-x detail-y])
+  (plane [this width height])
+  (sphere [this radius slices stacks])
+  (torus [this radius tube-radius detail-x detail-y]))
+
 (defprotocol IText
   (text [this s x y]))
 
@@ -53,7 +66,9 @@
            n20 n21 n22 n23
            n30 n31 n32 n33]])
   (reset-matrix [this])
+  (print-camera [this])
   (print-matrix [this])
+  (print-projection [this])
   (rotate [this angle] [this angle vx vy vz])
   (scale [this x-scale y-scale] [this x-scale y-scale z-scale])
   (translate [this x y] [this x y z]))
@@ -64,3 +79,8 @@
   (vertex [this x y] [this x y z])
   (bezier-vertex [this cx1 cy1 cx2 cy2 x y])
   (quadratic-vertex [this cx cy x3 y3]))
+
+(defn show-unsupported-warning!
+  [name]
+  (binding [*out* *err*]
+    (println "Warning:" name "is currently not available for this canvas.")))

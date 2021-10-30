@@ -9,12 +9,16 @@
 
 -export([ arc/5
         , circle/3
+        , cone/5
+        , cylinder/6
         , line/4
         , line/6
         , point/2
         , point/3
         , quad/8
+        , quad/12
         , rect/4
+        , sphere/3
         , triangle/6
         ]).
 
@@ -32,9 +36,14 @@
 
 -export([resize/2]).
 
--export([current_matrix/0]).
+-export([ current_matrix/0
+        , current_matrix/1
+        , matrix_mode/0
+        , matrix_mode/1
+        ]).
 
 -include_lib("wx/include/gl.hrl").
+-include_lib("wx/include/glu.hrl").
 -include_lib("wx/include/wx.hrl").
 
 -define(WINDOW_TITLE_HEIGHT, 20).
@@ -81,11 +90,13 @@ canvas(Frame, BgColor) ->
 -spec info() -> binary().
 info() ->
   io_lib:format( "Renderer: ~s~n"
-                 "Version: ~s~n"
+                 "GL Version: ~s~n"
+                 "GLU Version: ~s~n"
                  "Alpha test: ~p~n"
                  "Point size: ~p~n"
                , [ renderer()
                  , version()
+                 , glu:getString(?GLU_VERSION)
                  , gl:isEnabled(?GL_ALPHA_TEST)
                  , gl:getIntegerv(?GL_PROGRAM_POINT_SIZE)
                  ]).
@@ -93,79 +104,174 @@ info() ->
 %% Shapes
 
 -spec arc(float(), float(), float(), float(), float()) -> ok.
-arc(CX, CY, R, StartAngle, ArcAngle) ->
-  NumSegments = 30 * math:sqrt(R),
+arc(CX, CY, Radius, StartAngle, ArcAngle) ->
+  %% Push the current matrix mode
+  gl:pushAttrib(?GL_TRANSFORM_BIT),
+  gl:matrixMode(?GL_MODELVIEW),
+  gl:pushMatrix(),
+  try
+    Quad = glu:newQuadric(),
+    gl:translatef(CX, CY, 0.0),
+    %% We need to specify a smaller inner radius so that
+    %% something is drawn of the disk.
+    %% TODO: the stroke weight should be used.
+    setup_color(?STROKE_COLOR) andalso
+      glu:partialDisk(Quad, Radius - 1.0, Radius, 30, 1, StartAngle, ArcAngle),
+    setup_color(?FILL_COLOR) andalso
+      glu:partialDisk(Quad, 0.0, Radius, 30, 1, StartAngle, ArcAngle),
+    glu:deleteQuadric(Quad)
+  after
+    gl:popMatrix(),
+    %% Pop the previous matrix mode
+    gl:popAttrib()
+  end,
+  ok.
 
-  Theta = ArcAngle / (NumSegments - 1),
+%% -spec arc(float(), float(), float(), float(), float()) -> ok.
+%% arc(CX, CY, R, StartAngle, ArcAngle) ->
+%%   NumSegments = 30 * math:sqrt(R),
 
-  TanFactor = math:tan(Theta),
-  RadialFactor = math:cos(Theta),
+%%   Theta = ArcAngle / (NumSegments - 1),
 
-  X = R * math:cos(StartAngle),
-  Y = R * math:sin(StartAngle),
+%%   TanFactor = math:tan(Theta),
+%%   RadialFactor = math:cos(Theta),
 
-  Fun = fun(_, {X0, Y0}) ->
-            gl:vertex2f(X0 + CX, Y0 + CY), %% output vertex
-            TX = -Y0,
-            TY = X0,
+%%   X = R * math:cos(StartAngle),
+%%   Y = R * math:sin(StartAngle),
 
-            X1 = X0 + TX * TanFactor,
-            Y1 = Y0 + TY * TanFactor,
+%%   Fun = fun(_, {X0, Y0}) ->
+%%             gl:vertex2f(X0 + CX, Y0 + CY), %% output vertex
+%%             TX = -Y0,
+%%             TY = X0,
 
-            X2 = X1 * RadialFactor,
-            Y2 = Y1 * RadialFactor,
+%%             X1 = X0 + TX * TanFactor,
+%%             Y1 = Y0 + TY * TanFactor,
 
-            {X2, Y2}
-        end,
+%%             X2 = X1 * RadialFactor,
+%%             Y2 = Y1 * RadialFactor,
 
-  gl:'begin'(?GL_LINE_STRIP),
-  lists:foldl(Fun, {X, Y}, lists:seq(0, erlang:trunc(NumSegments))),
-  gl:'end'().
+%%             {X2, Y2}
+%%         end,
+
+%%   gl:'begin'(?GL_LINE_STRIP),
+%%   lists:foldl(Fun, {X, Y}, lists:seq(0, erlang:trunc(NumSegments))),
+%%   gl:'end'().
 
 -spec circle(float(), float(), float()) -> ok.
-circle(CX, CY, R) ->
-  NumSegments = 30 * math:sqrt(R),
-  circle(CX, CY, R, NumSegments).
+circle(CX, CY, Radius) ->
+  %% Push the current matrix mode
+  gl:pushAttrib(?GL_TRANSFORM_BIT),
+  gl:matrixMode(?GL_MODELVIEW),
+  gl:pushMatrix(),
+  try
+    Quad = glu:newQuadric(),
+    gl:translatef(CX, CY, 0.0),
+    %% We need to specify a smaller inner radius so that
+    %% something is drawn of the disk.
+    %% TODO: the stroke weight should be used.
+    setup_color(?STROKE_COLOR) andalso
+      glu:disk(Quad, Radius - 1.0, Radius, 30, 1),
+    setup_color(?FILL_COLOR) andalso
+      glu:disk(Quad, 0.0, Radius, 30, 1),
+    glu:deleteQuadric(Quad)
+  after
+    gl:popMatrix(),
+    %% Pop the previous matrix mode
+    gl:popAttrib()
+  end,
+  ok.
 
--spec circle(float(), float(), float(), float()) -> ok.
-circle(_CX, _CY, _R, NumSegments) when NumSegments < 0.1 ->
-  ok;
-circle(CX, CY, R, NumSegments) ->
-  Theta = 2 * 3.1415926 / NumSegments,
+%% -spec circle(float(), float(), float()) -> ok.
+%% circle(CX, CY, R) ->
+%%   NumSegments = 30 * math:sqrt(R),
+%%   circle(CX, CY, R, NumSegments).
 
-  Cos = math:cos(Theta),
-  Sin = math:sin(Theta),
-  X = R, %% we start at angle = 0
-  Y = 0,
+%% -spec circle(float(), float(), float(), float()) -> ok.
+%% circle(_CX, _CY, _R, NumSegments) when NumSegments < 0.1 ->
+%%   ok;
+%% circle(CX, CY, R, NumSegments) ->
+%%   Theta = 2 * 3.1415926 / NumSegments,
 
-  IsFill = setup_color(?FILL_COLOR),
-  IsStroke = is_color(?STROKE_COLOR),
-  Fun = fun(_, {X0, Y0, PointsAcc}) ->
-            %% output vertex is there is a fill color
-            PointX = X0 + CX,
-            PointY = Y0 + CY,
-            IsFill andalso gl:vertex2f(PointX, PointY),
-            X1 = Cos * X0 - Sin * Y0,
-            Y1 = Sin * X0 + Cos * Y0,
-            {X1, Y1, [{PointX, PointY} | PointsAcc]}
-        end,
+%%   Cos = math:cos(Theta),
+%%   Sin = math:sin(Theta),
+%%   X = R, %% we start at angle = 0
+%%   Y = 0,
 
-  %% Only calculate points if there is a stroke or a fill color
-  Points = (IsStroke orelse IsFill) andalso
-    begin
-      Seq = lists:seq(0, erlang:trunc(NumSegments)),
-      gl:'begin'(?GL_POLYGON),
-      {_, _, Result} = lists:foldl(Fun, {X, Y, []}, Seq),
-      gl:'end'(),
-      Result
-    end,
+%%   IsFill = setup_color(?FILL_COLOR),
+%%   IsStroke = is_color(?STROKE_COLOR),
+%%   Fun = fun(_, {X0, Y0, PointsAcc}) ->
+%%             %% output vertex is there is a fill color
+%%             PointX = X0 + CX,
+%%             PointY = Y0 + CY,
+%%             IsFill andalso gl:vertex2f(PointX, PointY),
+%%             X1 = Cos * X0 - Sin * Y0,
+%%             Y1 = Sin * X0 + Cos * Y0,
+%%             {X1, Y1, [{PointX, PointY} | PointsAcc]}
+%%         end,
 
+%%   %% Only calculate points if there is a stroke or a fill color
+%%   Points = (IsStroke orelse IsFill) andalso
+%%     begin
+%%       Seq = lists:seq(0, erlang:trunc(NumSegments)),
+%%       gl:'begin'(?GL_POLYGON),
+%%       {_, _, Result} = lists:foldl(Fun, {X, Y, []}, Seq),
+%%       gl:'end'(),
+%%       Result
+%%     end,
+
+%%   setup_color(?STROKE_COLOR) andalso
+%%     begin
+%%       gl:'begin'(?GL_LINE_LOOP),
+%%       [gl:vertex2f(StrokeX, StrokeY) || {StrokeX, StrokeY} <- Points],
+%%       gl:'end'()
+%%     end.
+
+-spec cone(float(), float(), integer(), integer(), boolean()) -> ok.
+cone(Radius, Height, DetailX, DetailY, Cap) ->
+  Quad = glu:newQuadric(),
   setup_color(?STROKE_COLOR) andalso
     begin
-      gl:'begin'(?GL_LINE_LOOP),
-      [gl:vertex2f(StrokeX, StrokeY) || {StrokeX, StrokeY} <- Points],
-      gl:'end'()
-    end.
+      glu:quadricDrawStyle(Quad, ?GLU_SILHOUETTE),
+      glu:cylinder(Quad, Radius, 0.0, Height, DetailX, DetailY),
+      Cap andalso glu:disk(Quad, 0.0, Radius, 30, 1)
+    end,
+
+  setup_color(?FILL_COLOR) andalso
+    begin
+      glu:quadricDrawStyle(Quad, ?GLU_FILL),
+      glu:cylinder(Quad, Radius, 0.0, Height, DetailX, DetailY),
+      Cap andalso glu:disk(Quad, 0.0, Radius, 30, 1)
+    end,
+  glu:deleteQuadric(Quad),
+  ok.
+
+-spec cylinder(float(), float(), integer(), integer(), boolean(), boolean()) ->
+  ok.
+cylinder(Radius, Height, DetailX, DetailY, BottomCap, TopCap) ->
+  Quad = glu:newQuadric(),
+  setup_color(?STROKE_COLOR) andalso
+    begin
+      glu:quadricDrawStyle(Quad, ?GLU_SILHOUETTE),
+      glu:cylinder(Quad, Radius, Radius, Height, DetailX, DetailY),
+      BottomCap andalso glu:disk(Quad, 0.0, Radius, 30, 1),
+      gl:pushMatrix(),
+      gl:translatef(0.0, 0.0, Height),
+      TopCap andalso glu:disk(Quad, 0.0, Radius, 30, 1),
+      gl:popMatrix()
+    end,
+
+  setup_color(?FILL_COLOR) andalso
+    begin
+      glu:quadricDrawStyle(Quad, ?GLU_FILL),
+      glu:cylinder(Quad, Radius, Radius, Height, DetailX, DetailY),
+      BottomCap andalso glu:disk(Quad, 0.0, Radius, 30, 1),
+      gl:pushMatrix(),
+      gl:translatef(0.0, 0.0, Height),
+      TopCap andalso glu:disk(Quad, 0.0, Radius, 30, 1),
+      gl:popMatrix()
+    end,
+  glu:deleteQuadric(Quad),
+  ok.
 
 -spec point(float(), float()) -> ok.
 point(X, Y) ->
@@ -181,7 +287,7 @@ point(X, Y, Z) ->
   setup_color(?STROKE_COLOR) andalso
     begin
       gl:'begin'(?GL_POINTS),
-      gl:vertex2f(X, Y, Z),
+      gl:vertex3f(X, Y, Z),
       gl:'end'()
     end.
 
@@ -231,6 +337,32 @@ quad(X1, Y1, X2, Y2, X3, Y3, X4, Y4) ->
       gl:'end'()
     end.
 
+-spec quad( float(), float(), float()
+          , float(), float(), float()
+          , float(), float(), float()
+          , float(), float(), float()
+          ) -> ok.
+quad(X1, Y1, Z1, X2, Y2, Z2, X3, Y3, Z3, X4, Y4, Z4) ->
+  setup_color(?STROKE_COLOR) andalso
+    begin
+      gl:'begin'(?GL_LINE_LOOP),
+      gl:vertex3f(X1, Y1, Z1),
+      gl:vertex3f(X2, Y2, Z2),
+      gl:vertex3f(X3, Y3, Z3),
+      gl:vertex3f(X4, Y4, Z4),
+      gl:'end'()
+    end,
+
+  setup_color(?FILL_COLOR) andalso
+    begin
+      gl:'begin'(?GL_QUADS),
+      gl:vertex3f(X1, Y1, Z1),
+      gl:vertex3f(X2, Y2, Z2),
+      gl:vertex3f(X3, Y3, Z3),
+      gl:vertex3f(X4, Y4, Z4),
+      gl:'end'()
+    end.
+
 -spec rect(float(), float(), float(), float()) -> ok.
 rect(X, Y, W, H) ->
   setup_color(?STROKE_COLOR) andalso
@@ -252,6 +384,22 @@ rect(X, Y, W, H) ->
       gl:vertex2f(X, Y + H),
       gl:'end'()
     end.
+
+-spec sphere(float(), integer(), integer()) -> ok.
+sphere(Radius, Slices, Stacks) ->
+  Quad = glu:newQuadric(),
+  setup_color(?STROKE_COLOR) andalso
+    begin
+      glu:quadricDrawStyle(Quad, ?GLU_SILHOUETTE),
+      glu:sphere(Quad, Radius, Slices, Stacks)
+    end,
+  setup_color(?FILL_COLOR) andalso
+    begin
+      glu:quadricDrawStyle(Quad, ?GLU_FILL),
+      glu:sphere(Quad, Radius, Slices, Stacks)
+    end,
+  glu:deleteQuadric(Quad),
+  ok.
 
 -spec triangle(float(), float(), float(), float(), float(), float()) -> ok.
 triangle(X1, Y1, X2, Y2, X3, Y3) ->
@@ -321,7 +469,7 @@ background(Color) ->
   erlang:put(?BACKGROUND_COLOR, Color),
   {R, G, B, A} = colorf(Color),
   gl:clearColor(R, G, B, A),
-  gl:clear(?GL_COLOR_BUFFER_BIT).
+  gl:clear(?GL_COLOR_BUFFER_BIT bor ?GL_DEPTH_BUFFER_BIT).
 
 -spec fill(color()) -> ok.
 fill(Color) ->
@@ -340,9 +488,9 @@ setup_color(FillOrStroke) ->
       true
   end.
 
--spec is_color(?FILL_COLOR | ?STROKE_COLOR) -> boolean().
-is_color(FillOrStroke) ->
-  erlang:get(FillOrStroke) =/= undefined.
+%% -spec is_color(?FILL_COLOR | ?STROKE_COLOR) -> boolean().
+%% is_color(FillOrStroke) ->
+%%   erlang:get(FillOrStroke) =/= undefined.
 
 %% Events
 
@@ -362,19 +510,54 @@ resize(Canvas, Context, BgColor) ->
 
   gl:matrixMode(?GL_PROJECTION),
   gl:loadIdentity(),
-  glu:ortho2D(0.0, 1.0 * Width, 1.0 * Height, 0.0),
+
+  %% Use the same default values as Processing
+  TanSixthPI = 0.5773502691896256, %% math:tan(PI / 6)
+  CameraZ = (Height / 2.0) / TanSixthPI,
+  ZNear = CameraZ / 10.0,
+  ZFar = CameraZ * 10.0,
+  glu:perspective(60.0, Width / Height, ZNear, ZFar),
 
   gl:matrixMode(?GL_MODELVIEW),
   gl:loadIdentity(),
+  %% Use the same default values as p5js (JS Processing)
+  %% which make more sense than the ones from Processing
+  HalfHeight = Height / 2.0,
+  glu:lookAt( 0.0, 0.0, HalfHeight / TanSixthPI
+            , 0.0, 0.0, 0.0
+            , 0.0, 1.0, 0.0
+            ),
 
   %% Background color
   background(BgColor),
 
   {Width, Height}.
 
+-type matrix_mode() :: modelview | projection.
+
+-spec matrix_mode() -> matrix_mode().
+matrix_mode() ->
+  case gl:getIntegerv(?GL_MATRIX_MODE) of
+    [?GL_MODELVIEW  | _] -> modelview;
+    [?GL_PROJECTION | _] -> projection
+  end.
+
+-spec matrix_mode(matrix_mode()) -> ok.
+matrix_mode(modelview) ->
+  gl:matrixMode(?GL_MODELVIEW);
+matrix_mode(projection) ->
+  gl:matrixMode(?GL_PROJECTION).
+
 -spec current_matrix() -> [float()].
 current_matrix() ->
-  gl:getFloatv(?GL_MODELVIEW_MATRIX).
+  current_matrix(matrix_mode()).
+
+-spec current_matrix(matrix_mode()) -> [float()].
+current_matrix(modelview) ->
+  gl:getFloatv(?GL_MODELVIEW_MATRIX);
+current_matrix(projection) ->
+  gl:getFloatv(?GL_PROJECTION_MATRIX).
+
 
 %%==============================================================================
 %% Internal functions
@@ -402,8 +585,9 @@ setup_gl(Canvas, Context, BgColor) ->
   %% showing up (i.e. in the mandelbrot example).
   gl:enable(?GL_MULTISAMPLE),
 
-  %% Until 3D is included, disable this
-  gl:disable(?GL_DEPTH_TEST),
+  %% Support drawing 3D surfaces
+  gl:enable(?GL_DEPTH_TEST),
+  gl:depthFunc(?GL_LESS),
 
   %% Enable alpha blending, otherwise alpha component is ignored
   gl:enable(?GL_BLEND),

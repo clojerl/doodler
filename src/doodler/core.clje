@@ -8,6 +8,8 @@
 
 (def ^:dynamic *state* nil)
 
+;; State
+
 (defn state
   "Retrieve sketch-specific state by `key`. Must initially call
   `set-state!` to store state. If no parameter is passed the whole
@@ -40,6 +42,20 @@
   setup fn).  Subsequent calls have no effect."
   [f & args]
   (set! *state* (apply f *state* args)))
+
+;; Dimension
+
+(defn width
+  "Width of the display window. The value of width is zero until size is
+  called."
+  []
+  (p/width *canvas*))
+
+(defn height
+  "Height of the display window. The value of height is zero until
+  size is called."
+  []
+  (p/height *canvas*))
 
 ;; Trigonometry
 
@@ -181,6 +197,23 @@
   [n]
   (erlang/ceil n))
 
+(defn constrain
+  "Constrains a value to not exceed a maximum and minimum value."
+  [amt low high]
+  (or (and (< amt low) low)
+      (and (< high amt) high)
+      amt))
+
+(defn dist
+  "Calculates the distance between two points."
+  ([x1 y1 x2 y2]
+   (math/sqrt (+ (math/pow (- x2 x1) 2)
+                 (math/pow (- y2 y1) 2))))
+  ([x1 y1 z1 x2 y2 z2]
+   (math/sqrt (+ (math/pow (- x2 x1) 2)
+                 (math/pow (- y2 y1) 2)
+                 (math/pow (- z2 z1) 2)))))
+
 (defn exp
   "Returns Euler's number `e` (2.71828...) raised to the power of the
   `val` parameter."
@@ -193,11 +226,47 @@
   [n]
   (erlang/trunc n))
 
+(defn lerp
+  "Calculates a number between two numbers at a specific
+  increment. The `amt` parameter is the amount to interpolate between
+  the two values where 0.0 equal to the first point, 0.1 is very near
+  the first point, 0.5 is half-way in between, etc. The lerp function
+  is convenient for creating motion along a straight path and for
+  drawing dotted lines."
+  [start stop amt]
+  (+ start (* amt (- stop start))))
+
 (defn log
   "Calculates the natural logarithm (the base-e logarithm) of a
   number. This function expects the values greater than 0.0."
   [n]
   (math/log n))
+
+(defn mag
+  "Calculates the magnitude (or length) of a vector. A vector is a
+  direction in space commonly used in computer graphics and linear
+  algebra. Because it has no start position, the magnitude of a vector
+  can be thought of as the distance from coordinate `(0,0)` to its `(x,y)`
+  value. Therefore, [[mag]] is a shortcut for writing `(dist 0 0 x y)`."
+  ([a b]
+   (math/sqrt (+ (* a a) (* b b))))
+  ([a b c]
+   (math/sqrt (+ (* a a) (* b b) (* c c)))))
+
+(defn map-range
+  "Re-maps a number from one range to another.
+
+  Numbers outside the range are not clamped to 0 and 1, because
+  out-of-range values are often intentional and useful."
+  [val low1 high1 low2 high2]
+  (+ low2
+     (* (- high2 low2)
+        (/ (- val low1) (- high1 low1)))))
+
+(defn norm
+  "Normalize a value to exist between 0 and 1 (inclusive)."
+  [val start stop]
+  (/ (- val start) (- stop start)))
 
 (defn pow
   "Facilitates exponential expressions. The `pow` function is an
@@ -228,16 +297,6 @@
   is the opposite of squaring."
   [n]
   (math/sqrt n))
-
-(defn map-range
-  "Re-maps a number from one range to another.
-
-  Numbers outside the range are not clamped to 0 and 1, because
-  out-of-range values are often intentional and useful."
-  [val low1 high1 low2 high2]
-  (+ low2
-     (* (- high2 low2)
-        (/ (- val low1) (- high1 low1)))))
 
 ;; Color
 
@@ -627,10 +686,21 @@
   []
   (p/reset-matrix *canvas*))
 
+(defn print-camera
+  "Prints the current camera matrix to std out. Useful for debugging."
+  []
+  (p/print-camera *canvas*))
+
 (defn print-matrix
   "Prints the current matrix to std out. Useful for debugging."
   []
   (p/print-matrix *canvas*))
+
+(defn print-projection
+  "Prints the current projection matrix to std out. Useful for
+   debugging"
+  []
+  (p/print-projection *canvas*))
 
 (defmacro with-translation
   "Performs body with translation, restores current transformation on
@@ -855,6 +925,142 @@
   [x1 y1 cx1 cy1 cx2 cy2 x2 y2]
   (p/bezier *canvas* x1 y1 cx1 cy1 cx2 cy2 x2 y2))
 
+;; Drawing 3D
+
+(defn box
+  "Creates an extruded rectangle."
+  ([size] (p/box *canvas* size))
+  ([width height depth] (p/box *canvas* width height depth)))
+
+(defn cone
+  "Draw a cone with given `radius` and `height`.
+
+   Optional parameters:
+     * `detail-x` - number of segments, the more segments the smoother geometry default is 24
+     * `detail-y` - number of segments, the more segments the smoother geometry default is 24
+     * `cap`      - whether to draw the base of the cone"
+  ([radius height]
+   (cone radius height 24))
+  ([radius height detail-x]
+   (cone radius height detail-x 24))
+  ([radius height detail-x detail-y]
+   (cone radius height detail-x detail-y true))
+  ([radius height detail-x detail-y cap]
+   (p/cone *canvas* radius height detail-x detail-y cap)))
+
+(defn cylinder
+  "Draw a cylinder with given `radius` and `height`."
+  ([radius height]
+   (cylinder radius height 24 24 true true))
+  ([radius height detail-x detail-y bottom-cap top-cap]
+   (p/cylinder *canvas* radius height detail-x detail-y bottom-cap top-cap)))
+
+(defn plane
+  "Draw a plane with given `width` and `height`."
+  [width height]
+  (rect (/ width -2) (/ height -2) width height))
+
+(defn sphere
+  "Generates a hollow ball made from tessellated triangles."
+  [radius]
+  (let [[ures vres] (:sphere-detail *sketch* [30 30])]
+    (p/sphere *canvas* radius ures vres)))
+
+(defn sphere-detail
+  "Controls the detail used to render a sphere by adjusting the number
+  of vertices of the sphere mesh. The default resolution is 30, which
+  creates a fairly detailed sphere definition with vertices every
+  360/30 = 12 degrees. If you're going to render a great number of
+  spheres per frame, it is advised to reduce the level of detail using
+  this function. The setting stays active until `sphere-detail` is
+  called again with a new parameter and so should not be called prior
+  to every `sphere` statement, unless you wish to render spheres with
+  different settings, e.g. using less detail for smaller spheres or
+  ones further away from the camera. To control the detail of the
+  horizontal and vertical resolution independently, use the version of
+  the functions with two parameters."
+  ([res] (u/swap-var! *sketch* assoc :sphere-detail [res res]))
+  ([ures vres] (u/swap-var! *sketch* assoc :sphere-detail [ures vres])))
+
+(def TAN-PI-SIXTH (tan (/ PI 6)))
+
+(defn camera
+  "Sets the position of the camera through setting the eye position,
+  the center of the scene, and which axis is facing upward. Moving the
+  eye position and the direction it is pointing (the center of the
+  scene) allows the images to be seen from different angles. The
+  version without any parameters sets the camera to the default
+  position, pointing to the center of the display window with the Y
+  axis as up. The default values are:
+
+  * `eyeX`    - `0`
+  * `eyeY`    - `0`
+  * `eyeZ`    - `(/ (height) 2.0 (tan (/ Math/PI 6.0)))`
+  * `centerX` - `0`
+  * `centerY` - `0`
+  * `centerZ` - `0`
+  * `upX`     - `0`
+  * `upY`     - `1`
+  * `upZ`     - `0`
+
+  Similar to `gluLookAt()` in OpenGL, but it first clears the
+  current camera settings."
+  ([]
+   (camera 0 0 (/ (height) 2 TAN-PI-SIXTH)
+           0 0 0
+           0 1 0))
+  ([eyeX eyeY eyeZ centerX centerY centerZ upX upY upZ]
+   (p/camera *canvas*
+             eyeX eyeY eyeZ
+             centerX centerY centerZ
+             upX upY upZ)))
+
+(defn frustum
+  "Sets a perspective matrix defined through the parameters. Works
+  like glFrustum, except it wipes out the current perspective matrix
+  rather than multiplying itself with it.
+  https://en.wikipedia.org/wiki/Frustum"
+  [left right bottom top near far]
+  (p/frustum *canvas* left right bottom top near far))
+
+(defn ortho
+  "Sets an orthographic projection and defines a parallel clipping
+  volume. All objects with the same dimension appear the same size,
+  regardless of whether they are near or far from the camera. The
+  parameters to this function specify the clipping volume where `left`
+  and `right` are the minimum and maximum x values, `top` and `bottom` are
+  the minimum and maximum y values, and `near` and `far` are the minimum
+  and maximum z values. If no parameters are given, the default is
+  used: `(ortho (- half-width) half-width (- half-height) half-height 0 500)`"
+  ([]
+   (let [half-width (/ (width) 2)
+         half-height (/ (height) 2)]
+     (ortho (- half-width) half-width (- half-height) half-height)))
+  ([left right bottom top]
+   (ortho left right bottom top -500 500))
+  ([left right bottom top near far]
+   (p/ortho *canvas* left right bottom top near far)))
+
+(defn perspective
+  "Sets a perspective projection applying foreshortening, making
+  distant objects appear smaller than closer ones. The parameters
+  define a viewing volume with the shape of truncated pyramid. Objects
+  near to the front of the volume appear their actual size, while
+  farther objects appear smaller. This projection simulates the
+  perspective of the world more accurately than orthographic
+  projection. The version of perspective without parameters sets the
+  default perspective and the version with four parameters allows the
+  programmer to set the area precisely. The default values are:
+  `perspective(PI/3.0, width/height, cameraZ/10.0, cameraZ*10.0)` where
+  `cameraZ` is `((height/2.0) / tan(PI*60.0/360.0))`"
+  ([]
+   (let [w (width)
+         h (height)
+         camera-z (/ h 2 TAN-PI-SIXTH)]
+     (perspective THIRD-PI (/ w h)  (/ camera-z 10.0) (* camera-z 10.0))))
+  ([fovy aspect z-near z-far]
+   (p/perspective *canvas* fovy aspect z-near z-far)))
+
 ;; Text
 
 (defn text
@@ -872,20 +1078,6 @@
   the current `rect-mode` setting."
   [s x y]
   (p/text *canvas* s x y))
-
-;; Dimension
-
-(defn width
-  "Width of the display window. The value of width is zero until size is
-  called."
-  []
-  (p/width *canvas*))
-
-(defn height
-  "Height of the display window. The value of height is zero until
-  size is called."
-  []
-  (p/height *canvas*))
 
 (defn frame-rate
   "Specifies a new target framerate (number of frames to be displayed every
@@ -976,6 +1168,59 @@
   ([min max]
    (+ min (dec (rand/uniform max)))))
 
+(defn random-2d
+  "Returns a new 2D unit vector with a random direction"
+  []
+  (let [theta (rand TWO-PI)]
+    [(math/cos theta) (math/sin theta)]))
+
+(defn random-3d
+  "Returns a new 3D unit vector with a random direction"
+  []
+  ; Algorithm: http://mathworld.wolfram.com/SpherePointPicking.html
+  (let [theta (rand TWO-PI)
+        u (- (rand 2) 1)
+        xy (math/sqrt (- 1 (* u u)))
+        vx (* xy (math/cos theta))
+        vy (* xy (math/sin theta))
+        vz u]
+    [vx vy vz]))
+
+;; Mouse
+
+(defn mouse-button
+  "The value of the system variable mouseButton is either `:left`, `:right`,
+  or `:center` depending on which button is pressed. `nil` if no button pressed"
+  []
+  (:mouse-button *sketch*))
+
+(defn mouse-pressed?
+  "true if a mouse button is pressed, false otherwise."
+  []
+  (:mouse-pressed? *sketch*))
+
+(defn mouse-x
+  "Current horizontal coordinate of the mouse."
+  []
+  (:mouse-x *sketch*))
+
+(defn mouse-y
+  "Current vertical coordinate of the mouse."
+  []
+  (:mouse-y *sketch*))
+
+(defn pmouse-x
+  "Horizontal coordinate of the mouse in the previous frame"
+  []
+  (:pmouse-x *sketch*))
+
+(defn pmouse-y
+  "Vertical coordinate of the mouse in the previous frame"
+  []
+  (:pmouse-y *sketch*))
+
+;; General
+
 (defn exit
   "Quits/stops/exits the program. Rather than terminating
   immediately, `exit` will cause the sketch to exit after `draw` has
@@ -984,8 +1229,17 @@
   []
   (erlang/halt 0))
 
+(defn sketch
+  "Create and start a new visualisation applet. Can be used to create
+  new sketches programmatically. See documentation for `defsketch` for
+  list of available options."
+  [& opts]
+  (wx_object/start_link :doodler.sketch
+                        (merge opts (apply hash-map opts))
+                        #erl()))
+
 (defmacro defsketch
-  "Define and start a sketch and bind it to a var with the symbol
+  "Define a sketch and bind it to a var with the symbol
   `app-name`. If any of the options to the various callbacks are
   symbols, it wraps them in a call to var to ensure they aren't
   inlined and that redefinitions to the original functions are reflected in
@@ -1047,9 +1301,9 @@
                         Middleware will be applied in the same order as in
                         `comp` function: `[f g]` will be applied as
                         `(f (g options))`."
-  [name & opts]
+  [app-name & opts]
   (let [opts (apply hash-map opts)]
-    `(defn ~name [& opts#]
+    `(defn ~app-name [& opts#]
        (wx_object/start_link :doodler.sketch
                              (merge ~opts (apply hash-map opts#))
                              #erl()))))

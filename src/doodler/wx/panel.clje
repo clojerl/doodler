@@ -43,11 +43,11 @@
   (line [this x1 y1 x2 y2]
     (wxGraphicsContext/strokeLine @gc x1 y1 x2 y2))
   (line [this x1 y1 z1 x2 y2 z2]
-    (throw (ex-info "Not supported" {:op :line :args [x1 y1 z1 x2 y2 z2]})))
+    (p/show-unsupported-warning! "line (3D)"))
   (point [this x y]
     (wxGraphicsContext/drawRectangle @gc x y 1 1))
   (point [this x y z]
-    (throw (ex-info "Not supported" {:op :point :args [x y z]})))
+    (p/show-unsupported-warning! "point (3D)"))
   (quad [this x1 y1 x2 y2 x3 y3 x4 y4]
     (wxGraphicsContext/drawLines @gc
                                  #erl(#erl[x1 y1]
@@ -140,31 +140,33 @@
   (reset-matrix [this]
     (-> (wxGraphicsContext/createMatrix @gc)
         wxGraphicsMatrix/set))
+  (print-camera [this]
+    (p/show-unsupported-warning! "print-camera"))
   (print-matrix [this]
     (let [m (wxGraphicsContext/getTransform @gc)
           [a b c d tx ty](wxGraphicsMatrix/get m)]
       (println "Matrix:" :a a :b b :c c :d d :tx tx :ty ty)))
+  (print-projection [this]
+    (p/show-unsupported-warning! "print-projection"))
   (rotate [this angle]
     (wxGraphicsContext/rotate @gc angle))
   (rotate [this angle vx vy vz]
-    (throw (ex-info "Not supported"
-                    {:op :rotate :args [angle vx vy vz]})))
+    (p/show-unsupported-warning! "rotate (3D)"))
   (scale [this x-scale y-scale]
     (wxGraphicsContext/scale @gc x-scale y-scale))
   (scale [this x-scale y-scale z-scale]
-    (throw (ex-info "Not supported"
-                    {:op :scale :args [x-scale y-scale z-scale]})))
+    (p/show-unsupported-warning! "scale (3D)"))
   (translate [this x y]
     (wxGraphicsContext/translate @gc x y))
   (translate [this x y z]
-    (throw (ex-info "Not supported" {:op :translate :args [x y z]})))
+    (p/show-unsupported-warning! "translate (3D)"))
 
   p/IShape
   (begin-shape [this]
     (let [path (wxGraphicsContext/createPath @gc)]
       (vreset! current-shape path)))
   (begin-shape [this mode]
-    (throw (ex-info "Not supported" {:op :begin-shape :args [mode]})))
+    (p/show-unsupported-warning! "begin-shape (with mode)"))
   (end-shape [this]
     (wxGraphicsContext/drawPath @gc @current-shape)
     (vreset! current-shape nil))
@@ -175,7 +177,7 @@
   (vertex [this x y]
     (wxGraphicsPath/addLineToPoint @current-shape x y))
   (vertex [this x y z]
-    (throw (ex-info "Not supported" {:op :vertex :args [x y z]})))
+    (p/show-unsupported-warning! "vertex (3D)"))
   (bezier-vertex [this cx1 cy1 cx2 cy2 x y]
     (wxGraphicsPath/addCurveToPoint @current-shape cx1 cy1 cx2 cy2 x y))
   (quadratic-vertex [this cx cy x3 y3]
