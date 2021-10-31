@@ -1,6 +1,8 @@
 (ns doodler.core
-  (:require [doodler.util :as u]
-            [doodler.protocols :as p]))
+  (:require [clojure.string :as str]
+            [doodler.util :as u]
+            [doodler.protocols :as p]
+            [doodler.events :as e]))
 
 (def ^:dynamic *canvas* nil)
 
@@ -1185,6 +1187,79 @@
         vy (* xy (math/sin theta))
         vz u]
     [vx vy vz]))
+
+;; Keyboard
+
+(def CODED-KEY ::coded-key)
+
+(defn raw-key
+  "Returns the value (as a string) of the most recent key on the
+  keyboard that was used (either pressed or released), unless it's a
+  coded key, in which case it returns nil.
+
+  For non-ASCII keys, use `key-code`. The keys included in the ASCII
+  specification (`BACKSPACE`, `TAB`, `ENTER`, `RETURN`, `ESC`, and
+  `DELETE`) do not require checking to see if the key is coded, and
+  you should simply use `raw-key` instead of `key-code`. If you're
+  making cross-platform projects, note that the `ENTER` key is
+  commonly used on PCs and Unix and the `RETURN` key is used instead
+  on Macintosh. Check for both `ENTER` and `RETURN` to make sure your
+  program will work for all platforms."
+  []
+  (let [key-unicode (:key-unicode *sketch*)]
+    (if (zero? key-unicode)
+      CODED-KEY
+      (-> (:key-unicode *sketch*)
+          char
+          str/lower-case))))
+
+(defn key-code
+  "The variable keyCode is used to detect special keys such as the UP,
+  DOWN, LEFT, RIGHT arrow keys and ALT, CONTROL, SHIFT. When checking
+  for these keys, it's first necessary to check and see if the key is
+  coded. This is done with the conditional `(= (key) CODED)`.
+
+  The keys included in the ASCII specification (BACKSPACE, TAB, ENTER,
+  RETURN, ESC, and DELETE) do not require checking to see if they key
+  is coded, and you should simply use the key variable instead of
+  `key-code`. If you're making cross-platform projects, note that the
+  ENTER key is commonly used on PCs and Unix and the RETURN key is
+  used instead on Macintosh. Check for both ENTER and RETURN to make
+  sure your program will work for all platforms."
+  []
+  (:key-code *sketch*))
+
+(defn key-modifiers
+  "Set of key modifiers that were pressed when event happened.
+  Possible modifiers `:ctrl`, `:alt`, `:shift`, `:meta`. Not available in
+  ClojureScript."
+  []
+  (when *sketch*
+    (:key-modifiers *sketch*)))
+
+(defn key-pressed?
+  "true if any key is currently pressed, false otherwise."
+  []
+  (not (empty? (:keys-pressed *sketch*))))
+
+(defn key-coded?
+  "Returns true if char `c` is a `coded` char i.e. it is necessary to
+  fetch the `key-code` as an integer and use that to determine the
+  specific key pressed. See `key-as-keyword`."
+  [c]
+  (= CODED-KEY c))
+
+(defn key-as-keyword
+  "Returns a keyword representing the currently pressed key. Modifier
+  keys are represented as: `:up`, `:down`, `:left`, `:right`, `:alt`,
+  `:control`, `:shift`, `:command`, `:f1-24`"
+  []
+  (let [key-char (raw-key)
+        code     (key-code)]
+    (if (key-coded? key-char)
+      (get e/KEY-CODES code :unknown-key)
+      (or (e/KEY-MAP key-char)
+          (keyword key-char)))))
 
 ;; Mouse
 

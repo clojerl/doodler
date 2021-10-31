@@ -151,6 +151,13 @@
             :frame-delay frame-period
             :current-frame-rate default-frame-rate
 
+            :mouse-x 0
+            :mouse-y 0
+            :pmouse-x nil
+            :pmouse-y nil
+
+            :keys-pressed #{}
+
             :looping? true
             :frame-count 0
             :epoch (u/time-mark)
@@ -163,6 +170,16 @@
   [wx obj sketch]
   (on-paint sketch)
   :ok)
+
+(defn- register-keys-pressed
+  "Registers the key-code of the provided key-press event, unless
+  its key-code is 0. This is because when swtiching between windows
+  with the keyboard, a `:key-press` event (with `(= :key-code 0)`)
+  is reported for which there is no matching `:key-release` event."
+  [sketch {:keys [key-code] :as _event}]
+  (if (zero? key-code)
+    (assoc sketch :keys-pressed #{})
+    (update sketch :keys-pressed conj key-code)))
 
 (defn handle_event
   [wx sketch]
@@ -185,7 +202,10 @@
 
         :focus-lost
         (u/noreply
-         (with-sketch sketch
+         ;; Clean up the list of keys pressed when
+         ;; the sketch looses focus, since the key release
+         ;; won't be processed by the sketch.
+         (with-sketch (assoc sketch :keys-pressed #{})
            (handler)))
 
         :on-resize
@@ -200,14 +220,16 @@
         (u/noreply
          (with-sketch (assoc sketch
                              :mouse-button (:button event)
-                             :mouse-pressed? true)
+                             :mouse-pressed? true
+                             :key-modifiers (:modifiers event))
            (handler event)))
 
         :mouse-released
         (u/noreply
          (with-sketch (assoc sketch
                              :mouse-button nil
-                             :mouse-pressed? false)
+                             :mouse-pressed? false
+                             :key-modifiers (:modifiers event))
            (handler event)))
 
         :mouse-moved
@@ -216,7 +238,26 @@
                              :mouse-x (:x event)
                              :mouse-y (:y event)
                              :pmouse-x (:mouse-x sketch)
-                             :pmouse-y (:mouse-y sketch))
+                             :pmouse-y (:mouse-y sketch)
+                             :key-modifiers (:modifiers event))
+           (handler event)))
+
+        :key-pressed
+        (u/noreply
+         (with-sketch (-> sketch
+                          (register-keys-pressed event)
+                          (assoc :key-code (:key-code event)
+                                 :key-unicode (:uni-char event)
+                                 :key-modifiers (:modifiers event)))
+           (handler event)))
+
+        :key-released
+        (u/noreply
+         (with-sketch (-> sketch
+                          (update :keys-pressed disj (:key-code event))
+                          (assoc :key-code (:key-code event)
+                                 :key-unicode (:uni-char event)
+                                 :key-modifiers (:modifiers event)))
            (handler event)))
 
         _

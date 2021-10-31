@@ -1,5 +1,51 @@
 (ns doodler.events)
 
+(def KEY-CODES
+  {127 :delete
+   300 :start
+   311 :caps-lock
+   312 :end
+   313 :home
+   315 :up
+   317 :down
+   314 :left
+   316 :right
+   307 :alt
+   308 :control
+   396 :raw-control
+   306 :shift
+   340 :f1
+   341 :f2
+   342 :f3
+   343 :f4
+   344 :f5
+   345 :f6
+   346 :f7
+   347 :f8
+   348 :f9
+   349 :f10
+   350 :f11
+   351 :f12
+   352 :f13
+   353 :f14
+   354 :f15
+   355 :f16
+   356 :f17
+   357 :f18
+   358 :f19
+   359 :f20
+   360 :f21
+   361 :f22
+   362 :f23
+   363 :f24
+   364 :numlock
+   365 :scroll
+   366 :page-up
+   367 :page-down})
+
+(def KEY-MAP
+  {" " :space})
+
 (def event-names
   [:set_focus     ;; focus-gained
    :kill_focus    ;; focus-lost
@@ -76,6 +122,10 @@
         :x x :y y
         :button (cond left :left middle :middle right :right :else nil)
         :left left :middle middle :right right
+        :modifiers [(when alt :alt)
+                    (when shift :shift)
+                    (when control :control)
+                    (when meta :meta)]
         :control control :shift shift :alt alt :meta meta
         :wheel-rotation wheel-rotation :wheel-delta wheel-delta
         :lines-per-action lines-per-action})
@@ -88,6 +138,10 @@
    #erl{:event (event-type->key-event type)
         :x x :y y
         :key-code key-code
+        :modifiers [(when alt :alt)
+                    (when shift :shift)
+                    (when control :control)
+                    (when meta :meta)]
         :control control :shift shift :alt alt :meta meta
         :uni-char uni-char :raw-code raw-code :raw-flags raw-flags}))
 
