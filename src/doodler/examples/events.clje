@@ -1,27 +1,17 @@
 (ns doodler.examples.events
-  (:require [doodler.core :as d]
-            [doodler.middlewares.state-mode :as state-mode]))
-
-(defn on-close
-  [state]
-  (prn state))
+  (:require [doodler.core :as d]))
 
 (defn report-event-fn
   [event-key]
   (fn
-    ([state] (prn event-key) state)
-    ([state evt] (prn event-key evt) state)))
-
-(defn mouse-move
-  [state evt]
-  {:x (:x evt) :y (:y evt)})
+    ([] (prn event-key))
+    ([evt] (prn event-key evt))))
 
 (defn setup
   []
-  (d/frame-rate 24)
-  {:x 0 :y 0})
+  (d/frame-rate 24))
 
-(defn draw [state]
+(defn draw []
   (when (d/mouse-pressed?)
     (println (d/mouse-button))
     (println :mouse-x (d/mouse-x)
@@ -29,11 +19,16 @@
              :pmouse-x (d/pmouse-x)
              :pmouse-y (d/pmouse-y)))
 
+  (when (d/key-pressed?)
+    (println :key-code (d/key-code)
+             :key-modifiers (d/key-modifiers)
+             :key-as-keyword (d/key-as-keyword)))
+
   (d/stroke (d/random 255))
   (d/stroke-weight (d/random 10))
   (d/fill (d/random 255))
   (let [diam (d/random 50)]
-    (d/ellipse (:x state) (:y state) diam diam)))
+    (d/ellipse (d/mouse-x) (d/mouse-y) diam diam)))
 
 (d/defsketch sketch
   :title "Handling events"
@@ -41,12 +36,9 @@
   :bgcolor [200]
   :setup setup
   :draw draw
-  :features [:resizable :keep-on-top :exit-on-close]
-  ;; Use state-mode
-  :middleware [state-mode/state-mode]
-
+  :features [:resizable :keep-on-top]
   ;; Event handlers
-  :on-close on-close
+  :on-close (report-event-fn :on-close)
   :focus-gained (report-event-fn :focus-gained)
   :focus-lost (report-event-fn :focus-lost)
   :mouse-pressed (report-event-fn :mouse-pressed)
@@ -54,7 +46,7 @@
   :mouse-clicked (report-event-fn :mouse-clicked)
   :mouse-entered (report-event-fn :mouse-entered)
   :mouse-exited (report-event-fn :mouse-exited)
-  :mouse-moved mouse-move
+  :mouse-moved (report-event-fn :mouse-moved)
   :mouse-wheel (report-event-fn :mouse-wheel)
   :key-pressed (report-event-fn :key-pressed)
   :key-released (report-event-fn :key-released)
