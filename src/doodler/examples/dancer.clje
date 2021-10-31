@@ -1,0 +1,50 @@
+;; Source: http://quil.info/sketches/show/example_dancer
+(ns doodler.examples.dancer
+  (:require [doodler.core :as d]))
+
+(defn setup []
+  (d/frame-rate 30))
+
+(defn pulse [low high rate]
+  (let [diff (- high low)
+        half (/ diff 2)
+        mid (+ low half)
+        s (/ (d/millis) 1000.0)
+        x (d/sin (* s (/ 1.0 rate)))]
+    (+ mid (* x half))))
+
+(defn t []
+  (* 0.001 (d/millis)))
+
+(def speed 0.5)
+
+(defn stem [base-x]
+  (let [magic (/ 8 (d/width))
+        x-max (/ (d/width) 4)
+        x-max-top (/ x-max 2)
+        y-max (/ (d/height) 2)
+
+        x (+ base-x
+             (pulse (- x-max-top) x-max-top 1.0))
+        y (+ (- y-max)
+             (* 0.5 y-max
+                (d/sin (+ (* speed (t))
+                          (* magic base-x))))
+             (* (/ 3) y-max (d/sin (* 2 (t)))))]
+    (d/bezier base-x 0 base-x 0
+              0 (- x-max) x y)))
+(defn draw []
+  (d/background 255)
+  (d/stroke 0)
+  (d/stroke-weight 1)
+  (d/no-fill)
+  (let [size (d/width)
+        x-max (/ size 4)]
+    (d/with-translation [(/ size 2) (d/height)]
+      (doseq [x (range (- x-max) x-max 2)]
+        (stem x)))))
+
+(d/defsketch sketch
+   :size [500 500]
+   :setup setup
+   :draw draw)
