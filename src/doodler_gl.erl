@@ -522,8 +522,7 @@ resize(Canvas, Context, BgColor) ->
   gl:loadIdentity(),
   %% Use the same default values as p5js (JS Processing)
   %% which make more sense than the ones from Processing
-  HalfHeight = Height / 2.0,
-  glu:lookAt( 0.0, 0.0, HalfHeight / TanSixthPI
+  glu:lookAt( 0.0, 0.0, (Height / 2.0) / TanSixthPI
             , 0.0, 0.0, 0.0
             , 0.0, 1.0, 0.0
             ),

@@ -997,7 +997,7 @@
 
   * `eyeX`    - `0`
   * `eyeY`    - `0`
-  * `eyeZ`    - `(/ (height) 2.0 (tan (/ Math/PI 6.0)))`
+  * `eyeZ`    - `(/ (height) 2.0 (tan (/ PI 6.0)))`
   * `centerX` - `0`
   * `centerY` - `0`
   * `centerZ` - `0`
@@ -1011,11 +1011,14 @@
    (camera 0 0 (/ (height) 2 TAN-PI-SIXTH)
            0 0 0
            0 1 0))
-  ([eyeX eyeY eyeZ centerX centerY centerZ upX upY upZ]
+  ([eye-x eye-y eye-z center-x center-y center-z up-x up-y up-z]
+   (vreset! (:camera *sketch*) [eye-x eye-y eye-z
+                                  center-x center-y center-z
+                                  up-x up-y up-z])
    (p/camera *canvas*
-             eyeX eyeY eyeZ
-             centerX centerY centerZ
-             upX upY upZ)))
+             eye-x eye-y eye-z
+             center-x center-y center-z
+             up-x up-y up-z)))
 
 (defn frustum
   "Sets a perspective matrix defined through the parameters. Works
@@ -1293,6 +1296,134 @@
   "Vertical coordinate of the mouse in the previous frame"
   []
   (:pmouse-y *sketch*))
+
+(defn- orbit
+  "Orbits the camera about center point. For use with `orbit-control`.
+
+  (Implementation taken from `p5.Camera.js`)"
+  [delta-theta delta-phi delta-radius]
+  (let [[eye-x eye-y eye-z
+         center-x center-y center-z
+         up-x up-y up-z] @(:camera *sketch*)
+
+        diff-x (- eye-x center-x)
+        diff-y (- eye-y center-y)
+        diff-z (- eye-z center-z)
+
+        cam-radius (sqrt (+ (* diff-x diff-x)
+                            (* diff-y diff-y)
+                            (* diff-z diff-z)))
+        cam-theta (atan2 diff-x diff-z)
+        cam-phi (acos (max -1 (min 1 (/ diff-y cam-radius))))
+
+        cam-theta (+ cam-theta delta-theta)
+        cam-phi (+ cam-phi delta-phi)
+        cam-radius (+ cam-radius delta-radius)
+        cam-radius (cond
+                     (< cam-radius 0) 0.1
+                     :else cam-radius)
+        cam-phi (cond
+                  (> cam-phi PI) PI
+                  (<= cam-phi 0) 0.001
+                  :else cam-phi)
+
+        x (* (sin cam-phi) cam-radius (sin cam-theta))
+        y (* (cos cam-phi) cam-radius)
+        z (* (sin cam-phi) cam-radius (cos cam-theta))]
+    (camera (+ x center-x) (+ y center-y) (+ z center-z)
+            center-x center-y center-z
+            0 1 0)))
+
+(defn- orbit-rotation
+  [sensitivity-x sensitivity-y]
+  (let [scale-factor (if (< (height) (width)) (height) (width))
+        dx           (- (mouse-x) (pmouse-x))
+        dy           (- (mouse-y) (pmouse-y))
+        delta-theta  (/ (* (- sensitivity-x) dx) scale-factor)
+        delta-phi    (/ (* (- sensitivity-y) dy) scale-factor)]
+    (orbit delta-theta delta-phi 0)))
+
+(defn- normalize-3d
+  "Takes a vector of three elements and returns the unit vector."
+  [[x y z :as v]]
+  (let [magnitude (mag x y z)]
+    (if-not (zero? magnitude)
+      [(/ x magnitude) (/ y magnitude) (/ z magnitude)]
+      v)))
+
+(defn- local-axes
+  "Returns a camera's local axes: left-right, up-down, and
+  forward-backward, as defined by vectors in world-space.
+
+  (Implementation from processing/p5.js)"
+  []
+  (let [[eye-x eye-y eye-z
+         center-x center-y center-z
+         up-x up-y up-z] @(:camera *sketch*)
+
+        ;; Calculate z
+        z0 (- eye-x center-x)
+        z1 (- eye-y center-y)
+        z2 (- eye-z center-z)
+
+        z (normalize-3d [z0 z1 z2])
+
+        y0 up-x
+        y1 up-y
+        y2 up-z
+
+        ;; Find x by doing the cross product of vector z and "up"
+        x0 (- (* y1 z2) (* y2 z1))
+        x1 (- (* y2 z0) (* y0 z2))
+        x2 (- (* y0 z1) (* y1 z0))
+
+        ;; Find y by doing the cross product of vector z and x
+        y0 (- (* z1 x2) (* z2 x1))
+        y1 (- (* z2 x0) (* z0 x2))
+        y2 (- (* z0 x1) (* z1 x0))
+
+        x (normalize-3d [x0 x1 x2])
+        y (normalize-3d [y0 y1 y2])]
+
+    {:x x :y y :z z}))
+
+(defn- orbit-pan
+  [sensitivity-x sensitivity-y]
+  (let [{:keys [x y _z]} (local-axes)
+
+        ;; move along those vectors by amount controlled by mouseX, pmouseY
+        dx (* -1 sensitivity-x (- (mouse-x) (pmouse-x)))
+        dy (* sensitivity-y (- (mouse-y) (pmouse-y)))
+
+        dx (map #(* dx %) x)
+        dy (map #(* dy %) y)
+
+        ;; restrict movement to XY plane in world space
+        [eye-x eye-y eye-z
+         center-x center-y center-z
+         up-x up-y up-z] @(:camera *sketch*)
+
+        ;; Calculate the new eye and center positions
+        [eye-x eye-y eye-z] (map + [eye-x eye-y eye-z] dx dy)
+        [center-x center-y center-z] (map + [center-x center-y center-z] dx dy)]
+    (camera eye-x eye-y eye-z
+            center-x center-y center-z
+            up-x up-y up-z)))
+
+(defn orbit-control
+  "Allows the camera to orbit around a target using mouse."
+  ([] (orbit-control 1 1 1))
+  ([sensitivity-x sensitivity-y sensitivity-z]
+   (cond
+     ;; Rotation and pan
+     (mouse-pressed?)
+     (condp = (mouse-button)
+       :left (orbit-rotation sensitivity-x sensitivity-y)
+       :right (orbit-pan sensitivity-x sensitivity-y))
+     ;; Zoom
+     (not (zero? (:wheel-rotation *sketch*)))
+     (let [zoom (- (:wheel-rotation *sketch*))]
+       (orbit 0 0 zoom)))))
 
 ;; General
 

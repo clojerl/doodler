@@ -42,7 +42,9 @@
 
   (draw-axis)
 
-  (d/camera x y z 0 0 0 0 1 0)
+  #_(d/camera x y z 0 0 0 0 1 0)
+
+  (d/orbit-control)
 
   ;; Uncomment one of the following to
   ;; see what is the effect
