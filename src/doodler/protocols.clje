@@ -19,7 +19,7 @@
   (triangle [this x1 y1 x2 y2 x3 y3]))
 
 (defprotocol IPrimitives3D
-  (camera [this eyeX eyeY eyeZ centerX centerY centerZ upX upY upZ])
+  (camera [this eye-x eye-y eye-z center-x center-y center-z up-x up-y up-z])
   (frustum [this left right bottom top near far])
   (ortho [this left right bottom top near far])
   (perspective [this fovy aspect z-near z-far])

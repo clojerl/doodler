@@ -93,9 +93,10 @@
                       opts
                       (safe-fns opts))
 
+        [w h]       (or (:size opts) [500 300])
         frame       (gui/make-frame (or (:title opts) "Sketch")
                                     (or (:pos opts) [-1 -1]) ;; default position
-                                    (or (:size opts) [500 300])
+                                    [w h]
                                     features)
 
         bgcolor     (let [bgcolor (:bgcolor opts [200])]
@@ -136,28 +137,41 @@
     (u/send-message :setup)
 
     (merge opts
-           {:state nil
+           {;; Information
+            :state nil
             :pid (erlang/self)
             :frame frame
             :canvas canvas
             :renderer renderer
+
+            ;; Event handlers and callbacks
             :setup-fn setup-fn
             :draw-fn draw-fn
             :on-resize on-resize
             :on-close on-close-fn
 
+            ;; Frame rate configuration
             :frame-rate default-frame-rate
             :frame-period frame-period
             :frame-delay frame-period
             :current-frame-rate default-frame-rate
 
+            ;; Event related info
             :mouse-x 0
             :mouse-y 0
-            :pmouse-x nil
-            :pmouse-y nil
+            :pmouse-x 0
+            :pmouse-y 0
+            :wheel-rotation 0
 
+            ;; Keys
             :keys-pressed #{}
 
+            ;; Camera (used for orbit control)
+            :camera (process-val! [0 0 (/ h 2 (math/tan (/ (math/pi) 6)))
+                                   0 0 0
+                                   0 1 0])
+
+            ;; Loop control
             :looping? true
             :frame-count 0
             :epoch (u/time-mark)
@@ -181,12 +195,67 @@
     (assoc sketch :keys-pressed #{})
     (update sketch :keys-pressed conj key-code)))
 
+(defn- add-event-info
+  "Add event specific information depending on the type of event.
+  This information is then used in the core functions to identify
+  if an event is currently happening (e.g. `mouse-pressed?`) or details
+  about a certain event (e.g. `key-as-keyword`)."
+  [sketch event]
+  (let [event-key (:event event)]
+    (case* event-key
+      :focus-lost
+      ;; Clean up the list of keys pressed when
+      ;; the sketch looses focus, since the key release
+      ;; won't be processed by the sketch.
+      (assoc sketch :keys-pressed #{})
+
+      :mouse-pressed
+      (assoc sketch
+             :mouse-button (:button event)
+             :mouse-pressed? true
+             :key-modifiers (:modifiers event))
+
+      :mouse-released
+      (assoc sketch
+             :mouse-button nil
+             :mouse-pressed? false
+             :key-modifiers (:modifiers event))
+
+      :mouse-moved
+      (assoc sketch
+             :mouse-x (:x event)
+             :mouse-y (:y event)
+             :pmouse-x (:mouse-x sketch)
+             :pmouse-y (:mouse-y sketch)
+             :key-modifiers (:modifiers event))
+
+      :mouse-wheel
+      (assoc sketch :wheel-rotation (:wheel-rotation event))
+
+      :key-pressed
+      (-> sketch
+          (register-keys-pressed event)
+          (assoc :key-code (:key-code event)
+                 :key-unicode (:uni-char event)
+                 :key-modifiers (:modifiers event)))
+
+      :key-released
+      (-> sketch
+          (update :keys-pressed disj (:key-code event))
+          (assoc :key-code (:key-code event)
+                 :key-unicode (:uni-char event)
+                 :key-modifiers (:modifiers event)))
+
+      _
+      sketch)))
+
 (defn handle_event
   [wx sketch]
   (let* [#erl[:wx id obj data event] wx
          event (e/event->map event)
          event-key (:event event)
-         handler (event-key sketch)]
+         handler (event-key sketch)
+         sketch (add-event-info sketch event)]
     (if-not handler
       (u/noreply sketch)
       (case* event-key
@@ -202,10 +271,7 @@
 
         :focus-lost
         (u/noreply
-         ;; Clean up the list of keys pressed when
-         ;; the sketch looses focus, since the key release
-         ;; won't be processed by the sketch.
-         (with-sketch (assoc sketch :keys-pressed #{})
+         (with-sketch sketch
            (handler)))
 
         :on-resize
@@ -215,50 +281,6 @@
         (u/noreply
          (with-sketch sketch
            (handler (:wheel-rotation event))))
-
-        :mouse-pressed
-        (u/noreply
-         (with-sketch (assoc sketch
-                             :mouse-button (:button event)
-                             :mouse-pressed? true
-                             :key-modifiers (:modifiers event))
-           (handler event)))
-
-        :mouse-released
-        (u/noreply
-         (with-sketch (assoc sketch
-                             :mouse-button nil
-                             :mouse-pressed? false
-                             :key-modifiers (:modifiers event))
-           (handler event)))
-
-        :mouse-moved
-        (u/noreply
-         (with-sketch (assoc sketch
-                             :mouse-x (:x event)
-                             :mouse-y (:y event)
-                             :pmouse-x (:mouse-x sketch)
-                             :pmouse-y (:mouse-y sketch)
-                             :key-modifiers (:modifiers event))
-           (handler event)))
-
-        :key-pressed
-        (u/noreply
-         (with-sketch (-> sketch
-                          (register-keys-pressed event)
-                          (assoc :key-code (:key-code event)
-                                 :key-unicode (:uni-char event)
-                                 :key-modifiers (:modifiers event)))
-           (handler event)))
-
-        :key-released
-        (u/noreply
-         (with-sketch (-> sketch
-                          (update :keys-pressed disj (:key-code event))
-                          (assoc :key-code (:key-code event)
-                                 :key-unicode (:uni-char event)
-                                 :key-modifiers (:modifiers event)))
-           (handler event)))
 
         _
         (u/noreply
