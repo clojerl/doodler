@@ -4,26 +4,7 @@
 
 (defn setup
   []
-  (d/frame-rate 60)
-  {:x 0 :y 0 :z 300})
-
-(defn zoom
-  [{:keys [z] :as state} evt]
-  (let [evt (- evt)]
-    (if (or (and (neg? evt) (pos? z))
-            (pos? evt))
-      (update-in state [:z] + evt)
-      state)))
-
-(defn move
-  [{:keys [x y] :as state}
-   {:keys [key-code] :as evt}]
-  (case (char key-code)
-    "A" (update-in state [:x] - 5)
-    "D" (update-in state [:x] + 5)
-    "S" (update-in state [:y] - 5)
-    "W" (update-in state [:y] + 5)
-    state))
+  (d/frame-rate 60))
 
 (defn draw-axis []
   (d/with-translation [0 0 0]
@@ -37,13 +18,12 @@
     (d/stroke 0 0 255)
     (d/line 0 0 0 0 0 100)))
 
-(defn draw [{:keys [x y z] :as state}]
+(defn draw []
   (d/background 255)
 
   (draw-axis)
 
-  #_(d/camera x y z 0 0 0 0 1 0)
-
+  ;; orbit-control's implementation uses d/camera
   (d/orbit-control)
 
   ;; Uncomment one of the following to
@@ -97,9 +77,4 @@
   :draw draw
   :features [:resizable :keep-on-top]
   :bgcolor [200]
-  :renderer :opengl
-  ;; Use state-mode
-  :middleware [state-mode/state-mode]
-  ;; Events
-  :mouse-wheel zoom
-  :key-pressed move)
+  :renderer :opengl)
