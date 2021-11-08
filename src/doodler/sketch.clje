@@ -166,6 +166,9 @@
             ;; Keys
             :keys-pressed #{}
 
+            ;; Window
+            :focused true
+
             ;; Camera (used for orbit control)
             :camera (process-val! [0 0 (/ h 2 (math/tan (/ (math/pi) 6)))
                                    0 0 0
@@ -203,11 +206,16 @@
   [sketch event]
   (let [event-key (:event event)]
     (case* event-key
+      :focus-gained
+      (assoc sketch :focused true)
+
       :focus-lost
       ;; Clean up the list of keys pressed when
       ;; the sketch looses focus, since the key release
       ;; won't be processed by the sketch.
-      (assoc sketch :keys-pressed #{})
+      (assoc sketch
+             :keys-pressed #{}
+             :focused false)
 
       :mouse-pressed
       (assoc sketch
