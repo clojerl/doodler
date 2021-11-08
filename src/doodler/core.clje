@@ -1191,6 +1191,13 @@
         vz u]
     [vx vy vz]))
 
+;; Window
+
+(defn focused
+  "Returns `true` if the window has focus, `false` otherwise."
+  []
+  (:focused *sketch*))
+
 ;; Keyboard
 
 (def CODED-KEY ::coded-key)
@@ -1436,7 +1443,7 @@
   (erlang/halt 0))
 
 (defn sketch
-  "Create and start a new visualisation applet. Can be used to create
+  "Create and start a new visualisation window. Can be used to create
   new sketches programmatically. See documentation for `defsketch` for
   list of available options."
   [& opts]
