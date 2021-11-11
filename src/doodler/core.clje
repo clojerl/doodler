@@ -1169,9 +1169,9 @@
   `(random -5 10.2)` returns values starting at -5 up to (but not
   including) 10.2."
   ([max]
-   (dec (rand/uniform max)))
+   (* max (rand/uniform)))
   ([min max]
-   (+ min (dec (rand/uniform max)))))
+   (+ min (* (- max min) (rand/uniform)))))
 
 (defn random-2d
   "Returns a new 2D unit vector with a random direction"
