@@ -1,0 +1,53 @@
+(ns doodler.examples.random-movement-3d
+  (:require [doodler.core :as d]
+            [doodler.middlewares.state-mode :as state-mode]))
+
+(defn setup
+  []
+  (d/frame-rate 60)
+  {:x 0 :y 0 :z 1})
+
+(defn draw-axis []
+  (d/with-translation [0 0 0]
+    ;; X (red)
+    (d/stroke 255 0 0)
+    (d/line 0 0 0 100 0 0)
+    ;; Y (green)
+    (d/stroke 0 255 0)
+    (d/line 0 0 0 0 100 0)
+    ;; Z (blue)
+    (d/stroke 0 0 255)
+    (d/line 0 0 0 0 0 100)))
+
+(defn update-state
+  [{:keys [x y z]}]
+  {:x (+ x (d/random -1 1))
+   :y (+ x (d/random -1 1))
+   :z (+ x (d/random -1 1))})
+
+(defn draw [{:keys [x y z]}]
+  (d/background 0)
+
+  (draw-axis)
+
+  ;; orbit-control's implementation uses d/camera
+  (d/orbit-control)
+
+  (d/no-stroke)
+  ;; (d/stroke 0 0 0)
+  (d/fill 100 100 255 255)
+
+  (d/with-rotation [(/ (d/frame-count) 100) x y z]
+    (d/with-translation [x y z]
+      (d/cone 20 50))))
+
+(d/defsketch sketch
+  :title "3D Shapes"
+  :size [500 500]
+  :setup setup
+  :update update-state
+  :draw draw
+  :features [:resizable :keep-on-top]
+  :bgcolor [200]
+  :renderer :opengl
+  :middleware [state-mode/state-mode])
