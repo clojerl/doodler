@@ -6,7 +6,9 @@
   (height [this]))
 
 (defprotocol IBitmap
-  (create-image [this w h]))
+  (create-image [this w h])
+  (load-image [this filename])
+  (image [this img x y] [this img x y w h]))
 
 (defprotocol IPrimitives
   (arc [this x y w h start end])

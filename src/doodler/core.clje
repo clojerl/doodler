@@ -401,13 +401,59 @@
   `width` and `height` parameters.
 
   In clj the `format` parameter defines how the pixels are stored.
-  See the PImage reference for more information.
+  See the wxImage reference for more information.
   Possible formats: `:rgb`, `:argb`, `:alpha` (grayscale alpha channel)
 
   Prefer using `create-image` over initialising new `wxImage` (or `Image`)
   instances directly."
   [w h]
   (p/create-image *canvas* w h))
+
+(defn load-image
+  "Loads an image into a variable of type wxImage. Four types of
+  images ( .gif, .jpg, .tga, .png) images may be loaded. To load
+  correctly, images must be located in the data directory of the
+  current sketch. In most cases, load all images in setup to preload
+  them at the start of the program. Loading images inside draw will
+  reduce the speed of a program.
+
+  The filename parameter can also be a URL to a file found online.
+
+  If an image is not loaded successfully, the null value is returned
+  and an error message will be printed to the console. The error
+  message does not halt the program, however the null value may cause
+  a NullPointerException if your code does not check whether the value
+  returned from load-image is nil.
+
+  Depending on the type of error, a wxImage object may still be
+  returned, but the width and height of the image will be set to
+  -1. This happens if bad image data is returned or cannot be decoded
+  properly. Sometimes this happens with image URLs that produce a 403
+  error or that redirect to a password prompt, because load-image
+  will attempt to interpret the HTML as image data."
+  [filename]
+  (p/load-image *canvas* (str filename)))
+
+
+(defn image
+  "Displays images to the screen. Processing currently works with GIF,
+  JPEG, and Targa images. The color of an image may be modified with
+  the tint function and if a GIF has transparency, it will maintain
+  its transparency. The img parameter specifies the image to display
+  and the x and y parameters define the location of the image from its
+  upper-left corner. The image is displayed at its original size
+  unless the width and height parameters specify a different size. The
+  image-mode fn changes the way the parameters work. A call to
+  (image-mode :corners) will change the width and height parameters to
+  define the x and y values of the opposite corner of the image.
+
+  Starting with release 0124, when using the default (JAVA2D)
+  renderer, smooth will also improve image quality of resized
+  images."
+  ([img x y]
+   (p/image *canvas* img x y))
+  ([img x y w h]
+   (p/image *canvas* img x y w h)))
 
 ;; Stroke & fill
 

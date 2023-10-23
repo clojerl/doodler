@@ -12,16 +12,28 @@
                       matrix
                       current-shape]
   p/ICanvas
-  (canvas [this] panel)
-  (width [this] width)
-  (height [this] height)
+  (canvas [_this] panel)
+  (width [_this] width)
+  (height [_this] height)
 
   p/IBitmap
-  (create-image [this w h]
+  (create-image [_this w h]
     (wxBitmap/new w h))
+  (load-image [_this filename]
+    (let [img (wxImage/new)]
+      (if (wxImage/loadFile img filename)
+        img
+        (throw (str "Could not load " filename)))))
+  (image [_this img x y]
+    (let [bitmap (wxBitmap/new img)]
+      (wxDC/drawBitmap bitmap-dc bitmap #erl[x y])))
+  (image [_this img x y w h]
+    (let [img (wxImage/scale img w h)
+          bitmap (wxBitmap/new img)]
+      (wxDC/drawBitmap bitmap-dc bitmap #erl[x y])))
 
   p/IPrimitives
-  (arc [this x y w h start end]
+  (arc [_this x y w h start end]
     (let [path (wxGraphicsContext/createPath @gc)
           r (/ (math/sqrt (+ (* w w) (* h h))) 2)]
       (wxGraphicsPath/addArc path
@@ -144,7 +156,7 @@
     (p/show-unsupported-warning! "print-camera"))
   (print-matrix [this]
     (let [m (wxGraphicsContext/getTransform @gc)
-          [a b c d tx ty](wxGraphicsMatrix/get m)]
+          [a b c d tx ty] (wxGraphicsMatrix/get m)]
       (println "Matrix:" :a a :b b :c c :d d :tx tx :ty ty)))
   (print-projection [this]
     (p/show-unsupported-warning! "print-projection"))

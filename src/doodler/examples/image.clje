@@ -1,0 +1,21 @@
+;; Source: https://github.com/quil/quil/blob/master/README.md
+(ns doodler.examples.image
+  (:require [doodler.core :as d]))
+
+(defn setup
+  []
+  (d/frame-rate 60))
+
+(defn draw []
+  (d/background 200)
+  (d/text (str (d/current-frame-rate)) 0 10)
+  (let [img (d/load-image "resources/pacman.png")]
+    (d/image img 10 10 50 50)))
+
+(d/defsketch sketch
+  :title "Load image"
+  :size [323 200]
+  :setup setup
+  :draw draw
+  :features [:resizable :keep-on-top]
+  :bgcolor [200])
