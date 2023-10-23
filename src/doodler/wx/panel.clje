@@ -31,6 +31,12 @@
     (let [img (wxImage/scale img w h)
           bitmap (wxBitmap/new img)]
       (wxDC/drawBitmap bitmap-dc bitmap #erl[x y])))
+  (resize [_this img w h]
+    (wxImage/scale img w h))
+  (pixels [_this]
+    (wxImage/getData (wxBitmap/convertToImage bitmap)))
+  (pixels [_this img]
+    (wxImage/getData img))
 
   p/IPrimitives
   (arc [_this x y w h start end]
@@ -115,20 +121,20 @@
     (wxDC/drawBitmap bitmap-dc img #erl[x y]))
 
   p/IEvents
-  (pre-draw [this]
+  (pre-draw [_this]
     (vreset! gc (wxGraphicsContext/create bitmap-dc)))
   (post-draw [this]
     (wxGraphicsContext/destroy @gc))
-  (paint [this]
+  (paint [_this]
     (let [dc (wxPaintDC/new panel)]
       (try
         (wxDC/drawBitmap dc bitmap #erl[0 0])
         (finally
           (wxPaintDC/destroy dc)))))
-  (refresh [this]
+  (refresh [_this]
     (wxWindow/refresh panel
                       #erl(#erl[:eraseBackground false])))
-  (resize [this]
+  (resize-canvas [_this]
     (let [bgcolor (wxBrush/getColour bg-brush)
           _ (wxMemoryDC/destroy bitmap-dc)
           _ (wxBitmap/destroy bitmap)

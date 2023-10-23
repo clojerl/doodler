@@ -9,8 +9,9 @@
 (defn draw []
   (d/background 200)
   (d/text (str (d/current-frame-rate)) 0 10)
-  (let [img (d/load-image "resources/pacman.png")]
-    (d/image img 10 10 50 50)))
+  (let [img (d/load-image "resources/pacman.png")
+        img (d/resize img 10 10)]
+    (d/image img 50 50)))
 
 (d/defsketch sketch
   :title "Load image"

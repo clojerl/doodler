@@ -455,6 +455,27 @@
   ([img x y w h]
    (p/image *canvas* img x y w h)))
 
+
+(defn pixels
+  "Binary containing the values for all the pixels in the display
+  window or image. This array is therefore the size of the display window.
+
+  The return value is a binary with values representing in RGBRGBRGB... format
+  in the top-to-bottom, left-to-right order, that is the first RGB triplet
+  corresponds to the first pixel of the first row, the second one - to the
+  second pixel of the first row and so on until the end of the first row,
+  with second row following after it and so on."
+  ([] (p/pixels *canvas*))
+  ([img] (p/pixels *canvas* img)))
+
+(defn resize
+  "Resize the image to a new width and height.
+  To make the image scale proportionally, use 0 as the value for the wide or
+  high parameter. For instance, to make the width of an image 150 pixels,
+  and change the height using the same proportion, use resize(150, 0)."
+  [img w h]
+  (p/resize *canvas* img w h))
+
 ;; Stroke & fill
 
 (defn- save-current-stroke

@@ -8,7 +8,9 @@
 (defprotocol IBitmap
   (create-image [this w h])
   (load-image [this filename])
-  (image [this img x y] [this img x y w h]))
+  (image [this img x y] [this img x y w h])
+  (resize [this img w h])
+  (pixels [this] [this img]))
 
 (defprotocol IPrimitives
   (arc [this x y w h start end])
@@ -56,7 +58,7 @@
   (post-draw [this])
   (paint [this])
   (refresh [this])
-  (resize [this]))
+  (resize-canvas [this]))
 
 (defprotocol ITransform
   (push-matrix [this])
