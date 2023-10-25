@@ -1,6 +1,5 @@
 (ns doodler.wx.panel
   (:require [doodler.protocols :as p]
-            [doodler.core :as core]
             [doodler.wx.gui :as gui]))
 
 (declare init-canvas)
@@ -31,12 +30,29 @@
     (let [img (wxImage/scale img w h)
           bitmap (wxBitmap/new img)]
       (wxDC/drawBitmap bitmap-dc bitmap #erl[x y])))
-  (resize [_this img w h]
-    (wxImage/scale img w h))
+  (get-pixel [_this]
+    (wxBitmap/convertToImage bitmap))
+  (get-pixel [_this img]
+    (wxImage/copy img))
+  (get-pixel [this x y]
+    (p/get-pixel this (wxBitmap/convertToImage bitmap) x y))
+  (get-pixel [_this img x y]
+    #erl[(bit-and (wxImage/getRed img x y) 0xFF)
+         (bit-and (wxImage/getGreen img x y) 0xFF)
+         (bit-and (wxImage/getBlue img x y) 0xFF)])
+  (get-pixel [_this x y w h]
+    (-> bitmap
+        wxBitmap/convertToImage
+        (wxImage/getSubImage #erl[x y w h])))
+  (get-pixel [_this img x y w h]
+    (wxImage/getSubImage img #erl[x y w h]))
   (pixels [_this]
     (wxImage/getData (wxBitmap/convertToImage bitmap)))
   (pixels [_this img]
     (wxImage/getData img))
+  (resize [_this img w h]
+    (wxImage/scale img w h))
+
 
   p/IPrimitives
   (arc [_this x y w h start end]

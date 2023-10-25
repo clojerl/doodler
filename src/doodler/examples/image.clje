@@ -10,7 +10,11 @@
   (d/background 200)
   (d/text (str (d/current-frame-rate)) 0 10)
   (let [img (d/load-image "resources/pacman.png")
-        img (d/resize img 10 10)]
+        img (d/resize img 20 20)]
+    ;; (println :color-panel (d/get-pixel 10 10)
+    ;;          :color-img (d/get-pixel img 5 5)
+    ;;          :subimage-pane (d/get-pixel 5 5 5 5)
+    ;;          :subimage-img (d/get-pixel img 5 5 5 5))
     (d/image img 50 50)))
 
 (d/defsketch sketch

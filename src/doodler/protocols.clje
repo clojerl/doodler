@@ -9,8 +9,9 @@
   (create-image [this w h])
   (load-image [this filename])
   (image [this img x y] [this img x y w h])
-  (resize [this img w h])
-  (pixels [this] [this img]))
+  (get-pixel [this] [this img] [this x y] [this img x y] [this x y w h] [this img x y w h])
+  (pixels [this] [this img])
+  (resize [this img w h]))
 
 (defprotocol IPrimitives
   (arc [this x y w h start end])
