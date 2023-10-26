@@ -1,6 +1,6 @@
 (ns doodler.wx.panel
-  (:require [doodler.protocols :as p]
-            [doodler.core :as core]
+  (:require [clojure.string :as str]
+            [doodler.protocols :as p]
             [doodler.wx.gui :as gui]))
 
 (declare init-canvas)
@@ -31,6 +31,54 @@
     (let [img (wxImage/scale img w h)
           bitmap (wxBitmap/new img)]
       (wxDC/drawBitmap bitmap-dc bitmap #erl[x y])))
+  (get-pixel [_this]
+    (wxBitmap/convertToImage bitmap))
+  (get-pixel [_this img]
+    (wxImage/copy img))
+  (get-pixel [this x y]
+    (p/get-pixel this (wxBitmap/convertToImage bitmap) x y))
+  (get-pixel [_this img x y]
+    #erl[(bit-and (wxImage/getRed img x y) 0xFF)
+         (bit-and (wxImage/getGreen img x y) 0xFF)
+         (bit-and (wxImage/getBlue img x y) 0xFF)])
+  (get-pixel [_this x y w h]
+    (-> bitmap
+        wxBitmap/convertToImage
+        (wxImage/getSubImage #erl[x y w h])))
+  (get-pixel [_this img x y w h]
+    (wxImage/getSubImage img #erl[x y w h]))
+  (pixels [_this]
+    (wxImage/getData (wxBitmap/convertToImage bitmap)))
+  (pixels [_this img]
+    (wxImage/getData img))
+  (resize [_this img w h]
+    (wxImage/scale img w h))
+  (save [_this filename]
+    (let [ext (-> filename (str/split #"\.") last)
+          ;; Check for no extension
+          ext (if (= ext filename) "" ext)
+          bitmap-type (case ext
+                        "tif" gui/bitmap-type-tif
+                        "png" gui/bitmap-type-png
+                        "jpeg" gui/bitmap-type-jpeg
+                        "jpg" gui/bitmap-type-jpeg
+                        "bmp" gui/bitmap-type-bmp
+                        "" gui/bitmap-type-tif
+                        (do
+                          (println "Unsupported extension" ext ", using TIFF")
+                          gui/bitmap-type-tif))]
+      (wxBitmap/saveFile bitmap filename bitmap-type)))
+  (save-frame [this frame-count]
+    (p/save-frame this frame-count "screen-####.tif"))
+  (save-frame [this frame-count name]
+    (let [pounds (re-find #"#+" name)
+          frame-count (str frame-count)
+          pad-left (repeat (- (count pounds)
+                              (count frame-count))
+                           "0")
+          n (str (apply str pad-left) frame-count)
+          filename (str/replace name #"#+" n)]
+      (p/save this filename)))
 
   p/IPrimitives
   (arc [_this x y w h start end]
@@ -115,20 +163,20 @@
     (wxDC/drawBitmap bitmap-dc img #erl[x y]))
 
   p/IEvents
-  (pre-draw [this]
+  (pre-draw [_this]
     (vreset! gc (wxGraphicsContext/create bitmap-dc)))
   (post-draw [this]
     (wxGraphicsContext/destroy @gc))
-  (paint [this]
+  (paint [_this]
     (let [dc (wxPaintDC/new panel)]
       (try
         (wxDC/drawBitmap dc bitmap #erl[0 0])
         (finally
           (wxPaintDC/destroy dc)))))
-  (refresh [this]
+  (refresh [_this]
     (wxWindow/refresh panel
                       #erl(#erl[:eraseBackground false])))
-  (resize [this]
+  (resize-canvas [_this]
     (let [bgcolor (wxBrush/getColour bg-brush)
           _ (wxMemoryDC/destroy bitmap-dc)
           _ (wxBitmap/destroy bitmap)

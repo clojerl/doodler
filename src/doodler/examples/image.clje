@@ -9,8 +9,30 @@
 (defn draw []
   (d/background 200)
   (d/text (str (d/current-frame-rate)) 0 10)
-  (let [img (d/load-image "resources/pacman.png")]
-    (d/image img 10 10 50 50)))
+  (d/text (str (d/frame-count)) 0 20)
+  (let [img (d/load-image "resources/pacman.png")
+        img (d/resize img 20 20)]
+    (d/image img 50 50)
+    (when (< 20 (d/frame-count) 30)
+      (println :color-panel (d/get-pixel 10 10)
+               :color-img (d/get-pixel img 5 5)
+               :subimage-pane (d/get-pixel 5 5 5 5)
+               :subimage-img (d/get-pixel img 5 5 5 5)))
+    ;; Test save-image
+    (when (< 10 (d/frame-count) 20)
+      (d/save-frame)
+      (d/save-frame "screen-#######.jpg"))
+    ;; Test save
+    (when (= (d/frame-count) 200)
+      (println "Saving files...")
+      (d/save "foo.jpg")
+      (d/save "foo.jpeg")
+      (d/save "foo.png")
+      (d/save "foo.tif")
+      (d/save "foo.bmp")
+      ;; Unsupported or missing will use TIFF
+      (d/save "foo.gif")
+      (d/save "foo"))))
 
 (d/defsketch sketch
   :title "Load image"

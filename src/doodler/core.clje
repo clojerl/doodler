@@ -455,6 +455,76 @@
   ([img x y w h]
    (p/image *canvas* img x y w h)))
 
+(defn get-pixel
+  "Reads the color of any pixel or grabs a section of an image. If no
+  parameters are specified, a copy of entire image is returned. Get the
+  value of one pixel by specifying an x,y coordinate. Get a section of
+  the image by specifying an additional width and height parameter.
+  If the pixel requested is outside of the image window, black is returned.
+  The numbers returned are scaled according to the current color ranges,
+  but only RGB values are returned by this function. For example, even though
+  you may have drawn a shape with (color-mode :hsb), the numbers returned
+  will be in RGB.
+
+  Getting the color of a single pixel with (get x y) is easy, but not
+  as fast as grabbing the data directly using the pixels fn.
+
+  If no img specified - current-graphics is used."
+  ([] (p/get-pixel *canvas*))
+  ([img] (p/get-pixel *canvas* img))
+  ([x y] (p/get-pixel *canvas* x y))
+  ([img x y] (p/get-pixel *canvas* img x y))
+  ([x y w h] (p/get-pixel *canvas* x y w h))
+  ([img x y w h] (p/get-pixel *canvas* img x y w h)))
+
+(defn pixels
+  "Binary containing the values for all the pixels in the display
+  window or image. This array is therefore the size of the display window.
+
+  The return value is a binary with values representing in RGBRGBRGB... format
+  in the top-to-bottom, left-to-right order, that is the first RGB triplet
+  corresponds to the first pixel of the first row, the second one - to the
+  second pixel of the first row and so on until the end of the first row,
+  with second row following after it and so on."
+  ([] (p/pixels *canvas*))
+  ([img] (p/pixels *canvas* img)))
+
+(defn resize
+  "Resize the image to a new width and height.
+  To make the image scale proportionally, use 0 as the value for the wide or
+  high parameter. For instance, to make the width of an image 150 pixels,
+  and change the height using the same proportion, use resize(150, 0)."
+  [img w h]
+  (p/resize *canvas* img w h))
+
+(defn save
+  "Saves an image from the display window. Images are saved in TIFF,
+  BMP, JPEG, and PNG format depending on the extension within the
+  filename parameter. For example, image.tif will have a TIFF image
+  and image.png will save a PNG image. If no extension is included in
+  the filename, the image will save in TIFF format and .tif will be
+  added to the name. All images saved from the main drawing window
+  will be opaque. To save images without a background, use
+  create-graphics."
+  [filename]
+  (p/save *canvas* (str filename)))
+
+(declare frame-count)
+
+(defn save-frame
+  "Saves an image identical to the current display window as a
+  file. May be called multple times - each file saved will have a
+  unique name. Name and image formate may be modified by passing a
+  string parameter of the form \"foo-####.ext\" where foo- can be any
+  arbitrary string, #### will be replaced with the current frame id
+  and .ext is one of .tiff, .targa, .png, .jpeg or .jpg
+
+  Examples:
+  (save-frame)
+  (save-frame \"pretty-pic-####.jpg\")"
+  ([] (p/save-frame *canvas* (frame-count)))
+  ([name] (p/save-frame *canvas* (frame-count) (str name))))
+
 ;; Stroke & fill
 
 (defn- save-current-stroke

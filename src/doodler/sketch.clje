@@ -72,7 +72,7 @@
 
 (defn on-resize
   [sketch]
-  (update sketch :canvas p/resize))
+  (update sketch :canvas p/resize-canvas))
 
 (def ^{:private true}
   supported-features
