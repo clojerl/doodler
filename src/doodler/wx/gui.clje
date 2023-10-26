@@ -1,3 +1,4 @@
+;; These constants are found in erlang/lib/wx/include/wx.hrl
 (ns doodler.wx.gui)
 
 (def frame-style-system-menu 2048)
@@ -23,6 +24,42 @@
           frame-style-close-box
           frame-style-caption
           frame-style-clip-children))
+
+;; wxBitmapType enum
+(def bitmap-type-invalid 0)
+(def bitmap-type-bmp 1)
+(def bitmap-type-bmp-resource 2)
+(def bitmap-type-resource bitmap-type-bmp-resource)
+(def bitmap-type-ico (+ bitmap-type-bmp-resource 1))
+(def bitmap-type-ico-resource (+ bitmap-type-bmp-resource 2))
+(def bitmap-type-cur (+ bitmap-type-bmp-resource 3))
+(def bitmap-type-cur-resource (+ bitmap-type-bmp-resource 4))
+(def bitmap-type-xbm (+ bitmap-type-bmp-resource 5))
+(def bitmap-type-xbm-data (+ bitmap-type-bmp-resource 6))
+(def bitmap-type-xpm (+ bitmap-type-bmp-resource 7))
+(def bitmap-type-xpm-data (+ bitmap-type-bmp-resource 8))
+(def bitmap-type-tif (+ bitmap-type-bmp-resource 9))
+(def bitmap-type-tif-resource (+ bitmap-type-bmp-resource 10))
+(def bitmap-type-gif (+ bitmap-type-bmp-resource 11))
+(def bitmap-type-gif-resource (+ bitmap-type-bmp-resource 12))
+(def bitmap-type-png (+ bitmap-type-bmp-resource 13))
+(def bitmap-type-png-resource (+ bitmap-type-bmp-resource 14))
+(def bitmap-type-jpeg (+ bitmap-type-bmp-resource 15))
+(def bitmap-type-jpeg-resource (+ bitmap-type-bmp-resource 16))
+(def bitmap-type-pnm (+ bitmap-type-bmp-resource 17))
+(def bitmap-type-pnm-resource (+ bitmap-type-bmp-resource 18))
+(def bitmap-type-pcx (+ bitmap-type-bmp-resource 19))
+(def bitmap-type-pcx-resource (+ bitmap-type-bmp-resource 20))
+(def bitmap-type-pict (+ bitmap-type-bmp-resource 21))
+(def bitmap-type-pict-resource (+ bitmap-type-bmp-resource 22))
+(def bitmap-type-icon (+ bitmap-type-bmp-resource 23))
+(def bitmap-type-icon-resource (+ bitmap-type-bmp-resource 24))
+(def bitmap-type-ani (+ bitmap-type-bmp-resource 25))
+(def bitmap-type-iff (+ bitmap-type-bmp-resource 26))
+(def bitmap-type-tga (+ bitmap-type-bmp-resource 27))
+(def bitmap-type-maccursor (+ bitmap-type-bmp-resource 28))
+(def bitmap-type-maccursor-resource (+ bitmap-type-bmp-resource 29))
+(def bitmap-type-any 50)
 
 (def feature->style
   {:keep-on-top [frame-style-stay-on-top]

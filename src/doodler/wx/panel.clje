@@ -1,5 +1,6 @@
 (ns doodler.wx.panel
-  (:require [doodler.protocols :as p]
+  (:require [clojure.string :as str]
+            [doodler.protocols :as p]
             [doodler.wx.gui :as gui]))
 
 (declare init-canvas)
@@ -52,7 +53,21 @@
     (wxImage/getData img))
   (resize [_this img w h]
     (wxImage/scale img w h))
-
+  (save [_this filename]
+    (let [ext (-> filename (str/split #"\.") last)
+          ;; Check for no extension
+          ext (if (= ext filename) "" ext)
+          bitmap-type (case ext
+                        "tif" gui/bitmap-type-tif
+                        "png" gui/bitmap-type-png
+                        "jpeg" gui/bitmap-type-jpeg
+                        "jpg" gui/bitmap-type-jpeg
+                        "bmp" gui/bitmap-type-bmp
+                        "" gui/bitmap-type-tif
+                        (do
+                          (println "Unsupported extension" ext ", using TIFF")
+                          gui/bitmap-type-tif))]
+      (wxBitmap/saveFile bitmap filename bitmap-type)))
 
   p/IPrimitives
   (arc [_this x y w h start end]

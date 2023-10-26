@@ -11,7 +11,8 @@
   (image [this img x y] [this img x y w h])
   (get-pixel [this] [this img] [this x y] [this img x y] [this x y w h] [this img x y w h])
   (pixels [this] [this img])
-  (resize [this img w h]))
+  (resize [this img w h])
+  (save [this filename]))
 
 (defprotocol IPrimitives
   (arc [this x y w h start end])
