@@ -13,10 +13,16 @@
   (let [img (d/load-image "resources/pacman.png")
         img (d/resize img 20 20)]
     (d/image img 50 50)
-    ;; println :color-panel (d/get-pixel 10 10)
-    ;;          :color-img (d/get-pixel img 5 5)
-    ;;          :subimage-pane (d/get-pixel 5 5 5 5)
-    ;;          :subimage-img (d/get-pixel img 5 5 5 5))
+    (when (< 20 (d/frame-count) 30)
+      (println :color-panel (d/get-pixel 10 10)
+               :color-img (d/get-pixel img 5 5)
+               :subimage-pane (d/get-pixel 5 5 5 5)
+               :subimage-img (d/get-pixel img 5 5 5 5)))
+    ;; Test save-image
+    (when (< 10 (d/frame-count) 20)
+      (d/save-frame)
+      (d/save-frame "screen-#######.jpg"))
+    ;; Test save
     (when (= (d/frame-count) 200)
       (println "Saving files...")
       (d/save "foo.jpg")

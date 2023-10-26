@@ -68,6 +68,17 @@
                           (println "Unsupported extension" ext ", using TIFF")
                           gui/bitmap-type-tif))]
       (wxBitmap/saveFile bitmap filename bitmap-type)))
+  (save-frame [this frame-count]
+    (p/save-frame this frame-count "screen-####.tif"))
+  (save-frame [this frame-count name]
+    (let [pounds (re-find #"#+" name)
+          frame-count (str frame-count)
+          pad-left (repeat (- (count pounds)
+                              (count frame-count))
+                           "0")
+          n (str (apply str pad-left) frame-count)
+          filename (str/replace name #"#+" n)]
+      (p/save this filename)))
 
   p/IPrimitives
   (arc [_this x y w h start end]

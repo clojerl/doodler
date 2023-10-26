@@ -509,6 +509,22 @@
   [filename]
   (p/save *canvas* (str filename)))
 
+(declare frame-count)
+
+(defn save-frame
+  "Saves an image identical to the current display window as a
+  file. May be called multple times - each file saved will have a
+  unique name. Name and image formate may be modified by passing a
+  string parameter of the form \"foo-####.ext\" where foo- can be any
+  arbitrary string, #### will be replaced with the current frame id
+  and .ext is one of .tiff, .targa, .png, .jpeg or .jpg
+
+  Examples:
+  (save-frame)
+  (save-frame \"pretty-pic-####.jpg\")"
+  ([] (p/save-frame *canvas* (frame-count)))
+  ([name] (p/save-frame *canvas* (frame-count) (str name))))
+
 ;; Stroke & fill
 
 (defn- save-current-stroke
